@@ -9,7 +9,9 @@ export function safeRedirect(
   if (!next || !next.startsWith("/") || next.includes("\\") || hasControlChar(next)) return "/home";
   try {
     const url = new URL(next, origin);
-    return url.origin === origin ? `${url.pathname}${url.search}${url.hash}` : "/home";
+    // Dot segments can normalise "/.//evil" into "//evil" (protocol-relative): reject those too.
+    if (url.origin !== origin || url.pathname.startsWith("//")) return "/home";
+    return `${url.pathname}${url.search}${url.hash}`;
   } catch {
     return "/home";
   }
