@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Build output
+dist/
+build/
+.next/
+out/
+.turbo/
+coverage/
+*.tsbuildinfo
+
+# Foundry
+cache/
+broadcast/*/31337/
+packages/contracts/out/
+packages/contracts/cache/
+
+# Reference implementation (untrusted, read-only, never committed)
+reference-banchor/
+
+# OS / editor
+.DS_Store
+*.log
+.idea/
+.vscode/

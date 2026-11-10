@@ -1,0 +1,133 @@
+# Verified Facts — Robinhood Chain and $WIF
+
+**Date checked:** 2026-11-10 (all rows)
+**Rule:** A value is `VERIFIED` only if it was read on a primary source (Robinhood/Robinhood Chain official docs, Robinhood newsroom/support, or the Arbitrum/Offchain Labs official blog). Anything from third-party sites, hackathon repos, aggregators or search snippets is `UNVERIFIED` no matter how often it repeats. Code and config must read these values from `packages/config` with this file as the review source. Never hard-code a value marked `UNVERIFIED`.
+
+Abbreviations for sources:
+
+| Key | URL |
+| --- | --- |
+| RC-CONNECT | https://docs.robinhood.com/chain/connecting |
+| RC-ROOT | https://docs.robinhood.com/chain/ |
+| RC-WALLET | https://docs.robinhood.com/chain/add-network-to-wallet |
+| RC-FINALITY | https://docs.robinhood.com/chain/transaction-finality |
+| RC-DIFF | https://docs.robinhood.com/chain/differences-from-ethereum |
+| RC-NODE | https://docs.robinhood.com/chain/run-a-full-node |
+| RC-BRIDGE | https://docs.robinhood.com/chain/bridging |
+| RC-GAS | https://docs.robinhood.com/chain/gas-and-fees |
+| RC-AA | https://docs.robinhood.com/chain/account-abstraction |
+| RC-ORACLE | https://docs.robinhood.com/chain/oracles-and-price-feeds |
+| RC-PROTO | https://docs.robinhood.com/chain/protocol-contracts |
+| RC-CONTRACTS | https://docs.robinhood.com/chain/contracts |
+| RC-STOCK | https://docs.robinhood.com/chain/stock-tokens |
+| RC-BUILD | https://docs.robinhood.com/chain/building-with-stock-tokens |
+| RH-SUPPORT | https://robinhood.com/us/en/support/articles/robinhood-chain-mainnet/ |
+| RH-NEWS | https://robinhood.com/newsroom/robinhood-chain-launches-public-testnet/ (dated 2026-02-10) |
+| ARB-BLOG | https://blog.arbitrum.io/robinhood-chain-testnet/ (dated 2026-02-11) |
+
+---
+
+## 1. Robinhood Chain: network
+
+| # | Fact | Value | Source | Status |
+| --- | --- | --- | --- | --- |
+| C-01 | Testnet network name | Robinhood Chain Testnet | RC-CONNECT | VERIFIED |
+| C-02 | Testnet chain ID | `46630` | RC-CONNECT, RC-WALLET, RC-AA | VERIFIED |
+| C-03 | Mainnet chain ID | `4663` | RC-CONNECT, RH-SUPPORT | VERIFIED |
+| C-04 | Mainnet status | Live ("Robinhood Chain is live.") | RC-ROOT | VERIFIED. **Suiem still targets testnet only.** |
+| C-05 | Mainnet launch date | Not stated on primary pages. A 3rd-party post says 2026-07-01 | — | UNVERIFIED (not needed for testnet) |
+| C-06 | Testnet launch date | 2026-02-10 | RH-NEWS | VERIFIED |
+| C-07 | Testnet public RPC | `https://rpc.testnet.chain.robinhood.com` (docs: "not recommended for production") | RC-CONNECT, RC-WALLET | VERIFIED |
+| C-08 | Testnet provider RPC | `https://robinhood-testnet.g.alchemy.com/v2/{API_KEY}`, WS `wss://robinhood-testnet.g.alchemy.com/v2/{API_KEY}`. Alchemy is the "recommended infrastructure provider" | RC-CONNECT | VERIFIED |
+| C-09 | Other testnet RPC providers | dRPC (`https://drpc.org/chainlist/robinhood-testnet-rpc`) is listed. Pinax is listed but its network label is unclear | RC-CONNECT | VERIFIED for dRPC listing. Pinax testnet endpoint UNVERIFIED |
+| C-10 | Testnet explorer | `https://explorer.testnet.chain.robinhood.com` (Blockscout) | RC-CONNECT, ARB-BLOG | VERIFIED |
+| C-11 | Mainnet explorer | `https://robinhoodchain.blockscout.com` | RC-CONNECT, RH-SUPPORT | VERIFIED |
+| C-12 | Gas token | ETH (both networks) | RC-CONNECT, RC-GAS | VERIFIED |
+| C-13 | Stack | Arbitrum Nitro L2 ("an Arbitrum Chain running Arbitrum Nitro"), built on Arbitrum Dedicated Blockchains, Ethereum blobs for DA. ArbOS 61. The docs do **not** use the word "Orbit" | RC-CONNECT, RC-DIFF, RC-NODE | VERIFIED ("Orbit" label UNVERIFIED but immaterial) |
+| C-14 | Parent chain | Ethereum. Testnet rollup contracts are on Sepolia (Rollup `0xdc5F8E399DBd8a9F5F87AeC4C23Beb12431b386D`) | RC-FINALITY, RC-PROTO | VERIFIED |
+| C-15 | Testnet sequencer feed / endpoint | `wss://feed.testnet.chain.robinhood.com` / `https://sequencer.testnet.chain.robinhood.com` | RC-CONNECT | VERIFIED |
+| C-16 | Ordering | Sequencer first-come, first-served. Fees do not buy priority | RC-ROOT, RC-DIFF | VERIFIED |
+| C-17 | Sanctions screening | Sequencer excludes transactions tied to sanctioned addresses | RC-DIFF | VERIFIED |
+| C-18 | `block.number` semantics | Returns an L1 block estimate that updates only periodically. **Contracts must use `block.timestamp`, not `block.number`, for time windows** | RC-DIFF | VERIFIED |
+| C-19 | Block time | No number published | — | UNVERIFIED |
+| C-20 | Status page | `http://status.robinhoodchain.offchain.io/` | RC-ROOT | VERIFIED |
+
+## 2. Finality
+
+| # | Fact | Value | Source | Status |
+| --- | --- | --- | --- | --- |
+| F-01 | Soft confirmation | Sub-second, from the sequencer | RC-FINALITY | VERIFIED |
+| F-02 | Posted to Ethereum | "Minutes" | RC-FINALITY | VERIFIED |
+| F-03 | Ethereum finality | "~13 minutes after posting" | RC-FINALITY | VERIFIED |
+| F-04 | L2→L1 withdrawals | 7-day challenge period | RC-BRIDGE | VERIFIED |
+| F-05 | Whether the stages above hold the same way on testnet (Sepolia parent) | Docs don't separate the networks | — | UNVERIFIED. Indexer uses `finalized`/`safe` block tags plus configurable depth, so it does not depend on this |
+
+**Design consequence (ADR-0002):** the indexer tracks three states: `soft` (sequencer receipt), `safe` (batch posted, RPC `safe` tag) and `final` (RPC `finalized` tag). Election results finalize only after every vote event is `final`.
+
+## 3. Faucet and test assets
+
+| # | Fact | Value | Source | Status |
+| --- | --- | --- | --- | --- |
+| T-01 | Faucet URL | `https://faucet.testnet.chain.robinhood.com` | RH-SUPPORT, RH-NEWS, ARB-BLOG | VERIFIED (the page itself returned HTTP 429 when fetched, so its UI was not inspected) |
+| T-02 | Faucet dispenses | "testnet ETH (used for transaction fees) and test versions of Stock Tokens, including Tesla, Amazon, Palantir, Netflix, and AMD, with more to come" | ARB-BLOG | VERIFIED (Arbitrum official blog; not repeated in docs.robinhood.com) |
+| T-03 | Faucet amounts / cooldown | Third-party guides disagree (0.01 ETH + 5 tokens per 24h, etc.) | — | UNVERIFIED |
+| T-04 | Testnet asset value | "Testnet tokens have no real-world value and are only for development use." | RH-SUPPORT, ARB-BLOG | VERIFIED |
+| T-05 | Testnet Stock Token **contract addresses** (TSLA, AMZN, PLTR, NFLX, AMD) | Not published in fetched content. The `/chain/contracts` token table renders client-side and was not readable | — | **UNVERIFIED. Blocks Phase 4 registry seeding** |
+| T-06 | Testnet Stock Token decimals | Mainnet Stock Tokens are ERC-20 with 18 decimals (RC-STOCK). Testnet not stated | RC-STOCK | UNVERIFIED for testnet. Read `decimals()` onchain at registration time |
+| T-07 | Testnet L2 WETH | `0x7943e237c7F95DA44E0301572D358911207852Fa` | RC-PROTO | VERIFIED |
+| T-08 | Testnet L2 Multicall (Arbitrum `Multicall2`-style, **not** canonical Multicall3) | `0xa432504b6F04Cafe775b09D8AA92e8dbe41Ec7a8` | RC-PROTO | VERIFIED |
+| T-09 | Canonical Multicall3 `0xcA11bde05977b3631167028862bE2a173976CA11` on testnet | Not listed | — | UNVERIFIED. Check `eth_getCode` before use |
+| T-10 | Permit2 (both networks) | `0x000000000022D473030F116dDEE9F6B43aC78BA3` | RC-PROTO | VERIFIED |
+| T-11 | Testnet L2 Gateway Router | `0x77bF00A6A90c600f214b34BAFBB7918c0cF113A8` | RC-PROTO | VERIFIED |
+| T-12 | Testnet stablecoin (USDG or other) | USDG is listed for mainnet only (`0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168`, unlabeled network on RC-CONTRACTS) | RC-CONTRACTS | Testnet stablecoin UNVERIFIED |
+
+## 4. Account abstraction and wallets
+
+| # | Fact | Value | Source | Status |
+| --- | --- | --- | --- | --- |
+| A-01 | ERC-4337 support | "first-class support for ERC-4337 account abstraction". EIP-7702 also supported | RC-AA | VERIFIED (network-generic statement) |
+| A-02 | EntryPoint v0.7.0 / v0.8.0 | `0x0000000071727De22E5E9d8BAf0edAc6f37da032` / `0x4337084D9E255Ff0702461CF8895CE9E3b5Ff108` (listed under chain 4663) | RC-AA | VERIFIED for **mainnet**. Testnet deployment UNVERIFIED (check with `eth_getCode`) |
+| A-03 | Bundler / paymaster providers | Alchemy (primary, Gas Manager policy), ZeroDev (`.../chain/4663`), Privy, Dynamic | RC-AA | VERIFIED for mainnet. **Testnet bundler/paymaster URLs UNVERIFIED** |
+| A-04 | Session keys | "session key support" mentioned, no mechanism specified | RC-AA | UNVERIFIED as to implementation |
+| A-05 | Passkey (WebAuthn / P-256) smart accounts | Not mentioned | — | UNVERIFIED. Depends on the chosen provider (e.g. ZeroDev/Alchemy WebAuthn validators) and whether RIP-7212 P-256 precompile exists on ArbOS 61 (not checked) |
+| A-06 | Recommended wallets | Robinhood Wallet. "EVM Wallets (MetaMask and more)" | RC-WALLET | VERIFIED |
+
+## 5. Stock Tokens (mainnet product: context for the "never present as real shares" rule)
+
+| # | Fact | Value | Source | Status |
+| --- | --- | --- | --- | --- |
+| S-01 | Issuer | Robinhood Assets (Jersey) Limited ("RHJ"), Jersey reg. 162428 | RC-STOCK | VERIFIED |
+| S-02 | Legal nature | "tokenised debt securities". Holders get "economic exposure" and **no** legal or beneficial rights in the underlying shares | RC-STOCK | VERIFIED |
+| S-03 | Standard | ERC-20, 18 decimals. Corporate actions via `uiMultiplier()` (ERC-8056) with static balances | RC-STOCK | VERIFIED |
+| S-04 | Restrictions | Not registered under US securities laws. Not offered to US persons. Restrictions also apply in Canada, UK and Switzerland | RC-STOCK | VERIFIED. **India: not mentioned → legal question OQ-L-02** |
+| S-05 | Primary issuance | Only Authorised Participants (at issuance: BBVI), KYB required. Mint window Mon 02:00 – Sat 02:00 CET/CEST | RC-STOCK | VERIFIED |
+| S-06 | Mainnet venues | RFQ (0x RFQ, 1inch Fusion, LiFi), AMMs (Uniswap), propAMM Rialto, Lighter (spot & perps) | RC-BUILD | VERIFIED (mainnet). **Testnet venue: none found → UNVERIFIED** |
+| S-07 | Price oracle | Chainlink. Stock feeds update 24/5. Feed addresses are only at `https://docs.chain.link/data-feeds/price-feeds/addresses?network=robinhood` | RC-ORACLE | Provider VERIFIED. Testnet feed addresses UNVERIFIED (not fetched) |
+
+## 6. $WIF
+
+| # | Fact | Value | Source | Status |
+| --- | --- | --- | --- | --- |
+| W-01 | Token exists on Robinhood Chain mainnet | Listing titles "World is Flat (WIF)" on CoinMarketCap. Multiple hackathon repos build on it | coinmarketcap.com/currencies/world-is-flat (fetch failed), github.com/DevDee3/Flat-ballot, github.com/angelraph/equalship | UNVERIFIED (no primary source reached) |
+| W-02 | Name | "World is Flat" (CMC title) vs "World is Fair" (voting system name in 3rd-party READMEs) | as above | UNVERIFIED. The relation between the two names needs PO confirmation |
+| W-03 | Contract address | `0x5173b8eA6923c2d40267890D45C46a3480954773` **appears in two third-party hackathon READMEs only** | Flat-ballot, Equalship READMEs | **UNVERIFIED. DO NOT USE. PO confirmation item OQ-P-01.** Recorded only so reviewers can compare it with the official source |
+| W-04 | Lookalikes | The brief reports several WIF-named tokens on Robinhood Chain, including a bridged "Bitstamp WIF" | brief | UNVERIFIED. Treated as an active impersonation risk |
+| W-05 | Launchpad / supply | Pons v2, fixed 1B supply | brief, atomicwallet.io article on Pons | UNVERIFIED |
+| W-06 | Decimals | 18 (Equalship README comment) | 3rd party | UNVERIFIED |
+| W-07 | `burn()` that lowers `totalSupply` | Equalship README: "Every burn calls `WIF.burn()` and lowers total supply" | 3rd party | UNVERIFIED. Must be checked against verified source on Blockscout |
+| W-08 | Voting mechanic | Conflicting: (a) brief: send WIF to a candidate deposit address, collected tokens destroyed after the event; (b) Flat-ballot: "Voters send $WIF to the option they back. Every vote is burned." (per-option deposit address); (c) Equalship: `vote` burns directly, 1 WIF per vote, farmed-vote check offchain after close | brief + 3rd party | **UNVERIFIED and conflicting → OQ-P-02** |
+| W-09 | Testnet deployment of $WIF | None found | — | UNVERIFIED (assume none). Suiem uses `TestWIF` (ADR-0005) |
+| W-10 | Official World is Fair site/docs | Not found | — | UNVERIFIED → OQ-P-01 |
+
+## 7. Banchor reference chain (for contrast)
+
+| # | Fact | Value | Source | Status |
+| --- | --- | --- | --- | --- |
+| B-01 | Banchor chain | Monad Testnet, chain 10143 | `reference-banchor/web/lib/config.ts`, `extension/background.js:9` | VERIFIED from code. **Irrelevant to Suiem. No Banchor address is reusable** |
+
+## Re-verification
+
+Run this checklist again before Phase 4 (instrument registry) and Phase 7 (contract deploy), and record the new date:
+1. `eth_chainId` on the testnet RPC returns `0xb626` (46630).
+2. `eth_getCode` is non-empty for EntryPoint v0.7/v0.8, Multicall3, Permit2 and each Stock Token address before it enters the registry.
+3. Each Stock Token's `name/symbol/decimals` is read onchain and the source is verified on Blockscout.
