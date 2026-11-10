@@ -53,7 +53,7 @@ export async function seed(url: string): Promise<{ entities: number; instruments
         `INSERT INTO entities (id, canonical_id, name, legal_name, kind, sector, country)
          VALUES ($1, $2, $3, $4, $5, $6, $7)
          ON CONFLICT (canonical_id) DO UPDATE SET name = EXCLUDED.name RETURNING id`,
-        [newId(), `ent:${e.slug}`, e.name, e.legalName, e.kind, e.sector, e.country],
+        [newId(), e.canonicalId, e.name, e.legalName, e.kind, e.sector, e.country],
       );
       const id = r.rows[0]!.id;
       entityIds.set(e.slug, id);
@@ -61,7 +61,7 @@ export async function seed(url: string): Promise<{ entities: number; instruments
         await client.query(
           `INSERT INTO entity_aliases (id, entity_id, alias, alias_type, ambiguous) VALUES ($1, $2, $3, $4, $5)
            ON CONFLICT (entity_id, alias, alias_type) DO NOTHING`,
-          [newId(), id, a.alias, a.type, a.ambiguous ?? false],
+          [newId(), id, a.alias, a.type, a.ambiguous],
         );
       }
     }

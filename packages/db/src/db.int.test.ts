@@ -70,9 +70,9 @@ describe("migrations", () => {
 });
 
 describe("seed", () => {
-  test("loads ~30 entities with aliases and 5 unverified testnet Stock Token instruments", async () => {
+  test("loads ~40 entities with aliases and 5 unverified testnet Stock Token instruments", async () => {
     const e = await db.query("SELECT count(*)::int AS n FROM entities");
-    expect(e.rows[0].n).toBe(30);
+    expect(e.rows[0].n).toBe(40);
     const amb = await db.query("SELECT alias FROM entity_aliases WHERE ambiguous ORDER BY alias");
     expect(amb.rows.map((r) => r.alias)).toEqual(
       expect.arrayContaining(["Apple", "Meta", "V", "Visa"]),

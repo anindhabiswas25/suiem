@@ -10,6 +10,7 @@ export type ExtensionState = (typeof EXTENSION_STATES)[number];
 export const detectionSchema = z
   .object({
     entityId: z.string().regex(/^ent:[a-z0-9-]+$/),
+    entityKind: z.enum(["company", "product", "fund", "index", "crypto"]),
     candidateTickers: z.array(z.string().max(12)).max(5),
     confidence: z.number().min(0).max(1),
     contextCategory: z.enum(["company_reference", "possible_match", "ambiguous"]),
