@@ -92,6 +92,27 @@ Abbreviations for sources:
 | A-05 | Passkey (WebAuthn / P-256) smart accounts | Not mentioned | — | UNVERIFIED. Depends on the chosen provider (e.g. ZeroDev/Alchemy WebAuthn validators) and whether RIP-7212 P-256 precompile exists on ArbOS 61 (not checked) |
 | A-06 | Recommended wallets | Robinhood Wallet. "EVM Wallets (MetaMask and more)" | RC-WALLET | VERIFIED |
 
+### 4a. Phase 2 AA verification spike (ADR-0002 §3), 2026-11-10
+
+Method: read-only JSON-RPC against `https://rpc.testnet.chain.robinhood.com` (no transactions, no keys). `eth_chainId` returned `0xb626` (46630). Latest block at probe time was `0x905752d`. Genesis hash `0x829a42e6d68c872aafcef3abb2123fe371138fc415dd8b44381bbbf23049dd32` (stored for testnet-reset detection, ADR-0002 §1). Bytecode identity was checked by comparing SHA-256 of `eth_getCode` on testnet vs mainnet (`https://rpc.mainnet.chain.robinhood.com`).
+
+| # | Fact | Value | Status |
+| --- | --- | --- | --- |
+| A-07 | EntryPoint v0.6.0 on testnet | `0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789`: code present (23,689 bytes), bytecode identical to mainnet | VERIFIED (onchain probe) |
+| A-08 | EntryPoint v0.7.0 on testnet | `0x0000000071727De22E5E9d8BAf0edAc6f37da032`: code present (16,035 bytes), identical to mainnet | VERIFIED (onchain probe) |
+| A-09 | EntryPoint v0.8.0 on testnet | `0x4337084D9E255Ff0702461CF8895CE9E3b5Ff108`: code present (21,738 bytes). **Bytecode differs from mainnet.** That is consistent with chain-ID-dependent EIP-712 immutables, but source identity is not checked | Code present VERIFIED. Equivalence UNVERIFIED (check verified source on Blockscout before use) |
+| A-10 | Safe 4337 Module v0.3.0 / Module Setup on testnet | `0x75cf11467937ce3F2f357CE24ffc3DBF8fD5c226` (identical to mainnet) / `0x2dd68b007B46fBe91B9A7c3EDa5A7a1063cB5b47` (code present) | VERIFIED (onchain probe) |
+| A-11 | SenderCreator v0.7 on testnet | `0xEFC2c1444eBCC4Db75e7613d20C6a62fF67A167C`: code present | VERIFIED (onchain probe) |
+| A-12 | RIP-7212 P-256 verify precompile at `0x…0100` | A freshly generated valid P-256 signature returned `0x…01`. A tampered signature returned `0x` | VERIFIED (onchain probe). Passkey signature verification is natively available |
+| A-13 | Testnet ERC-4337 **bundler** (Alchemy/ZeroDev for 46630) | Can't be checked without a provider account/API key | UNVERIFIED |
+| A-14 | Testnet **paymaster** | Same | UNVERIFIED (and OFF by PO decision OQ-S-02) |
+| T-13 | Canonical Multicall3 on testnet | `0xcA11bde05977b3631167028862bE2a173976CA11`: code present (3,808 bytes) | Code present VERIFIED (supersedes T-09's UNVERIFIED) |
+| T-14 | Permit2 on testnet | `0x000000000022D473030F116dDEE9F6B43aC78BA3`: code present | VERIFIED (onchain probe, consistent with T-10) |
+| T-15 | Safe v1.4.1 singleton / proxy factory (canonical addresses) | `0x41675C099F32341bf84BFc5382aF534df5C7461a` / `0x4e1DCf7AD4e460CfD30791CCC4F9C8a4f820ec67`: code present | Code present VERIFIED. Source identity UNVERIFIED (relevant to OQ-S-03) |
+| C-21 | Testnet genesis hash | `0x829a42e6d68c872aafcef3abb2123fe371138fc415dd8b44381bbbf23049dd32` | VERIFIED (onchain probe) |
+
+**Outcome (per PO decision OQ-PR-05):** the AA *contracts* and P-256 verification exist on testnet, but bundler and paymaster availability is unverified. So AA is **not confirmed end-to-end**. Phase 2 ships **external wallets via SIWE only** with a stubbed `SmartAccountProvider` interface. Re-check A-13 once a provider account exists.
+
 ## 5. Stock Tokens (mainnet product: context for the "never present as real shares" rule)
 
 | # | Fact | Value | Source | Status |

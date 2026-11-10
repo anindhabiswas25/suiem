@@ -4,15 +4,16 @@ Format: Context → Decision → Consequences → Open items. Statuses are `Prop
 
 | ADR | Title | Status |
 | --- | --- | --- |
-| [0001](0001-product-boundaries.md) | Product boundaries and forbidden behaviours | Proposed |
-| [0002](0002-chain-and-wallet.md) | Chain configuration and wallet model | Proposed |
-| [0003](0003-data-and-privacy.md) | Data, privacy, financial data providers and portfolio visibility | Proposed |
-| [0004](0004-investment-execution.md) | Investment execution and venue adapters | Proposed |
-| [0005](0005-reputation-and-voting.md) | Reputation score and $WIF voting | Proposed |
-| [0006](0006-ai-providers-and-research.md) | AI providers and research orchestration | Proposed |
-| [0007](0007-mobile-strategy.md) | Mobile strategy | Proposed |
-| [0008](0008-sponsored-rewards.md) | Sponsored rewards and campaign escrow | Proposed |
-| [0009](0009-monorepo-and-stack.md) | Monorepo layout and technology stack | Proposed |
+| [0001](0001-product-boundaries.md) | Product boundaries and forbidden behaviours | Accepted (Phase 1 approved) |
+| [0002](0002-chain-and-wallet.md) | Chain configuration and wallet model | Accepted (Phase 1 approved) |
+| [0003](0003-data-and-privacy.md) | Data, privacy, financial data providers and portfolio visibility | Accepted (Phase 1 approved) |
+| [0004](0004-investment-execution.md) | Investment execution and venue adapters | Accepted (Phase 1 approved) |
+| [0005](0005-reputation-and-voting.md) | Reputation score and $WIF voting | Accepted (Phase 1 approved) |
+| [0006](0006-ai-providers-and-research.md) | AI providers and research orchestration | Accepted (Phase 1 approved) |
+| [0007](0007-mobile-strategy.md) | Mobile strategy | Accepted (Phase 1 approved) |
+| [0008](0008-sponsored-rewards.md) | Sponsored rewards and campaign escrow | Accepted (Phase 1 approved) |
+| [0009](0009-monorepo-and-stack.md) | Monorepo layout and technology stack | Accepted (Phase 1 approved) |
+| [0010](0010-admin-dual-control-single-maintainer.md) | Admin RBAC, dual control, single-maintainer mode | Accepted |
 
 ## PRD §25 decision traceability
 
