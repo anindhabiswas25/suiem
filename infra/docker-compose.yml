@@ -1,0 +1,56 @@
+# Local development stack only (PO decision OQ-S-01). Nothing here is for any shared environment.
+# Credentials below are LOCAL-ONLY defaults and protect nothing of value; override via environment.
+name: suiem
+services:
+  postgres:
+    image: postgres:16.11-alpine
+    environment:
+      POSTGRES_USER: suiem_owner
+      POSTGRES_PASSWORD: ${SUIEM_PG_OWNER_PASSWORD:-local_only_owner}
+      POSTGRES_DB: suiem
+      SUIEM_APP_PASSWORD: ${SUIEM_PG_APP_PASSWORD:-local_only_app}
+      SUIEM_SYSTEM_PASSWORD: ${SUIEM_PG_SYSTEM_PASSWORD:-local_only_system}
+    ports: ["127.0.0.1:5432:5432"]
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./postgres/init-roles.sh:/docker-entrypoint-initdb.d/10-init-roles.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U suiem_owner -d suiem"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+  redis:
+    image: redis:7.4.6-alpine
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    ports: ["127.0.0.1:6379:6379"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+  mailpit:
+    image: axllent/mailpit:v1.28.0
+    ports: ["127.0.0.1:1025:1025", "127.0.0.1:8025:8025"]
+    healthcheck:
+      test: ["CMD", "/mailpit", "readyz"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+  anvil:
+    # Local chain for tests only. It uses chain-id 46630 so boot checks pass offline.
+    # It is NOT Robinhood Chain and holds nothing of value.
+    image: ghcr.io/foundry-rs/foundry:v1.8.3
+    entrypoint: ["anvil", "--host", "0.0.0.0", "--chain-id", "46630", "--port", "8545"]
+    ports: ["127.0.0.1:8545:8545"]
+    healthcheck:
+      test: ["CMD", "cast", "chain-id", "--rpc-url", "http://127.0.0.1:8545"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.139.0
+    command: ["--config=/etc/otelcol/config.yaml"]
+    volumes: ["./otel/collector.yaml:/etc/otelcol/config.yaml:ro"]
+    ports: ["127.0.0.1:4318:4318"]
+volumes:
+  pgdata:

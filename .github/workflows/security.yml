@@ -1,0 +1,30 @@
+name: security
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "17 3 * * *"
+permissions:
+  contents: read
+jobs:
+  gitleaks:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+        with: { fetch-depth: 0 }
+      # Same pinned image and config as `pnpm check:secrets`.
+      - run: docker run --rm -v "$PWD:/repo" -w /repo zricethezav/gitleaks:v8.30.0 detect --source /repo --config /repo/.gitleaks.toml --redact --no-banner
+  osv-scanner:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - run: docker run --rm -v "$PWD:/src" -w /src ghcr.io/google/osv-scanner:v2.3.2 scan source --lockfile=/src/pnpm-lock.yaml
+  pnpm-audit:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with: { node-version-file: .nvmrc }
+      - run: pnpm audit --audit-level high

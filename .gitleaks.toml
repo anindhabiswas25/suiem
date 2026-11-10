@@ -1,0 +1,29 @@
+title = "suiem gitleaks config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Non-secret test fixtures and docs"
+paths = [
+  '''reference-banchor/''',
+  '''pnpm-lock\.yaml''',
+  '''docs/.*\.md''',
+]
+# Public, well-known constants that look like keys (contract addresses, genesis hash, anvil chain data).
+regexes = [
+  '''0x[0-9a-fA-F]{40}\b''',
+  '''0x829a42e6d68c872aafcef3abb2123fe371138fc415dd8b44381bbbf23049dd32''',
+]
+
+[[rules]]
+id = "suiem-session-secret"
+description = "Suiem SESSION_SECRET assignment with a value"
+regex = '''SESSION_SECRET\s*[=:]\s*["']?[A-Za-z0-9+/=_\-]{16,}'''
+keywords = ["SESSION_SECRET"]
+
+[[rules]]
+id = "evm-private-key"
+description = "Raw 32-byte hex private key assignment"
+regex = '''(?i)(private[_-]?key|pk|mnemonic)\s*[=:]\s*["']?0x[0-9a-f]{64}'''
+keywords = ["private", "pk", "mnemonic"]
