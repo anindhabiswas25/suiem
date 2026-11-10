@@ -1,114 +1,118 @@
-You are the staff engineer for Suiem. Phase 1 (discovery and architecture) is complete and APPROVED by the product owner. This is PHASE 2 of 8: Platform Foundation. Target: Robinhood Chain TESTNET 46630 only. No mainnet, no real funds, no real securities.
+You are the staff engineer for Suiem. Phase 1 (discovery, architecture, ADRs) is done and approved.
 
-## Read first (in this order, completely)
+## The product owner has changed direction (read carefully)
 
-1. `PRD.md`, focusing on §0.2, §5.1, §13–§16, §19, §20, §22 and §24
-2. `docs/IMPLEMENTATION_PLAN.md`: the Phase 2 section (epics E2.1–E2.11, acceptance and exit criteria) is your contract
-3. `docs/ARCHITECTURE.md`: §5 trust boundaries, §6 data model conventions, §7 stack, §8 threat model (TM-01, TM-17, TM-18 and TM-19 are Phase 2 exit items), §9 monorepo layout and dependency rules
-4. `docs/ADR/0002-chain-and-wallet.md`, `0003-data-and-privacy.md`, `0009-monorepo-and-stack.md`, and `docs/ADR/README.md`
-5. `docs/VERIFIED_FACTS.md` and `docs/decisions/OPEN_QUESTIONS.md`
+We are entering the **world is flat hackathon** (https://worldisflat.fun/build/rules). **Submissions close 12 Nov 2026, 17:30 UTC.** Edits lock then, and the app must stay live and working until the final closes (16 Nov 17:30 UTC).
 
-Do not re-audit `reference-banchor/`. It is read-only reference material, and none of its code is copied in this phase.
+The goal is the **whole Suiem product flow working end to end, as a real working demo**: extension → AI research → thesis/watchlist → testnet Stock Token order → social → 50/50 reputation → $WIF election on mainnet → results.
 
-## Product-owner decisions for Phase 2 blockers (record them)
+**Deferred until after the hackathon:** production hardening. That means external audits, legal sign-off, pen tests, load tests, enterprise admin (dual control), cloud secret managers, full RLS coverage and multi-provider failover. Keep the Phase 1 architecture (module boundaries, schemas, viem, the money library), but build the thinnest version of each piece that works for real.
 
-Update `docs/decisions/OPEN_QUESTIONS.md`, marking these RESOLVED with today's date. Add `docs/decisions/0001-phase-2-po-decisions.md` that summarizes them.
+### Hackathon rules that are now requirements
 
-- **OQ-P-13**: APPROVED. Suiem never integrates Banchor's growth loops (scroll-to-buy, scroll dividends, detox auto-buy, highlight auto-execution, one-tap copy mirroring), including future "opt-in" variants.
-- **OQ-P-05**: Login is **email OTP + passkey (WebAuthn)**. No OAuth in Phase 2 (keep an `AuthMethod` extension point). SIWE is allowed **only for linking a wallet**, never as a login method.
-- **OQ-P-06**: Single-maintainer mode. Implement the dual-control primitive properly. In local/dev, a second seeded admin can approve. Document the risk in the ADR.
-- **OQ-S-01**: Local development only in Phase 2. No cloud deploys. Use Docker Compose for Postgres 16, Redis, Mailpit, anvil and an OTel collector. Secrets come from git-ignored `.env`, read through a `SecretProvider` interface so a cloud secret manager can drop in later.
-- **OQ-PR-03**: Use the public testnet RPC for development. The Alchemy testnet endpoint is optional and enabled when `ALCHEMY_API_KEY` is set (viem `fallback([alchemy, public])` per ADR-0002).
-- **OQ-PR-05**: Run the ADR-0002 §3 AA verification spike first (read-only: `eth_getCode` for EntryPoint v0.7/v0.8 on 46630, testnet bundler/paymaster availability, P-256/RIP-7212). Record the results in `VERIFIED_FACTS.md`. If AA is not confirmed on testnet, ship **external wallets via SIWE only** and leave a stubbed `SmartAccountProvider` interface.
-- **OQ-S-02**: Gas sponsorship / paymaster is OFF in Phase 2.
-- **OQ-P-14**: Do NOT install or run Banchor's code. It is not needed.
-- Email delivery: an `EmailProvider` interface. Mailpit (SMTP) locally. No real email vendor yet.
+1. The project must use **$WIF onchain on Robinhood Chain**, with **real transactions**. $WIF exists only on **mainnet (chain 4663)**.
+2. It needs a **flywheel** that keeps bringing people back to $WIF. Judges look for "a real reason to use $wif, a flywheel that holds up, and something that works and is built well".
+3. Proof required: a repo (public, or invite GitHub `wifonrh`), a demo video, and real transactions.
+4. Names, logos and copy must **not use Robinhood's name or logo**, and must follow https://docs.robinhood.com/chain/brand-guidelines. Add the organiser's disclaimer style: "not affiliated with Robinhood Markets, Inc."
+5. Stock Token features must respect Robinhood's restricted list: US, Canada, UK and Switzerland, plus Cuba, Belarus, Iran, North Korea, Russia, Syria, Ukraine, South Sudan, Sudan, Myanmar and Venezuela (https://docs.robinhood.com/rhj/restricted-jurisdictions).
 
-If something else blocks you, add it to OPEN_QUESTIONS.md, choose the safest reversible default, and tell me at the end. Do not silently guess on anything financial, privacy-related or security-related.
+### $WIF facts from the organiser's live API (`GET https://worldisflat.fun/build/api/vote-window`, read 2026-11-10)
 
-## Git workflow
+- chain_id `4663` (mainnet), $WIF token `0x5173b8ea6923c2d40267890d45c46a3480954773`, decimals `18`
+- The hackathon's own vote contract is `0xd1b711917a405782da2ec650a0ee4711a76a5535`. It uses `vote(uint256,uint256,uint256)`, emits `Voted(address,uint256,uint256)`, and 1 $WIF = 1 vote, burned.
 
-1. The repo has no commits yet. First commit the Phase 1 docs as they are: `docs: phase 1 discovery, architecture and ADRs` (include PRD.md, Suiem_PRD.md, docs/, prompts/, .gitignore; reference-banchor/ stays ignored).
-2. Create branch `phase-2/platform-foundation` and work there.
-3. Make small, focused commits per milestone, using conventional commit messages. Never commit `.env` or secrets. Do not push. There is no remote.
+Add these to `docs/VERIFIED_FACTS.md` with source "organiser API" and status `VERIFIED (organiser source)`. Before Sprint 7 we will check onchain (`eth_getCode`, Blockscout ABI) whether the token exposes `burn`/`burnFrom`, and how the organiser's contract burns. Do not do that onchain check now. Just log it as a Sprint 7 task.
 
-## Scope: build these epics in this order
+## Two-network architecture (new ADR)
 
-**M1. Monorepo + tooling (E2.1)**
-pnpm workspaces + Turborepo, matching the ARCHITECTURE §9 layout. Create only the packages Phase 2 needs: `apps/web`, `apps/api`, `packages/{config,shared,db,chain,ui}`, `infra/docker-compose.yml`. Use placeholder READMEs for later apps/workers (extension, research, indexer, etc.). Strict TS. ESLint + Prettier. dependency-cruiser enforcing the §9 rules, including "extension must not depend on chain" and "research must not depend on chain write builders". Pin exact versions and commit the lockfile. Use the `onlyBuiltDependencies` allowlist. Node and pnpm versions go in `.nvmrc` / `packageManager`.
+| Feature | Network |
+|---|---|
+| $WIF elections, burn-to-vote, optional $WIF tips to research authors | **Mainnet 4663**, real $WIF |
+| Optional USDG reward pool for election winners (stretch) | Mainnet, small and prefunded |
+| Stock Token buy flow | **Testnet 46630** (faucet Stock Tokens if their addresses are verified, otherwise a clearly labelled Suiem demo venue and demo tokens) plus a simulated book |
+| Extension, research, theses, social, reputation | Off-chain (Postgres). Nothing private onchain |
 
-**M2. CI (E2.2)**
-GitHub Actions workflows (written now, run later): typecheck, lint, dep-cruiser, unit, integration (Testcontainers), `forge build` placeholder for `packages/contracts` (empty Foundry project is OK), Gitleaks, osv-scanner, CodeQL. PR template containing the PRD §24 Definition-of-Done checklist. Also make every check runnable locally through `pnpm` scripts, and run them yourself.
+Every onchain action in the UI shows a network badge ("Mainnet · real $WIF" vs "Testnet · no value"). The reputation score is never affected by $WIF votes or holdings.
 
-**M3. Database (E2.4)**
-`packages/db` with Drizzle + plain SQL migrations. Conventions from ARCHITECTURE §6: UUIDv7, `numeric(78,0)` token amounts plus `decimals`, `numeric(20,6)` fiat with currency, `bytea` addresses + `chain_id`, `book enum('simulated','testnet','live')` with `live` CHECK-blocked. Phase 2 tables only: `users`, `user_auth_methods`, `user_sessions`, `devices`, `wallet_accounts`, `user_preferences`, `profiles` (minimal), `consent_records`, `policy_versions`, `audit_logs`, `idempotency_keys`, `outbox_events`, `feature_flags`, `jurisdiction_policies`, `policy_decisions`, `admin_roles`, `admin_actions`, `dual_control_requests`, `data_requests`. RLS on user-owned tables keyed by `app.user_id`. Append-only triggers on `consent_records`, `audit_logs`, `policy_decisions` and `admin_actions`. Seed script for local dev.
+**The flywheel to document:** users research and publish theses → the community votes on weekly "Research Contributor" and "Investor" elections by burning $WIF → winners get a profile spotlight, plus a prefunded USDG prize if available → more research and more votes. Reputation stays independent.
 
-**M4. Shared foundations (`packages/shared`)**
-Zod schemas, the API error envelope, a decimal-safe money/amount library with tests (no floats, ever, enforced by a lint rule on money modules), the consent state machine, the WARC event taxonomy (PRD §2.3), and ID utilities. No runtime I/O.
+## The 8 sprints (write these into docs/HACKATHON_PLAN.md)
 
-**M5. API skeleton + Auth (E2.3)**
-NestJS on Fastify. `/api/v1`, OpenAPI generated from Zod, a structured error envelope, request validation, idempotency-key interceptor for writes, rate limiting (Redis), audit context. Auth: email OTP (hashed, short TTL, attempt-limited) + passkey register/login (WebAuthn, `@simplewebauthn/server`). HttpOnly + Secure + SameSite session cookies, session rotation, CSRF protection. Endpoints: `POST /auth/register`, `/auth/login` (+ OTP and passkey ceremony routes), `/auth/logout`, `GET/PATCH /me`, `GET/POST /me/consents`, `GET /me/data-inventory`, `POST /me/data-requests` (export/delete jobs as skeletons that record status).
+Times are rough targets in UTC. Each sprint ends with a commit, a short `docs/sprints/SPRINT_N.md` report, and a STOP for my approval.
 
-**M6. User/profile + onboarding (E2.5, E2.6)**
-Preferences, interests (skippable, editable), experience level. Versioned terms and privacy policies. Consent recorded with policy version + timestamp. Consent withdrawal. Data inventory. Web onboarding flow per PRD §5.1 steps 1–9 and 12–13 (the extension offer is a placeholder until Phase 3). **No wallet and no funding is required to finish onboarding.** No token or order code path exists anywhere.
+1. **Discovery.** DONE (Phase 1).
+2. **Foundation + app shell (this sprint, about 5h).** Monorepo, DB schema for the whole demo, auth, wallet on both networks, app shell with every route, design system, deploy-ready.
+3. **Suiem Intelligence extension (about 6h).** WXT MV3, ON/PAUSED/OFF/PRIVATE that truly gate work, local entity detection, dismissible notification, side panel, user-invoked research, local daily digest.
+4. **AI research + registry + watchlist + thesis (about 6h).** Entity/instrument registry seed, research pipeline (Claude API, structured brief schema with citations, real retrieved sources only), research page, watchlists, thesis create/version/publish.
+5. **Invest on testnet (about 5h).** Portfolio, order preview (quote time, fees, slippage, network), user-signed testnet buy, reconciliation from the receipt, simulated book kept separate.
+6. **Social + reputation (about 6h).** Feed, profiles with privacy, follow, publish, comments, helpful votes, the 50/50 Suiem Score v1 with a "Building track record" maturity state, leaderboard, methodology page.
+7. **$WIF economy on mainnet (about 7h).** `SuiemElections` contract (burn-to-vote, holds no tokens, no upgradeability), tests on an anvil fork of 4663, indexer, elections UI with an irreversible-burn review screen, results. **Mainnet deploy only after I approve in that sprint.** Optional USDG prize escrow.
+8. **Ship + submit (about 6h, finishing before 12 Nov 15:00 UTC).** Hosted deploy, Playwright golden-path E2E across the whole flow, seed demo data, demo video script, README, submission text, list of real transactions, uptime check until 16 Nov.
 
-**M7. Wallet abstraction (E2.7)**
-`packages/chain`: the chain config for 46630 lives in `packages/config/chains/robinhood-testnet.ts`, and each value cites its `VERIFIED_FACTS` row ID. Every service asserts `eth_chainId === 46630` at boot and refuses to start otherwise. Viem public clients only, with no write builders yet. Wallet linking with SIWE (EIP-4361): server nonce, domain/URI/chainId 46630 binding, expiry, single-use nonce. `POST /wallet/link`, `DELETE /wallet/link/:id`. The web app uses wagmi to connect any EIP-1193 wallet. The custody-model and risk explanation screen comes before linking (PRD §5.1 step 6). Private keys never touch the backend.
+Then write `docs/ADR/0010-hackathon-scope-and-two-networks.md`. It supersedes the testnet-only parts of ADR-0001/0002/0005 and records the mainnet exception: real $WIF value is at risk, so the contract must hold no funds, keep minimal code and be fork-tested. Update `docs/decisions/OPEN_QUESTIONS.md` with the PO decisions below.
 
-**M8. Feature flags + jurisdiction policy (E2.8)**
-Server-side flags and policy engine. Every decision is logged with policy version and reason. Flags: `trading.live` (hard-off: no API, admin or DB path can enable it; enforced by a test and a DB CHECK), `trading.simulated`, `elections`, `campaigns`. Jurisdiction default: live trading disabled everywhere. India is research/education/simulation only (PRD §17). Navigation in the web app is flag- and policy-aware, with server enforcement as the source of truth.
+## PO decisions for this sprint
 
-**M9. Observability (E2.9)**
-OpenTelemetry traces, metrics and logs (Pino) to a local collector. An **allowlist-based redactor**, so no emails, addresses, OTPs, tokens, cookies or page text reach logs. WARC event emission hooks.
+- Auth: **passkey (WebAuthn) + Sign-In With Ethereum** (SIWE, EIP-4361, accepted on chain 4663 or 46630). No email (it would need a mail vendor for the hosted demo). Judges have wallets anyway, since they vote. Basic research works after login without any funded wallet.
+- Banchor growth loops are never integrated (OQ-P-13 approved). No auto-buy of any kind.
+- Hosting target (deploy happens in Sprint 8, but stay deploy-ready from now): **Vercel** for `apps/web`, **Railway** (or similar) for `apps/api` + Postgres + Redis. Keep config 12-factor through env vars. Do not deploy in this sprint.
+- RPC: public endpoints for both networks, with Alchemy optional via env.
+- No gas sponsorship. External wallets (MetaMask, Rabby, Robinhood Wallet, any EIP-1193) through wagmi. No smart accounts for the hackathon.
+- AI: Claude API (latest model, ID configurable via env), behind a `ResearchModel` interface.
 
-**M10. Admin base (E2.10)**
-RBAC roles, MFA required for every admin (passkey counts), reason codes, immutable audit log, audit-log search, and a dual-control request/approve primitive. Admin routes live in `apps/web` behind RBAC.
+## Sprint 2 scope: build now
 
-**M11. Design system v0 (E2.11)**
-`packages/ui`: tokens (premium calm fintech, dark navy primary plus accessible light mode, restrained green), focus states, reduced motion, status components that do not rely on colour alone, and loading/empty/error/disabled states. Apply it to the onboarding and settings screens. WCAG 2.2 AA contrast.
+Read first: `PRD.md` (§5, §13–§15, §20), `docs/ARCHITECTURE.md` §6–§9, ADR-0002, ADR-0003, ADR-0009, and `docs/VERIFIED_FACTS.md`. Do not re-audit `reference-banchor/`, and do not copy code from it.
 
-## Phase 2 acceptance tests (all must be automated and passing)
+**Git:** the repo has no commits. First commit the Phase 1 docs (`docs: phase 1 discovery and architecture`). Then create branch `hackathon/main` and make small conventional commits. Never commit `.env`. Do not push.
 
-- A user signs up and logs in with email OTP and with a passkey, without any wallet. Consent is stored with policy version + timestamp.
-- No order or token-transfer code path exists. A test or lint rule asserts there are no chain write builders in Phase 2.
-- SIWE linking: a wrong chainId, wrong domain, expired message or replayed nonce is rejected.
-- `trading.live` cannot be enabled through any API, admin action or SQL update.
-- RLS: user A cannot read or modify user B's rows through any repository or endpoint (per-table tests).
-- An admin action without MFA or a reason code is rejected and audited. A dual-control action needs a second, distinct admin.
-- Append-only tables reject UPDATE/DELETE.
-- The redaction test proves that logs contain no email, address, OTP, session or token values.
-- The money library has property tests for exact decimal conversion and no float usage.
-- CI fails on a committed fake secret, a dep-cruiser violation, and a high-severity vulnerable dependency (demonstrate each, then revert).
-- Boot fails when the RPC chainId is not 46630.
-- Playwright E2E: onboarding → consent → interests skipped → land on home, with no wallet. Also: link an external wallet (using a test wallet on anvil or a mocked EIP-1193 provider).
-- Every UI screen has loading, empty, error and disabled states, plus keyboard navigation (PRD §24).
+1. **Monorepo:** pnpm + Turborepo, matching the ARCHITECTURE §9 layout. Create `apps/web` (Next.js App Router, TS strict), `apps/api` (NestJS + Fastify, `/api/v1`, Zod validation, OpenAPI), `packages/{config,shared,db,chain,ui}`, and empty-but-wired `apps/extension`, `workers/research`, `workers/indexer`, `packages/contracts` (Foundry init). Exact version pins, committed lockfile. Lint, typecheck and Vitest wired through turbo. A simple dependency-cruiser rule set: extension must not import chain write code, and research must not import chain write code.
+2. **Local infra:** `infra/docker-compose.yml` with Postgres 16, Redis, and anvil (one instance forking 4663 and one forking 46630, on separate ports, used in tests only).
+3. **Chain config** (`packages/config/chains/`): `robinhoodMainnet` (4663) and `robinhoodTestnet` (46630) as viem chains, each value citing its `VERIFIED_FACTS` row. A `networks` map that tags each feature with its network (table above). Chain-ID assertion helper. A `$WIF` constant only on mainnet, from the organiser fact row.
+4. **DB schema for the whole demo** (Drizzle + SQL migrations, so later sprints just add rows):
+   - users, auth_methods (passkey, siwe), sessions, wallet_accounts (address + chain_id), preferences/interests, consent_records (policy version + timestamp)
+   - entities, entity_aliases, instruments (with `network`, `legal_type` incl. `simulated` / `testnet_test_token`, contract address, decimals, status)
+   - research_briefs (JSON brief + schema version + model + prompt version), brief_sources, watchlists, watchlist_items, theses, thesis_versions (append-only)
+   - orders, order_events, fills, positions, ledger_entries, with a `book` enum (`simulated`, `testnet`; `live` CHECK-blocked)
+   - profiles (per-field visibility), follows, posts, comments, reactions, bookmarks
+   - reputation_evidence, reputation_snapshots
+   - elections, election_candidates, chain_events (indexed, unique on chain_id + tx_hash + log_index), election_tallies
+   - audit_logs, idempotency_keys
+   - Conventions: UUIDv7, `numeric(78,0)` token amounts plus decimals, `numeric(20,6)` fiat with currency, never floats. Seed script: demo users, ~30 entities with aliases, instruments for the 5 testnet Stock Token names marked `UNVERIFIED address` until Sprint 5.
+5. **`packages/shared`:** Zod schemas (API envelope, research brief v1 per PRD §7.3, extension messages), a decimal-safe money/amount library with tests, ID utils.
+6. **Auth (API + web):** WebAuthn register/login (`@simplewebauthn`). SIWE login and wallet linking with server nonce, domain, chainId (4663/46630), expiry and single-use nonce. HttpOnly SameSite session cookie, CSRF token on writes, basic rate limiting. `GET/PATCH /me`, `GET/POST /me/consents`.
+7. **Web app shell:** wagmi + viem with both chains and a network switcher. A network badge component. Onboarding per PRD §5.1: purpose, terms/privacy consent, optional wallet with a custody explanation, interests (skippable), experience level, extension offer (placeholder). Every PRD §4.1 nav route exists as a page with a proper empty state: Home, Discover, Research, Watchlist, Portfolio, Feed, Communities, Leaderboard, Elections, Campaigns, Profile, Notifications, Settings (privacy + data export/delete stubs), Help & disclosures (risk text, "not affiliated with Robinhood Markets, Inc.", $WIF "no promise of value or return", testnet "no value").
+8. **Design system v0** (`packages/ui`): premium calm fintech, dark navy default plus light mode, restrained green, accessible contrast, status that never relies on colour alone, reduced-motion support, loading/empty/error states. A Suiem wordmark (no Robinhood marks).
+9. **Feature flags (simple):** env + DB table. `trading.live` is hard-off (a test asserts it). Plus `trading.testnet`, `elections`, `campaigns`. A server-side jurisdiction check stub using the restricted list above for Stock Token routes.
 
-## Also deliver
+## Sprint 2 done when (automated where possible)
 
-- A `.env.example` that lists every variable with a description and no values.
-- A root `README.md` with prerequisites and a quickstart (`docker compose up`, `pnpm i`, `pnpm db:migrate`, `pnpm dev`, `pnpm test`).
-- `docs/runbooks/local-dev.md`.
-- Updated `docs/VERIFIED_FACTS.md` with the AA spike results.
-- `docs/PHASE_2_REPORT.md`: what was built, how each acceptance and exit criterion is met (with test names), TM-01/17/18/19 controls with their tests, deviations from the plan, new open questions, and known gaps.
+- `docker compose up && pnpm i && pnpm db:migrate && pnpm db:seed && pnpm dev` runs web + API locally from a clean clone (documented in README).
+- A user can log in with SIWE (on either chain) or with a passkey, accept consent (stored with policy version + timestamp), finish onboarding without a funded wallet, and see every nav route.
+- SIWE rejects a wrong chain, wrong domain, an expired message or a replayed nonce (tests).
+- The money library has passing unit/property tests. No floats in money code.
+- `trading.live` cannot be enabled (test). Writes require CSRF and session (test).
+- Typecheck, lint, unit and integration tests all pass. Paste the output summary into `docs/sprints/SPRINT_2.md`.
+- `.env.example` lists every variable with a description and no values.
 
-## Hard rules
+## Hard rules (unchanged by the hackathon)
 
 Do not:
-- deploy contracts or send any transaction (anvil local only, for tests)
-- use real funds or a private key with value
-- add stock trading, orders, tokens, elections or extension features (those are Phases 3–7)
-- copy code from reference-banchor
-- invent addresses or provider capabilities (cite VERIFIED_FACTS)
+- send any mainnet or testnet transaction, or deploy any contract, in this sprint
+- add automatic buying of any kind
+- invent addresses (use VERIFIED_FACTS only)
 - commit secrets
 - use floats for money
-- weaken a Phase 1 ADR silently. If you must deviate, write a new ADR that supersedes it and explain why
+- put private data onchain
+- present test or demo assets as real securities
+- use Robinhood's name or logo in branding
 
-Before reporting completion, run the full local check suite (typecheck, lint, dep-cruiser, unit, integration, E2E) and paste the summary output into PHASE_2_REPORT.md. If something fails, say so plainly. Do not claim it passes.
+If a decision is blocking, choose the fastest reversible option, log it in OPEN_QUESTIONS.md, and tell me.
 
 Finish with:
-1. An executive summary
-2. An acceptance-criteria checklist (pass/fail, with test names)
-3. New risks and open questions
-4. A proposed Phase 3 (Suiem Intelligence) kickoff checklist, including what you need from me (data provider, LLM provider, Chrome Web Store account)
+1. What works now (with how to see it)
+2. Test summary
+3. Anything you skipped
+4. What I must prepare for Sprints 3–8: an Anthropic API key, a financial/news data API key (suggest free options and SEC EDGAR), Vercel and Railway accounts, a mainnet wallet with a little ETH on Robinhood Chain plus some $WIF for test votes, and testnet ETH from the faucet
 
-Then STOP and wait for my approval before Phase 3.
+Then STOP and wait for my approval before Sprint 3.

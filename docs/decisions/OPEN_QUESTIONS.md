@@ -1,18 +1,18 @@
 # Open Questions Register
 
-Date opened: 2026-11-10. Phase 2 PO decisions are summarized in [`0001-phase-2-po-decisions.md`](0001-phase-2-po-decisions.md). Owner types: **PO** = product owner, **Legal** = qualified counsel, **Provider** = third-party vendor or chain team, **Security** = security owner.
+Date opened: 2026-11-10. **Scope changed to the hackathon on 2026-11-10 (ADR-0010).** Phase 2 PO decisions are summarized in [`0001-phase-2-po-decisions.md`](0001-phase-2-po-decisions.md). Owner types: **PO** = product owner, **Legal** = qualified counsel, **Provider** = third-party vendor or chain team, **Security** = security owner.
 "Blocks" names the earliest phase that cannot *exit* (or start, where marked ▶) until the question is answered. "Workaround" says how work proceeds meanwhile.
 
 ## Product owner
 
 | ID | Question | Blocks | Workaround |
 | --- | --- | --- | --- |
-| OQ-P-01 | What is the **official** $WIF contract address and chain, and the official World is Fair/World is Flat site or docs? Is `0x5173b8eA6923c2d40267890D45C46a3480954773` (seen only in 3rd-party repos) official? How do "World is Flat" and "World is Fair" relate? | Any real-$WIF work (out of scope). P7 semantics review | TestWIF on testnet (ADR-0005) |
-| OQ-P-02 | What is the exact voting mechanic: burn per vote via `burn()`, transfer to a per-candidate deposit address destroyed after the event, or something else? What is the burn destination, and is it irrecoverable? | P7 exit (to mirror semantics) | `WIFVoting` supports `BURN` and `SINK` modes |
+| OQ-P-01 | **RESOLVED 2026-11-10 — organiser API: $WIF `0x5173…4773` on 4663, 18 decimals (VERIFIED_FACTS W-11…W-13).** What is the **official** $WIF contract address and chain, and the official World is Fair/World is Flat site or docs? Is `0x5173b8eA6923c2d40267890D45C46a3480954773` (seen only in 3rd-party repos) official? How do "World is Flat" and "World is Fair" relate? | Any real-$WIF work (out of scope). P7 semantics review | TestWIF on testnet (ADR-0005) |
+| OQ-P-02 | **RESOLVED 2026-11-10 — organiser: 1 $WIF = 1 vote, burned (W-15). Exact onchain burn path is Sprint 7 task S7-01.** What is the exact voting mechanic: burn per vote via `burn()`, transfer to a per-candidate deposit address destroyed after the event, or something else? What is the burn destination, and is it irrecoverable? | P7 exit (to mirror semantics) | `WIFVoting` supports `BURN` and `SINK` modes |
 | OQ-P-03 | Can you get the testnet Stock Token contract addresses (TSLA, AMZN, PLTR, NFLX, AMD) from Robinhood, or approve reading them from the faucet's own transactions on the testnet explorer? | P4 E4.7 | Simulated book only |
 | OQ-P-04 | Voting rules: who is eligible, per-wallet cap, 1-token-1-vote vs quadratic, dispute window length, who may create elections | ▶ P7 | Proposed defaults in ADR-0005 §3 |
-| OQ-P-05 | **RESOLVED 2026-11-10 — email OTP + passkey. No OAuth in P2 (AuthMethod extension point). SIWE for wallet linking only.** Which login methods: email OTP, passkey, Google/Apple OAuth? Is SIWE-only login allowed? | ▶ P2 E2.3 | Email OTP + passkey proposed |
-| OQ-P-06 | **RESOLVED 2026-11-10 — single-maintainer mode. Dual control implemented. Second seeded admin in dev (ADR-0010).** Team and ownership: who reviews contracts, extension releases and admin dual-control approvals? | P2 exit | Single-maintainer mode with documented risk |
+| OQ-P-05 | **RESOLVED 2026-11-10 — HACKATHON: passkey + SIWE (4663/46630), no email (supersedes OTP decision).** Which login methods: email OTP, passkey, Google/Apple OAuth? Is SIWE-only login allowed? | ▶ P2 E2.3 | Email OTP + passkey proposed |
+| OQ-P-06 | **RESOLVED 2026-11-10 — dual control deferred until after the hackathon (ADR-0010 §5, ADR-0011).** Team and ownership: who reviews contracts, extension releases and admin dual-control approvals? | P2 exit | Single-maintainer mode with documented risk |
 | OQ-P-07 | Reputation maturity thresholds (proposed ≥ 90 days and ≥ 10 evaluated decisions) and benchmark choice per market | P6 | Proposal in ADR-0005 |
 | OQ-P-08 | Default social visibility levels and whether public snapshots may ever show quantities | P5 | Private by default |
 | OQ-P-09 | Is a native mobile app needed, and when? | None (post-P8) | PWA |
@@ -39,21 +39,32 @@ Date opened: 2026-11-10. Phase 2 PO decisions are summarized in [`0001-phase-2-p
 | ID | Question | Blocks | Workaround |
 | --- | --- | --- | --- |
 | OQ-PR-01 | Financial data/news provider: licence for display, caching, AI summarization; coverage; cost | ▶ P3 E3.7 (real data) | Fixture data in dev only, never shown to beta users |
-| OQ-PR-02 | LLM providers: data retention, training use, region, cost, SLAs (≥ 2 for failover) | ▶ P3 E3.7 | — |
+| OQ-PR-02 | **RESOLVED 2026-11-10 — Claude API, model ID via env, `ResearchModel` interface.** LLM providers: data retention, training use, region, cost, SLAs (≥ 2 for failover) | ▶ P3 E3.7 | — |
 | OQ-PR-03 | **RESOLVED 2026-11-10 — public testnet RPC for dev. Alchemy optional via `ALCHEMY_API_KEY`.** RPC plan for 46630 (Alchemy tier, rate limits, archive and `finalized` tag support) | P2 exit | Public RPC for development |
 | OQ-PR-04 | Robinhood: does any testnet trading venue (AMM/RFQ) exist for test Stock Tokens? | P4 E4.8 TestnetVenue | SimulatedVenue |
-| OQ-PR-05 | **RESOLVED 2026-11-10 — spike run (VERIFIED_FACTS §4a). Bundler unverified → SIWE external wallets only, stub `SmartAccountProvider`.** AA on testnet: EntryPoint deployed? Bundler and paymaster from Alchemy/ZeroDev for 46630? P-256 passkey validator support? | P2 E2.7 | External wallets only |
+| OQ-PR-05 | **RESOLVED 2026-11-10 — no smart accounts for the hackathon. External wallets via wagmi.** AA on testnet: EntryPoint deployed? Bundler and paymaster from Alchemy/ZeroDev for 46630? P-256 passkey validator support? | P2 E2.7 | External wallets only |
 | OQ-PR-06 | Is there a verified testnet stablecoin (USDG or other) on 46630? | P7 E7.7 | `tUSD` test token |
 
 ## Security
 
 | ID | Question | Blocks | Workaround |
 | --- | --- | --- | --- |
-| OQ-S-01 | **RESOLVED 2026-11-10 — local dev only. Docker Compose. `.env` via `SecretProvider`.** Hosting, cloud account, secret manager, KMS for the testnet deployer key | ▶ P2 | Local dev only |
+| OQ-S-01 | **RESOLVED 2026-11-10 — Vercel (web) + Railway (API, Postgres, Redis), deploy in Sprint 8. Local Docker Compose now.** Hosting, cloud account, secret manager, KMS for the testnet deployer key | ▶ P2 | Local dev only |
 | OQ-S-02 | **RESOLVED 2026-11-10 — paymaster OFF in Phase 2.** Paymaster abuse limits (per-user gas budget, rate) | P2 E2.7 | Sponsorship off |
 | OQ-S-03 | Multisig (Safe) signers and threshold for contract admin roles. Is Safe deployed on 46630? (unverified) | ▶ P7 deploy | Timelocked single deployer on testnet, documented |
 | OQ-S-04 | Budget and vendor for an external pen test and contract review before the beta | P8 exit | Internal review only |
 | OQ-S-05 | Chrome Web Store publisher account ownership and 2FA policy | P3 exit | Unpacked dev builds |
+
+## Hackathon (added 2026-11-10)
+
+| ID | Question | Owner | Blocks | Default taken |
+| --- | --- | --- | --- | --- |
+| OQ-H-01 | Repo visibility for submission: public, or invite GitHub `wifonrh`? | PO | Sprint 8 | Keep private until Sprint 8 |
+| OQ-H-02 | Jurisdiction source for Stock Token gating: self-declared country at onboarding (Sprint 2 stub) vs IP geolocation | PO | Sprint 5 | Self-declared, server-checked against J-01. Undeclared = blocked |
+| OQ-H-03 | Re-read the RHJ restricted-jurisdictions page directly (J-01 is PO-supplied) | Eng | Sprint 5 | Task S5-01 |
+| OQ-H-04 | Onchain check of $WIF `burn`/`burnFrom` and the organiser contract's burn path | Eng | Sprint 7 | Task S7-01 |
+| OQ-H-05 | Passkey-only users have no wallet: is that acceptable for a judge (wallet needed only to vote)? | PO | Sprint 7 | Yes: research works without a wallet; linking prompted at vote time |
+| OQ-H-06 | Display name for SIWE/passkey users: allow a free-text name, or default to a short address/handle? | PO | Sprint 6 | Optional free-text name, default `user-xxxx` |
 
 ## Conflicts recorded (PRD §0.2 rule 12)
 

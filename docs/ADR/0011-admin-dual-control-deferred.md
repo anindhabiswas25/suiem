@@ -1,6 +1,6 @@
-# ADR-0010: Admin RBAC, dual control and single-maintainer mode
+# ADR-0011: Admin RBAC, dual control and single-maintainer mode
 
-- Status: Accepted (PO decision OQ-P-06, 2026-11-10) · Covers: PRD §22, ARCHITECTURE TM-16
+- Status: **Deferred until after the hackathon** (ADR-0010 §5). Written before the scope change; kept as the target design · Covers: PRD §22, ARCHITECTURE TM-16
 
 ## Context
 

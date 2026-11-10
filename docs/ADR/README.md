@@ -13,7 +13,8 @@ Format: Context → Decision → Consequences → Open items. Statuses are `Prop
 | [0007](0007-mobile-strategy.md) | Mobile strategy | Accepted (Phase 1 approved) |
 | [0008](0008-sponsored-rewards.md) | Sponsored rewards and campaign escrow | Accepted (Phase 1 approved) |
 | [0009](0009-monorepo-and-stack.md) | Monorepo layout and technology stack | Accepted (Phase 1 approved) |
-| [0010](0010-admin-dual-control-single-maintainer.md) | Admin RBAC, dual control, single-maintainer mode | Accepted |
+| [0010](0010-hackathon-scope-and-two-networks.md) | Hackathon scope and two networks (supersedes testnet-only parts of 0001/0002/0005) | Accepted |
+| [0011](0011-admin-dual-control-deferred.md) | Admin RBAC and dual control | Deferred |
 
 ## PRD §25 decision traceability
 

@@ -1,6 +1,7 @@
 # Verified Facts — Robinhood Chain and $WIF
 
 **Date checked:** 2026-11-10 (all rows)
+**Scope change (2026-11-10, PO):** the World is Flat hackathon adds **mainnet 4663** for $WIF only (ADR-0010). Testnet 46630 stays the network for Stock Tokens.
 **Rule:** A value is `VERIFIED` only if it was read on a primary source (Robinhood/Robinhood Chain official docs, Robinhood newsroom/support, or the Arbitrum/Offchain Labs official blog). Anything from third-party sites, hackathon repos, aggregators or search snippets is `UNVERIFIED` no matter how often it repeats. Code and config must read these values from `packages/config` with this file as the review source. Never hard-code a value marked `UNVERIFIED`.
 
 Abbreviations for sources:
@@ -51,6 +52,36 @@ Abbreviations for sources:
 | C-18 | `block.number` semantics | Returns an L1 block estimate that updates only periodically. **Contracts must use `block.timestamp`, not `block.number`, for time windows** | RC-DIFF | VERIFIED |
 | C-19 | Block time | No number published | — | UNVERIFIED |
 | C-20 | Status page | `http://status.robinhoodchain.offchain.io/` | RC-ROOT | VERIFIED |
+
+## 1b. Robinhood Chain: mainnet (hackathon scope, ADR-0010)
+
+| # | Fact | Value | Source | Status |
+| --- | --- | --- | --- | --- |
+| M-01 | Mainnet public RPC | `https://rpc.mainnet.chain.robinhood.com` | RC-CONNECT, RH-SUPPORT | VERIFIED. Re-probed 2026-11-10: `eth_chainId` = `0x1237` (4663) |
+| M-02 | Mainnet Alchemy RPC | `https://robinhood-mainnet.g.alchemy.com/v2/{API_KEY}` | RC-AA (bundler/RPC row) | VERIFIED endpoint shape |
+| M-03 | Mainnet genesis hash | `0xaad15f3d702aaea00caf3e9bb56395efe9127bc3b31b24921abf1eee3409305c` | onchain probe 2026-11-10 | VERIFIED (onchain probe) |
+| M-04 | Multicall3 on mainnet | `0xcA11bde05977b3631167028862bE2a173976CA11`: code present (3,808 bytes) | onchain probe 2026-11-10 | VERIFIED (onchain probe) |
+| M-05 | Permit2 on mainnet | `0x000000000022D473030F116dDEE9F6B43aC78BA3`: code present | RC-PROTO + onchain probe | VERIFIED |
+| M-06 | Mainnet USDG | `0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168` | RC-CONTRACTS (explorer links point to mainnet) | VERIFIED (docs). Optional prize asset, Sprint 7 stretch |
+
+## 6b. $WIF: organiser source (supersedes W-01…W-10 where they overlap)
+
+Source: organiser API `GET https://worldisflat.fun/build/api/vote-window`, read by the product owner on 2026-11-10 (values supplied in `prompts/PHASE_2_PROMPT.md`). Hackathon rules: https://worldisflat.fun/build/rules.
+
+| # | Fact | Value | Status |
+| --- | --- | --- | --- |
+| W-11 | $WIF chain | Robinhood Chain **mainnet**, chain ID `4663` | VERIFIED (organiser source) |
+| W-12 | $WIF token address | `0x5173b8ea6923c2d40267890d45c46a3480954773` (checksummed: `0x5173b8eA6923c2d40267890D45C46a3480954773`) | VERIFIED (organiser source). Resolves OQ-P-01. Matches the earlier third-party value in W-03 |
+| W-13 | $WIF decimals | `18` | VERIFIED (organiser source) |
+| W-14 | Organiser vote contract | `0xd1b711917a405782da2ec650a0ee4711a76a5535`, `vote(uint256,uint256,uint256)`, emits `Voted(address,uint256,uint256)` | VERIFIED (organiser source) |
+| W-15 | Vote mechanic | 1 $WIF = 1 vote, burned | VERIFIED (organiser source). **Exact burn path (token `burn`/`burnFrom` vs sink) not yet checked onchain: Sprint 7 task S7-01** |
+| W-16 | Token `burn`/`burnFrom` availability | — | UNVERIFIED. Sprint 7 task S7-01: `eth_getCode` plus Blockscout ABI for the token and organiser contract. Not checked now, by PO instruction |
+
+## 6c. Stock Token restricted jurisdictions (hackathon rule 5)
+
+| # | Fact | Value | Source | Status |
+| --- | --- | --- | --- | --- |
+| J-01 | Restricted jurisdictions for Stock Token features | US, CA, GB, CH, CU, BY, IR, KP, RU, SY, UA, SS, SD, MM, VE | https://docs.robinhood.com/rhj/restricted-jurisdictions (list supplied by PO 2026-11-10) | PO-provided with source URL. Not independently re-read in Sprint 2. Re-read before Sprint 5 (task S5-01) |
 
 ## 2. Finality
 
