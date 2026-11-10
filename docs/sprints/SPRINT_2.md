@@ -16,7 +16,7 @@
 | Typecheck, lint, unit and integration tests pass | ✅ | Output below |
 | `.env.example` lists every variable with a description and no values | ✅ | Generated from `packages/config/src/env.ts` (`pnpm env:example`) and checked by `env.test.ts` |
 
-## Test output (2026-11-10)
+## Test output (re-run 2026-11-11)
 
 ```text
 $ pnpm typecheck
@@ -29,11 +29,11 @@ $ pnpm format:check
 All matched files use Prettier code style!
 
 $ pnpm depcruise
-✔ no dependency violations found (134 modules, 278 dependencies cruised)
+✔ no dependency violations found (136 modules, 280 dependencies cruised)
 
 $ pnpm test   (unit)
  Test Files  11 passed (11)
-      Tests  57 passed (57)
+      Tests  58 passed (58)
 
 $ pnpm test:integration   (Testcontainers Postgres 16 + Redis, local anvil)
  Test Files  3 passed (3)
@@ -66,6 +66,9 @@ The dependency rules were demonstrated: a temporary `apps/extension` → `@suiem
 2. **Forbidden-phrase scan missed brief fields** → it now walks every generated string field.
 3. **`trustProxy: true` allowed X-Forwarded-For spoofing of the rate-limit key** → explicit `TRUST_PROXY_HOPS` (default 0). Test: "spoofed X-Forwarded-For values do not escape the per-IP auth limit".
 4. **Open redirect via `/login?next=/\evil`** → same-origin URL check rejecting backslashes and control characters (`apps/web/lib/redirect.ts`, tests in `redirect.test.ts`).
+5. **Dot segments (`/.//evil`) normalised into a protocol-relative redirect** → normalised paths starting with `//` are rejected. Tests: "rejects dot-segment tricks…".
+
+The automated review of the last commit did not run (review API returned HTTP 429). It will run on push.
 
 ## Deviations and things skipped
 
