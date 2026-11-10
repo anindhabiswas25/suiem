@@ -1,26 +1,16 @@
 import { z } from "zod";
 import { CONSENT_PURPOSES, consentEventSchema } from "../consent";
-import { CAPABILITIES, FEATURE_FLAGS, JURISDICTION_RE } from "../policy";
+import { FEATURE_FLAGS, JURISDICTION_RE } from "../policy";
 
 /** API DTOs for /api/v1, shared by apps/api (validation + OpenAPI) and apps/web (typed client). */
 
-export const emailSchema = z
-  .email()
-  .max(254)
-  .transform((e) => e.trim().toLowerCase());
-export const otpCodeSchema = z.string().regex(/^[0-9]{6}$/, "Code must be 6 digits");
+export const SUIEM_SIWE_CHAIN_IDS = [4663, 46630] as const;
 
-// ---- Auth ---------------------------------------------------------------------------------
-export const startOtpRequest = z.object({ email: emailSchema }).strict();
-export const startOtpResponse = z.object({
-  status: z.literal("sent"),
-  expiresInSeconds: z.number().int(),
-});
-
-export const verifyOtpRequest = z.object({ email: emailSchema, code: otpCodeSchema }).strict();
-
-export const authMethodSchema = z.enum(["email_otp", "passkey"]);
+// ---- Auth: passkey + SIWE (ADR-0010 §4) ---------------------------------------------------
+export const authMethodSchema = z.enum(["passkey", "siwe"]);
 export type AuthMethodKind = z.infer<typeof authMethodSchema>;
+
+export const csrfResponse = z.object({ csrfToken: z.string() });
 
 export const sessionResponse = z.object({
   userId: z.uuid(),
@@ -28,13 +18,43 @@ export const sessionResponse = z.object({
   isNewUser: z.boolean(),
 });
 
-/** WebAuthn ceremony payloads are validated structurally; @simplewebauthn verifies content. */
+/** WebAuthn payloads are validated structurally here; @simplewebauthn verifies them. */
 export const passkeyOptionsResponse = z.object({ options: z.record(z.string(), z.unknown()) });
 export const passkeyVerifyRequest = z
   .object({ response: z.record(z.string(), z.unknown()) })
   .strict();
 
-// ---- Me / profile -------------------------------------------------------------------------
+export const siweNonceRequest = z
+  .object({ chainId: z.union([z.literal(4663), z.literal(46630)]) })
+  .strict();
+export const siweNonceResponse = z.object({
+  nonce: z.string(),
+  issuedAt: z.string(),
+  expirationTime: z.string(),
+  chainId: z.union([z.literal(4663), z.literal(46630)]),
+  domain: z.string(),
+  uri: z.string(),
+  statement: z.string(),
+});
+export const siweVerifyRequest = z
+  .object({
+    message: z.string().min(50).max(2000),
+    signature: z.string().regex(/^0x[0-9a-fA-F]+$/),
+  })
+  .strict();
+export const walletLinkRequest = siweVerifyRequest
+  .extend({ custodyAcknowledged: z.literal(true) })
+  .strict();
+
+export const walletAccount = z.object({
+  id: z.uuid(),
+  chainId: z.number().int(),
+  address: z.string(),
+  linkedAt: z.string(),
+});
+export const walletListResponse = z.object({ items: z.array(walletAccount) });
+
+// ---- Me / onboarding ----------------------------------------------------------------------
 export const INTERESTS = [
   "technology",
   "healthcare",
@@ -52,7 +72,7 @@ export const RESEARCH_DEPTHS = ["plain_language", "balanced", "detailed"] as con
 
 export const meResponse = z.object({
   id: z.uuid(),
-  email: z.string(),
+  handle: z.string(),
   displayName: z.string().nullable(),
   jurisdiction: z.string().nullable(),
   experienceLevel: z.enum(EXPERIENCE_LEVELS).nullable(),
@@ -62,8 +82,9 @@ export const meResponse = z.object({
   onboardingCompletedAt: z.string().nullable(),
   authMethods: z.array(authMethodSchema),
   passkeyCount: z.number().int(),
-  isAdmin: z.boolean(),
+  wallets: z.array(walletAccount),
   requiredConsentsGranted: z.boolean(),
+  stockTokenEligible: z.boolean(),
 });
 export type MeResponse = z.infer<typeof meResponse>;
 
@@ -95,105 +116,17 @@ export const consentStateItem = z.object({
 export const consentsResponse = z.object({ items: z.array(consentStateItem) });
 export const postConsentRequest = consentEventSchema.strict();
 
-// ---- Data rights --------------------------------------------------------------------------
-export const dataInventoryResponse = z.object({
-  generatedAt: z.string(),
-  categories: z.array(
-    z.object({
-      key: z.string(),
-      title: z.string(),
-      description: z.string(),
-      count: z.number().int(),
-      retention: z.string(),
-      sharedWith: z.array(z.string()),
-    }),
-  ),
-});
-export const dataRequestCreate = z.object({ type: z.enum(["export", "delete"]) }).strict();
-export const dataRequestResponse = z.object({
-  id: z.uuid(),
-  type: z.enum(["export", "delete"]),
-  status: z.enum(["received", "processing", "completed", "rejected"]),
-  createdAt: z.string(),
-});
-
-// ---- Wallet (linking only; SIWE is never a login method) ------------------------------------
-export const walletNonceResponse = z.object({
-  nonce: z.string(),
-  issuedAt: z.string(),
-  expiresAt: z.string(),
-  chainId: z.literal(46630),
-  domain: z.string(),
-  uri: z.string(),
-});
-export const walletLinkRequest = z
-  .object({
-    message: z.string().min(50).max(2000),
-    signature: z.string().regex(/^0x[0-9a-fA-F]+$/),
-    custodyAcknowledged: z.literal(true),
-  })
-  .strict();
-export const walletAccount = z.object({
-  id: z.uuid(),
-  chainId: z.number().int(),
-  address: z.string(),
-  kind: z.enum(["external_eoa", "smart_account"]),
-  linkedAt: z.string(),
-});
-export const walletListResponse = z.object({ items: z.array(walletAccount) });
-
-// ---- Config / navigation ------------------------------------------------------------------
-export const navigationResponse = z.object({
-  policyVersion: z.string(),
-  jurisdiction: z.string().nullable(),
-  capabilities: z.record(
-    z.enum(CAPABILITIES),
-    z.object({ allowed: z.boolean(), reason: z.string() }),
-  ),
+// ---- Config -------------------------------------------------------------------------------
+export const configResponse = z.object({
   flags: z.record(z.enum(FEATURE_FLAGS), z.boolean()),
-});
-export type NavigationResponse = z.infer<typeof navigationResponse>;
-
-// ---- Admin --------------------------------------------------------------------------------
-export const REASON_CODES = [
-  "SUPPORT_TICKET",
-  "INCIDENT",
-  "MODERATION",
-  "SECURITY_REVIEW",
-  "CONFIG_CHANGE",
-  "AUDIT",
-  "TEST_ENV",
-] as const;
-export const ADMIN_ROLES = ["support", "moderator", "ops", "security", "superadmin"] as const;
-export const adminReason = z.object({
-  reasonCode: z.enum(REASON_CODES),
-  reasonNote: z.string().trim().min(3).max(500),
+  chains: z.array(
+    z.object({ id: z.number(), name: z.string(), network: z.enum(["mainnet", "testnet"]) }),
+  ),
 });
 
-export const auditSearchQuery = z.object({
-  actorId: z.uuid().optional(),
-  action: z.string().max(80).optional(),
-  from: z.iso.datetime().optional(),
-  to: z.iso.datetime().optional(),
-  limit: z.coerce.number().int().min(1).max(200).default(50),
+export const stockTokenEligibilityResponse = z.object({
+  eligible: z.boolean(),
+  reason: z.enum(["restricted_jurisdiction", "jurisdiction_not_declared"]).optional(),
+  network: z.literal("testnet"),
+  chainId: z.literal(46630),
 });
-
-export const DUAL_CONTROL_ACTIONS = [
-  "feature_flag.set",
-  "admin_role.grant",
-  "admin_role.revoke",
-] as const;
-export const dualControlCreate = adminReason
-  .extend({
-    action: z.enum(DUAL_CONTROL_ACTIONS),
-    payload: z.record(z.string(), z.unknown()),
-  })
-  .strict();
-export const dualControlDecision = adminReason
-  .extend({ decision: z.enum(["approve", "reject"]) })
-  .strict();
-
-export const flagSetPayload = z
-  .object({ key: z.enum(FEATURE_FLAGS), enabled: z.boolean() })
-  .strict();
-export const roleChangePayload = z.object({ userId: z.uuid(), role: z.enum(ADMIN_ROLES) }).strict();

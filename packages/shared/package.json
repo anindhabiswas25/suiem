@@ -11,7 +11,9 @@
     "./schemas": "./src/schemas/index.ts",
     "./policy": "./src/policy/index.ts",
     "./ids": "./src/ids.ts",
-    "./errors": "./src/errors.ts"
+    "./errors": "./src/errors.ts",
+    "./research": "./src/research/brief.ts",
+    "./extension": "./src/extension/messages.ts"
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json"
