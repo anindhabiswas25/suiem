@@ -37,3 +37,6 @@ test-results/
 .turbo/
 *.local
 next-env.d.ts
+
+# Stray tsc output next to TS sources (packages are consumed as .ts)
+packages/*/src/**/*.js
