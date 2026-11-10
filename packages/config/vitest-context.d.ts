@@ -3,9 +3,7 @@ import "vitest";
 
 declare module "vitest" {
   export interface ProvidedContext {
-    pgOwnerUrl: string;
-    pgAppUrl: string;
-    pgSystemUrl: string;
+    pgUrl: string;
     redisUrl: string;
   }
 }

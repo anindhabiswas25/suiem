@@ -1,0 +1,3 @@
+# Root compose file so `docker compose up` works from a clean clone.
+include:
+  - infra/docker-compose.yml

@@ -3,139 +3,101 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { newId } from "@suiem/shared/ids";
 import pg from "pg";
-import type { JurisdictionRules } from "./schema";
+import { DEMO_USERS, SEED_ENTITIES, TESTNET_STOCK_TOKENS } from "./seed-data";
 
 const POLICY_DIR = join(import.meta.dirname, "..", "..", "..", "docs", "policies");
-
 export const INITIAL_POLICY_VERSION = "2026-11-10.1";
 
 export const POLICY_DEFINITIONS = [
-  { purpose: "terms", title: "Terms of Service (draft)", summaryUrl: "/legal/terms" },
-  { purpose: "privacy", title: "Privacy Notice (draft)", summaryUrl: "/legal/privacy" },
+  { purpose: "terms", title: "Terms of Service (draft)", summaryUrl: "/help#terms" },
+  { purpose: "privacy", title: "Privacy Notice (draft)", summaryUrl: "/help#privacy" },
   {
     purpose: "product_analytics",
     title: "Product analytics (optional)",
-    summaryUrl: "/legal/consents#product_analytics",
+    summaryUrl: "/help#consents",
   },
-  {
-    purpose: "marketing_email",
-    title: "Product news by email (optional)",
-    summaryUrl: "/legal/consents#marketing_email",
-  },
+  { purpose: "marketing_email", title: "Product news (optional)", summaryUrl: "/help#consents" },
   {
     purpose: "extension_detection",
-    title: "Browser extension detection (Phase 3)",
-    summaryUrl: "/legal/consents#extension_detection",
+    title: "Browser extension detection (Sprint 3)",
+    summaryUrl: "/help#consents",
   },
-  {
-    purpose: "digest_sync",
-    title: "Daily digest sync (Phase 3)",
-    summaryUrl: "/legal/consents#digest_sync",
-  },
+  { purpose: "digest_sync", title: "Daily digest sync (Sprint 3)", summaryUrl: "/help#consents" },
 ] as const;
 
-/**
- * Jurisdiction policy v1 (PRD §17, ADR-0001 §5).
- * - Live trading is denied everywhere (and the DB CHECK forbids ever allowing it).
- * - India (IN): research, education and simulation only (PO brief, Phase 2).
- * - Undeclared jurisdiction: research and education only until the user declares one.
- */
-export const INITIAL_JURISDICTION_RULES: JurisdictionRules = {
-  default: {
-    research: true,
-    education: true,
-    social: true,
-    simulated_trading: true,
-    live_trading: false,
-    elections: true,
-    campaigns: true,
-  },
-  undeclared: {
-    research: true,
-    education: true,
-    social: false,
-    simulated_trading: false,
-    live_trading: false,
-    elections: false,
-    campaigns: false,
-  },
-  jurisdictions: {
-    IN: {
-      research: true,
-      education: true,
-      social: false,
-      simulated_trading: true,
-      live_trading: false,
-      elections: false,
-      campaigns: false,
-    },
-  },
-};
-
-export const DEV_ADMINS = ["admin1@suiem.local", "admin2@suiem.local"] as const;
-
-export interface SeedOptions {
-  /** Creates the two dev admins (ADR-0010 single-maintainer mode). Refused in production. */
-  devAdmins: boolean;
-  nodeEnv?: string;
-}
-
-export async function seed(ownerUrl: string, options: SeedOptions): Promise<void> {
-  if (options.devAdmins && options.nodeEnv === "production") {
-    throw new Error("Refusing to seed dev admins in production (ADR-0010)");
-  }
-  const client = new pg.Client({ connectionString: ownerUrl, application_name: "suiem-seed" });
+/** Idempotent: safe to run repeatedly. Demo users are flagged is_demo and have no login methods. */
+export async function seed(url: string): Promise<{ entities: number; instruments: number }> {
+  const client = new pg.Client({ connectionString: url, application_name: "suiem-seed" });
   await client.connect();
   try {
     await client.query("BEGIN");
     for (const def of POLICY_DEFINITIONS) {
-      const file = join(POLICY_DIR, `${def.purpose}-${INITIAL_POLICY_VERSION}.md`);
-      const sha = createHash("sha256").update(readFileSync(file)).digest();
+      const sha = createHash("sha256")
+        .update(readFileSync(join(POLICY_DIR, `${def.purpose}-${INITIAL_POLICY_VERSION}.md`)))
+        .digest();
       await client.query(
         `INSERT INTO policy_versions (id, purpose, version, title, summary_url, content_sha256, published_at)
-         VALUES ($1, $2, $3, $4, $5, $6, '2026-11-10T00:00:00Z')
-         ON CONFLICT (purpose, version) DO NOTHING`,
+         VALUES ($1, $2, $3, $4, $5, $6, '2026-11-10T00:00:00Z') ON CONFLICT (purpose, version) DO NOTHING`,
         [newId(), def.purpose, INITIAL_POLICY_VERSION, def.title, def.summaryUrl, sha],
       );
     }
-    for (const key of ["trading.live", "trading.simulated", "elections", "campaigns"]) {
+    for (const key of ["trading.live", "trading.testnet", "elections", "campaigns"]) {
       await client.query(
         "INSERT INTO feature_flags (key, enabled) VALUES ($1, false) ON CONFLICT (key) DO NOTHING",
         [key],
       );
     }
-    await client.query(
-      `INSERT INTO jurisdiction_policies (version, rules) VALUES ($1, $2) ON CONFLICT (version) DO NOTHING`,
-      [INITIAL_POLICY_VERSION, JSON.stringify(INITIAL_JURISDICTION_RULES)],
-    );
-    if (options.devAdmins) {
-      for (const email of DEV_ADMINS) {
-        const existing = await client.query<{ id: string }>(
-          "SELECT id FROM users WHERE email = $1",
-          [email],
-        );
-        let userId = existing.rows[0]?.id;
-        if (userId === undefined) {
-          userId = newId();
-          await client.query("INSERT INTO users (id, email) VALUES ($1, $2)", [userId, email]);
-          await client.query(
-            "INSERT INTO user_auth_methods (id, user_id, kind) VALUES ($1, $2, 'email_otp')",
-            [newId(), userId],
-          );
-          await client.query(
-            "INSERT INTO profiles (user_id, display_name, jurisdiction) VALUES ($1, $2, 'ZZ')",
-            [userId, email.split("@")[0]],
-          );
-          await client.query("INSERT INTO user_preferences (user_id) VALUES ($1)", [userId]);
-        }
+    const entityIds = new Map<string, string>();
+    for (const e of SEED_ENTITIES) {
+      const r = await client.query<{ id: string }>(
+        `INSERT INTO entities (id, canonical_id, name, legal_name, kind, sector, country)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)
+         ON CONFLICT (canonical_id) DO UPDATE SET name = EXCLUDED.name RETURNING id`,
+        [newId(), `ent:${e.slug}`, e.name, e.legalName, e.kind, e.sector, e.country],
+      );
+      const id = r.rows[0]!.id;
+      entityIds.set(e.slug, id);
+      for (const a of e.aliases) {
         await client.query(
-          `INSERT INTO admin_roles (id, user_id, role) SELECT $1, $2, 'superadmin'
-           WHERE NOT EXISTS (SELECT 1 FROM admin_roles WHERE user_id = $2 AND role = 'superadmin' AND revoked_at IS NULL)`,
-          [newId(), userId],
+          `INSERT INTO entity_aliases (id, entity_id, alias, alias_type, ambiguous) VALUES ($1, $2, $3, $4, $5)
+           ON CONFLICT (entity_id, alias, alias_type) DO NOTHING`,
+          [newId(), id, a.alias, a.type, a.ambiguous ?? false],
         );
       }
     }
+    for (const t of TESTNET_STOCK_TOKENS) {
+      await client.query(
+        `INSERT INTO instruments (id, entity_id, symbol, display_name, network, chain_id, legal_type, decimals, status, source_url, notes)
+         VALUES ($1, $2, $3, $4, 'testnet', 46630, 'testnet_test_token', 18, 'unverified', 'https://faucet.testnet.chain.robinhood.com', $5)
+         ON CONFLICT (symbol) DO NOTHING`,
+        [
+          newId(),
+          entityIds.get(t.entity),
+          t.symbol,
+          t.name,
+          "UNVERIFIED address (VERIFIED_FACTS T-05). Testnet token: no value, not a security, not a share. Decimals to be read onchain in Sprint 5.",
+        ],
+      );
+    }
+    for (const u of DEMO_USERS) {
+      const r = await client.query<{ id: string }>(
+        `INSERT INTO users (id, handle, display_name, is_demo) VALUES ($1, $2, $3, true)
+         ON CONFLICT (handle) DO UPDATE SET display_name = EXCLUDED.display_name RETURNING id`,
+        [newId(), u.handle, u.displayName],
+      );
+      const id = r.rows[0]!.id;
+      await client.query(
+        `INSERT INTO user_preferences (user_id, interests, jurisdiction, experience_level, onboarding_completed_at)
+         VALUES ($1, $2, $3, 'intermediate', now()) ON CONFLICT (user_id) DO NOTHING`,
+        [id, u.interests, u.jurisdiction],
+      );
+      await client.query(
+        "INSERT INTO profiles (user_id) VALUES ($1) ON CONFLICT (user_id) DO NOTHING",
+        [id],
+      );
+    }
     await client.query("COMMIT");
+    return { entities: SEED_ENTITIES.length, instruments: TESTNET_STOCK_TOKENS.length };
   } catch (error) {
     await client.query("ROLLBACK");
     throw error;

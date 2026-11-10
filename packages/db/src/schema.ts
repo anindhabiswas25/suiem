@@ -1,6 +1,7 @@
 /**
- * Drizzle table definitions mirroring migrations/*.sql (the SQL is the source of truth).
- * `schema.int.test.ts` checks that every table and column here exists in the migrated database.
+ * Drizzle definitions mirroring migrations/*.sql (the SQL is the source of truth).
+ * `db.int.test.ts` checks every table and column here exists in the migrated database.
+ * Amount columns are numeric strings (base units). Never convert them to JS numbers.
  */
 import { sql } from "drizzle-orm";
 import {
@@ -10,31 +11,52 @@ import {
   customType,
   integer,
   jsonb,
+  numeric,
   pgTable,
   primaryKey,
+  smallint,
   text,
   timestamp,
   uuid,
 } from "drizzle-orm/pg-core";
 
-export const bytea = customType<{ data: Buffer; driverData: Buffer }>({
-  dataType: () => "bytea",
-});
-
+export const bytea = customType<{ data: Buffer; driverData: Buffer }>({ dataType: () => "bytea" });
 const ts = (name: string) => timestamp(name, { withTimezone: true, mode: "date" });
+/** numeric(78,0) base units, as a string. */
+const units = (name: string) => numeric(name, { precision: 78, scale: 0 });
+const dec = (name: string) => smallint(name);
+type Visibility = "private" | "followers" | "public";
+type Book = "simulated" | "testnet";
+type Finality = "soft" | "safe" | "final";
 
+// ---- Identity ---------------------------------------------------------------------------
 export const users = pgTable("users", {
   id: uuid("id").primaryKey(),
-  email: text("email").notNull(),
-  status: text("status").notNull().default("active"),
+  handle: text("handle").notNull(),
+  displayName: text("display_name"),
+  status: text("status")
+    .$type<"active" | "restricted" | "deletion_requested" | "deleted">()
+    .notNull()
+    .default("active"),
+  isDemo: boolean("is_demo").notNull().default(false),
   createdAt: ts("created_at").notNull().defaultNow(),
   updatedAt: ts("updated_at").notNull().defaultNow(),
 });
 
-export const userAuthMethods = pgTable("user_auth_methods", {
+export const walletAccounts = pgTable("wallet_accounts", {
   id: uuid("id").primaryKey(),
   userId: uuid("user_id").notNull(),
-  kind: text("kind").$type<"email_otp" | "passkey">().notNull(),
+  address: bytea("address").notNull(),
+  chainId: integer("chain_id").notNull(),
+  siweMessageHash: bytea("siwe_message_hash").notNull(),
+  linkedAt: ts("linked_at").notNull().defaultNow(),
+  unlinkedAt: ts("unlinked_at"),
+});
+
+export const authMethods = pgTable("auth_methods", {
+  id: uuid("id").primaryKey(),
+  userId: uuid("user_id").notNull(),
+  kind: text("kind").$type<"passkey" | "siwe">().notNull(),
   credentialId: bytea("credential_id"),
   publicKey: bytea("public_key"),
   signCount: bigint("sign_count", { mode: "bigint" })
@@ -46,44 +68,23 @@ export const userAuthMethods = pgTable("user_auth_methods", {
     .default(sql`'{}'`),
   deviceType: text("device_type"),
   backedUp: boolean("backed_up"),
+  walletAccountId: uuid("wallet_account_id"),
   label: text("label"),
   createdAt: ts("created_at").notNull().defaultNow(),
   lastUsedAt: ts("last_used_at"),
   revokedAt: ts("revoked_at"),
 });
 
-export const userSessions = pgTable("user_sessions", {
+export const sessions = pgTable("sessions", {
   id: uuid("id").primaryKey(),
   userId: uuid("user_id").notNull(),
   tokenHash: bytea("token_hash").notNull(),
   amr: text("amr").array().notNull(),
-  passkeyVerifiedAt: ts("passkey_verified_at"),
   createdAt: ts("created_at").notNull().defaultNow(),
   lastSeenAt: ts("last_seen_at").notNull().defaultNow(),
   expiresAt: ts("expires_at").notNull(),
   revokedAt: ts("revoked_at"),
   rotatedFrom: uuid("rotated_from"),
-});
-
-export const devices = pgTable("devices", {
-  id: uuid("id").primaryKey(),
-  userId: uuid("user_id").notNull(),
-  kind: text("kind").notNull(),
-  label: text("label"),
-  createdAt: ts("created_at").notNull().defaultNow(),
-  lastSeenAt: ts("last_seen_at"),
-  revokedAt: ts("revoked_at"),
-});
-
-export const walletAccounts = pgTable("wallet_accounts", {
-  id: uuid("id").primaryKey(),
-  userId: uuid("user_id").notNull(),
-  chainId: integer("chain_id").notNull(),
-  address: bytea("address").notNull(),
-  kind: text("kind").$type<"external_eoa" | "smart_account">().notNull(),
-  siweMessageHash: bytea("siwe_message_hash").notNull(),
-  linkedAt: ts("linked_at").notNull().defaultNow(),
-  unlinkedAt: ts("unlinked_at"),
 });
 
 export const userPreferences = pgTable("user_preferences", {
@@ -95,18 +96,12 @@ export const userPreferences = pgTable("user_preferences", {
   interestsSkipped: boolean("interests_skipped").notNull().default(false),
   experienceLevel: text("experience_level"),
   researchDepth: text("research_depth"),
-  updatedAt: ts("updated_at").notNull().defaultNow(),
-});
-
-export const profiles = pgTable("profiles", {
-  userId: uuid("user_id").primaryKey(),
-  displayName: text("display_name"),
   jurisdiction: char("jurisdiction", { length: 2 }),
   onboardingCompletedAt: ts("onboarding_completed_at"),
-  createdAt: ts("created_at").notNull().defaultNow(),
   updatedAt: ts("updated_at").notNull().defaultNow(),
 });
 
+// ---- Consent ----------------------------------------------------------------------------
 export const policyVersions = pgTable("policy_versions", {
   id: uuid("id").primaryKey(),
   purpose: text("purpose").notNull(),
@@ -127,19 +122,387 @@ export const consentRecords = pgTable("consent_records", {
   recordedAt: ts("recorded_at").notNull().defaultNow(),
 });
 
-export const dataRequests = pgTable("data_requests", {
+// ---- Registry ---------------------------------------------------------------------------
+export const entities = pgTable("entities", {
   id: uuid("id").primaryKey(),
-  userId: uuid("user_id").notNull(),
-  type: text("type").$type<"export" | "delete">().notNull(),
-  status: text("status")
-    .$type<"received" | "processing" | "completed" | "rejected">()
-    .notNull()
-    .default("received"),
+  canonicalId: text("canonical_id").notNull(),
+  name: text("name").notNull(),
+  legalName: text("legal_name"),
+  kind: text("kind").$type<"company" | "product" | "fund" | "index" | "crypto">().notNull(),
+  sector: text("sector"),
+  country: char("country", { length: 2 }),
+  description: text("description"),
   createdAt: ts("created_at").notNull().defaultNow(),
-  updatedAt: ts("updated_at").notNull().defaultNow(),
-  completedAt: ts("completed_at"),
 });
 
+export const entityAliases = pgTable("entity_aliases", {
+  id: uuid("id").primaryKey(),
+  entityId: uuid("entity_id").notNull(),
+  alias: text("alias").notNull(),
+  aliasType: text("alias_type")
+    .$type<"name" | "legal_name" | "ticker" | "cashtag" | "exchange_symbol" | "product">()
+    .notNull(),
+  ambiguous: boolean("ambiguous").notNull().default(false),
+});
+
+export const instruments = pgTable("instruments", {
+  id: uuid("id").primaryKey(),
+  entityId: uuid("entity_id"),
+  symbol: text("symbol").notNull(),
+  displayName: text("display_name").notNull(),
+  network: text("network").$type<"mainnet" | "testnet" | "offchain">().notNull(),
+  chainId: integer("chain_id"),
+  legalType: text("legal_type")
+    .$type<"simulated" | "testnet_test_token" | "demo_token" | "unsupported">()
+    .notNull(),
+  contractAddress: bytea("contract_address"),
+  decimals: dec("decimals").notNull(),
+  quoteCurrency: char("quote_currency", { length: 3 }).notNull().default("USD"),
+  status: text("status")
+    .$type<"unverified" | "active" | "halted" | "unsupported">()
+    .notNull()
+    .default("unverified"),
+  sourceUrl: text("source_url"),
+  lastVerifiedAt: ts("last_verified_at"),
+  notes: text("notes"),
+  createdAt: ts("created_at").notNull().defaultNow(),
+});
+
+// ---- Research ---------------------------------------------------------------------------
+export const researchBriefs = pgTable("research_briefs", {
+  id: uuid("id").primaryKey(),
+  userId: uuid("user_id").notNull(),
+  entityId: uuid("entity_id"),
+  schemaVersion: text("schema_version").notNull(),
+  brief: jsonb("brief").notNull(),
+  model: text("model").notNull(),
+  promptVersion: text("prompt_version").notNull(),
+  dataFreshness: text("data_freshness")
+    .$type<"fresh" | "stale" | "partial" | "unknown">()
+    .notNull(),
+  visibility: text("visibility").$type<Visibility>().notNull().default("private"),
+  createdAt: ts("created_at").notNull().defaultNow(),
+});
+
+export const briefSources = pgTable("brief_sources", {
+  id: uuid("id").primaryKey(),
+  briefId: uuid("brief_id").notNull(),
+  url: text("url").notNull(),
+  title: text("title").notNull(),
+  publisher: text("publisher"),
+  publishedAt: ts("published_at"),
+  retrievedAt: ts("retrieved_at").notNull(),
+  supports: text("supports")
+    .array()
+    .notNull()
+    .default(sql`'{}'`),
+});
+
+export const watchlists = pgTable("watchlists", {
+  id: uuid("id").primaryKey(),
+  userId: uuid("user_id").notNull(),
+  name: text("name").notNull(),
+  createdAt: ts("created_at").notNull().defaultNow(),
+});
+
+export const watchlistItems = pgTable("watchlist_items", {
+  id: uuid("id").primaryKey(),
+  watchlistId: uuid("watchlist_id").notNull(),
+  entityId: uuid("entity_id").notNull(),
+  instrumentId: uuid("instrument_id"),
+  note: text("note"),
+  addedAt: ts("added_at").notNull().defaultNow(),
+});
+
+export const theses = pgTable("theses", {
+  id: uuid("id").primaryKey(),
+  userId: uuid("user_id").notNull(),
+  entityId: uuid("entity_id").notNull(),
+  instrumentId: uuid("instrument_id"),
+  currentVersion: integer("current_version").notNull().default(1),
+  visibility: text("visibility").$type<Visibility>().notNull().default("private"),
+  status: text("status").$type<"draft" | "published" | "closed">().notNull().default("draft"),
+  createdAt: ts("created_at").notNull().defaultNow(),
+  updatedAt: ts("updated_at").notNull().defaultNow(),
+  publishedAt: ts("published_at"),
+});
+
+export const thesisVersions = pgTable("thesis_versions", {
+  id: uuid("id").primaryKey(),
+  thesisId: uuid("thesis_id").notNull(),
+  version: integer("version").notNull(),
+  direction: text("direction").$type<"bullish" | "bearish" | "neutral">().notNull(),
+  horizonDays: integer("horizon_days").notNull(),
+  title: text("title").notNull(),
+  rationale: text("rationale").notNull(),
+  evidence: jsonb("evidence")
+    .notNull()
+    .default(sql`'[]'::jsonb`),
+  counterarguments: text("counterarguments").notNull(),
+  risks: text("risks").notNull(),
+  invalidation: text("invalidation").notNull(),
+  priceContext: jsonb("price_context"),
+  createdAt: ts("created_at").notNull().defaultNow(),
+});
+
+// ---- Invest -----------------------------------------------------------------------------
+export const orders = pgTable("orders", {
+  id: uuid("id").primaryKey(),
+  userId: uuid("user_id").notNull(),
+  instrumentId: uuid("instrument_id").notNull(),
+  book: text("book").$type<Book>().notNull(),
+  side: text("side").$type<"buy" | "sell">().notNull(),
+  status: text("status")
+    .$type<
+      | "previewed"
+      | "submitted"
+      | "pending"
+      | "partially_filled"
+      | "filled"
+      | "failed"
+      | "expired"
+      | "cancelled"
+    >()
+    .notNull(),
+  quoteAmount: units("quote_amount").notNull(),
+  quoteDecimals: dec("quote_decimals").notNull(),
+  quoteAsset: text("quote_asset").notNull(),
+  estQuantity: units("est_quantity").notNull(),
+  quantityDecimals: dec("quantity_decimals").notNull(),
+  feeAmount: units("fee_amount").notNull().default("0"),
+  maxSlippageBps: integer("max_slippage_bps").notNull(),
+  quoteAt: ts("quote_at").notNull(),
+  quoteExpiresAt: ts("quote_expires_at").notNull(),
+  chainId: integer("chain_id"),
+  txHash: bytea("tx_hash"),
+  previewHash: bytea("preview_hash").notNull(),
+  createdAt: ts("created_at").notNull().defaultNow(),
+  updatedAt: ts("updated_at").notNull().defaultNow(),
+});
+
+export const orderEvents = pgTable("order_events", {
+  id: uuid("id").primaryKey(),
+  orderId: uuid("order_id").notNull(),
+  status: text("status").notNull(),
+  details: jsonb("details")
+    .notNull()
+    .default(sql`'{}'::jsonb`),
+  createdAt: ts("created_at").notNull().defaultNow(),
+});
+
+export const fills = pgTable("fills", {
+  id: uuid("id").primaryKey(),
+  orderId: uuid("order_id").notNull(),
+  quantity: units("quantity").notNull(),
+  quantityDecimals: dec("quantity_decimals").notNull(),
+  price: units("price").notNull(),
+  priceDecimals: dec("price_decimals").notNull(),
+  feeAmount: units("fee_amount").notNull().default("0"),
+  chainId: integer("chain_id"),
+  txHash: bytea("tx_hash"),
+  logIndex: integer("log_index"),
+  filledAt: ts("filled_at").notNull(),
+});
+
+export const positions = pgTable("positions", {
+  id: uuid("id").primaryKey(),
+  userId: uuid("user_id").notNull(),
+  instrumentId: uuid("instrument_id").notNull(),
+  book: text("book").$type<Book>().notNull(),
+  quantity: units("quantity").notNull(),
+  quantityDecimals: dec("quantity_decimals").notNull(),
+  costBasis: units("cost_basis").notNull(),
+  costDecimals: dec("cost_decimals").notNull(),
+  updatedAt: ts("updated_at").notNull().defaultNow(),
+});
+
+export const ledgerEntries = pgTable("ledger_entries", {
+  id: uuid("id").primaryKey(),
+  userId: uuid("user_id").notNull(),
+  book: text("book").$type<Book>().notNull(),
+  instrumentId: uuid("instrument_id"),
+  asset: text("asset").notNull(),
+  amount: units("amount").notNull(),
+  decimals: dec("decimals").notNull(),
+  entryType: text("entry_type")
+    .$type<"deposit" | "buy" | "sell" | "fee" | "adjustment">()
+    .notNull(),
+  orderId: uuid("order_id"),
+  createdAt: ts("created_at").notNull().defaultNow(),
+});
+
+// ---- Social -----------------------------------------------------------------------------
+export const profiles = pgTable("profiles", {
+  userId: uuid("user_id").primaryKey(),
+  bio: text("bio"),
+  portfolioVisibility: text("portfolio_visibility")
+    .$type<Visibility>()
+    .notNull()
+    .default("private"),
+  positionsVisibility: text("positions_visibility")
+    .$type<Visibility>()
+    .notNull()
+    .default("private"),
+  transactionsVisibility: text("transactions_visibility")
+    .$type<Visibility>()
+    .notNull()
+    .default("private"),
+  researchActivityVisibility: text("research_activity_visibility")
+    .$type<Visibility>()
+    .notNull()
+    .default("private"),
+  followersVisibility: text("followers_visibility").$type<Visibility>().notNull().default("public"),
+  walletVisibility: text("wallet_visibility").$type<Visibility>().notNull().default("private"),
+  appearInLeaderboards: boolean("appear_in_leaderboards").notNull().default(false),
+  updatedAt: ts("updated_at").notNull().defaultNow(),
+});
+
+export const follows = pgTable(
+  "follows",
+  {
+    followerId: uuid("follower_id").notNull(),
+    followeeId: uuid("followee_id").notNull(),
+    createdAt: ts("created_at").notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.followerId, t.followeeId] })],
+);
+
+export const posts = pgTable("posts", {
+  id: uuid("id").primaryKey(),
+  userId: uuid("user_id").notNull(),
+  kind: text("kind").notNull(),
+  body: text("body").notNull(),
+  entityId: uuid("entity_id"),
+  thesisId: uuid("thesis_id"),
+  briefId: uuid("brief_id"),
+  visibility: text("visibility").$type<Visibility>().notNull().default("public"),
+  aiAssisted: boolean("ai_assisted").notNull().default(false),
+  sponsored: boolean("sponsored").notNull().default(false),
+  createdAt: ts("created_at").notNull().defaultNow(),
+  deletedAt: ts("deleted_at"),
+});
+
+export const comments = pgTable("comments", {
+  id: uuid("id").primaryKey(),
+  postId: uuid("post_id").notNull(),
+  userId: uuid("user_id").notNull(),
+  parentId: uuid("parent_id"),
+  body: text("body").notNull(),
+  createdAt: ts("created_at").notNull().defaultNow(),
+  deletedAt: ts("deleted_at"),
+});
+
+export const reactions = pgTable(
+  "reactions",
+  {
+    postId: uuid("post_id").notNull(),
+    userId: uuid("user_id").notNull(),
+    kind: text("kind").$type<"like" | "helpful" | "not_helpful">().notNull(),
+    createdAt: ts("created_at").notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.postId, t.userId, t.kind] })],
+);
+
+export const bookmarks = pgTable(
+  "bookmarks",
+  {
+    userId: uuid("user_id").notNull(),
+    postId: uuid("post_id").notNull(),
+    createdAt: ts("created_at").notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.postId] })],
+);
+
+// ---- Reputation -------------------------------------------------------------------------
+export const reputationEvidence = pgTable("reputation_evidence", {
+  id: uuid("id").primaryKey(),
+  userId: uuid("user_id").notNull(),
+  component: text("component").notNull(),
+  sourceType: text("source_type").notNull(),
+  sourceId: uuid("source_id").notNull(),
+  book: text("book").$type<Book>(),
+  value: numeric("value", { precision: 20, scale: 6 }).notNull(),
+  methodologyVersion: text("methodology_version").notNull(),
+  observedAt: ts("observed_at").notNull(),
+  createdAt: ts("created_at").notNull().defaultNow(),
+});
+
+export const reputationSnapshots = pgTable("reputation_snapshots", {
+  id: uuid("id").primaryKey(),
+  userId: uuid("user_id").notNull(),
+  methodologyVersion: text("methodology_version").notNull(),
+  maturity: text("maturity").$type<"building" | "ranked">().notNull(),
+  suiemScore: numeric("suiem_score", { precision: 5, scale: 2 }),
+  investorScore: numeric("investor_score", { precision: 5, scale: 2 }),
+  contributionScore: numeric("contribution_score", { precision: 5, scale: 2 }),
+  components: jsonb("components").notNull(),
+  computedAt: ts("computed_at").notNull().defaultNow(),
+});
+
+// ---- $WIF economy (mainnet) ---------------------------------------------------------------
+export const elections = pgTable("elections", {
+  id: uuid("id").primaryKey(),
+  slug: text("slug").notNull(),
+  title: text("title").notNull(),
+  category: text("category")
+    .$type<"research_contributor" | "investor" | "educational" | "community_spotlight">()
+    .notNull(),
+  chainId: integer("chain_id").notNull(),
+  contractAddress: bytea("contract_address"),
+  onchainElectionId: units("onchain_election_id"),
+  startsAt: ts("starts_at").notNull(),
+  endsAt: ts("ends_at").notNull(),
+  status: text("status")
+    .$type<"draft" | "scheduled" | "open" | "closed" | "finalized" | "cancelled">()
+    .notNull()
+    .default("draft"),
+  rules: jsonb("rules")
+    .notNull()
+    .default(sql`'{}'::jsonb`),
+  createdBy: uuid("created_by"),
+  createdAt: ts("created_at").notNull().defaultNow(),
+  finalizedAt: ts("finalized_at"),
+});
+
+export const electionCandidates = pgTable("election_candidates", {
+  id: uuid("id").primaryKey(),
+  electionId: uuid("election_id").notNull(),
+  userId: uuid("user_id").notNull(),
+  onchainCandidateId: units("onchain_candidate_id"),
+  nominationPostId: uuid("nomination_post_id"),
+  createdAt: ts("created_at").notNull().defaultNow(),
+});
+
+export const chainEvents = pgTable("chain_events", {
+  id: uuid("id").primaryKey(),
+  chainId: integer("chain_id").notNull(),
+  contractAddress: bytea("contract_address").notNull(),
+  txHash: bytea("tx_hash").notNull(),
+  logIndex: integer("log_index").notNull(),
+  blockNumber: bigint("block_number", { mode: "bigint" }).notNull(),
+  blockHash: bytea("block_hash").notNull(),
+  eventName: text("event_name").notNull(),
+  args: jsonb("args").notNull(),
+  finality: text("finality").$type<Finality>().notNull(),
+  removed: boolean("removed").notNull().default(false),
+  observedAt: ts("observed_at").notNull().defaultNow(),
+});
+
+export const electionTallies = pgTable(
+  "election_tallies",
+  {
+    electionId: uuid("election_id").notNull(),
+    candidateId: uuid("candidate_id").notNull(),
+    votes: units("votes").notNull().default("0"),
+    decimals: dec("decimals").notNull().default(18),
+    asOfBlock: bigint("as_of_block", { mode: "bigint" }).notNull(),
+    finality: text("finality").$type<Finality>().notNull(),
+    updatedAt: ts("updated_at").notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.electionId, t.candidateId] })],
+);
+
+// ---- Operations -------------------------------------------------------------------------
 export const auditLogs = pgTable("audit_logs", {
   id: uuid("id").primaryKey(),
   occurredAt: ts("occurred_at").notNull().defaultNow(),
@@ -149,7 +512,6 @@ export const auditLogs = pgTable("audit_logs", {
   targetType: text("target_type"),
   targetId: text("target_id"),
   outcome: text("outcome").$type<"success" | "denied" | "error">().notNull(),
-  reasonCode: text("reason_code"),
   requestId: text("request_id"),
   details: jsonb("details")
     .$type<Record<string, unknown>>()
@@ -172,111 +534,21 @@ export const idempotencyKeys = pgTable(
   (t) => [primaryKey({ columns: [t.scope, t.route, t.key] })],
 );
 
-export const outboxEvents = pgTable("outbox_events", {
-  id: uuid("id").primaryKey(),
-  topic: text("topic").notNull(),
-  payload: jsonb("payload").notNull(),
-  createdAt: ts("created_at").notNull().defaultNow(),
-  publishedAt: ts("published_at"),
-  attempts: integer("attempts").notNull().default(0),
-});
-
 export const featureFlags = pgTable("feature_flags", {
-  key: text("key").primaryKey(),
+  key: text("key")
+    .$type<"trading.live" | "trading.testnet" | "elections" | "campaigns">()
+    .primaryKey(),
   enabled: boolean("enabled").notNull().default(false),
   updatedAt: ts("updated_at").notNull().defaultNow(),
-  updatedBy: uuid("updated_by"),
 });
 
-export const jurisdictionPolicies = pgTable("jurisdiction_policies", {
-  version: text("version").primaryKey(),
-  rules: jsonb("rules").$type<JurisdictionRules>().notNull(),
-  publishedAt: ts("published_at").notNull().defaultNow(),
-  createdBy: uuid("created_by"),
-});
-
-export const policyDecisions = pgTable("policy_decisions", {
-  id: uuid("id").primaryKey(),
-  decidedAt: ts("decided_at").notNull().defaultNow(),
-  policyVersion: text("policy_version").notNull(),
-  capability: text("capability").notNull(),
-  subjectUserId: uuid("subject_user_id"),
-  jurisdiction: char("jurisdiction", { length: 2 }),
-  allowed: boolean("allowed").notNull(),
-  reason: text("reason").notNull(),
-  requestId: text("request_id"),
-});
-
-export const adminRoles = pgTable("admin_roles", {
-  id: uuid("id").primaryKey(),
-  userId: uuid("user_id").notNull(),
-  role: text("role").notNull(),
-  grantedAt: ts("granted_at").notNull().defaultNow(),
-  grantedBy: uuid("granted_by"),
-  revokedAt: ts("revoked_at"),
-  revokedBy: uuid("revoked_by"),
-});
-
-export const dualControlRequests = pgTable("dual_control_requests", {
-  id: uuid("id").primaryKey(),
-  action: text("action").notNull(),
-  payload: jsonb("payload").$type<Record<string, unknown>>().notNull(),
-  requestedBy: uuid("requested_by").notNull(),
-  requestedAt: ts("requested_at").notNull().defaultNow(),
-  reasonCode: text("reason_code").notNull(),
-  reasonNote: text("reason_note").notNull(),
-  status: text("status")
-    .$type<"pending" | "approved" | "rejected" | "expired" | "executed" | "failed">()
-    .notNull()
-    .default("pending"),
-  decidedBy: uuid("decided_by"),
-  decidedAt: ts("decided_at"),
-  decisionReasonCode: text("decision_reason_code"),
-  decisionNote: text("decision_note"),
-  expiresAt: ts("expires_at").notNull(),
-});
-
-export const adminActions = pgTable("admin_actions", {
-  id: uuid("id").primaryKey(),
-  occurredAt: ts("occurred_at").notNull().defaultNow(),
-  adminUserId: uuid("admin_user_id").notNull(),
-  action: text("action").notNull(),
-  targetType: text("target_type"),
-  targetId: text("target_id"),
-  reasonCode: text("reason_code").notNull(),
-  reasonNote: text("reason_note").notNull(),
-  dualControlRequestId: uuid("dual_control_request_id"),
-  outcome: text("outcome").$type<"success" | "denied" | "error">().notNull(),
-  details: jsonb("details")
-    .$type<Record<string, unknown>>()
-    .notNull()
-    .default(sql`'{}'::jsonb`),
-});
-
-/** Jurisdiction policy document shape (validated in apps/api/src/flags/policy.ts). */
-export interface JurisdictionRules {
-  default: Record<string, boolean>;
-  undeclared: Record<string, boolean>;
-  jurisdictions: Record<string, Record<string, boolean>>;
-}
-
-/** Tables with RLS keyed by app.user_id (must match the migration). */
-export const RLS_TABLES = [
-  "users",
-  "user_auth_methods",
-  "user_sessions",
-  "devices",
-  "wallet_accounts",
-  "user_preferences",
-  "profiles",
-  "consent_records",
-  "data_requests",
-] as const;
-
-/** Tables protected by append-only triggers. */
+/** Tables protected by append-only triggers (must match the migration). */
 export const APPEND_ONLY_TABLES = [
   "consent_records",
+  "thesis_versions",
+  "order_events",
+  "ledger_entries",
+  "reputation_evidence",
   "audit_logs",
-  "policy_decisions",
-  "admin_actions",
+  "policy_versions",
 ] as const;

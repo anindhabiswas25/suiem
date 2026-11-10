@@ -1,351 +1,285 @@
-import { randomBytes } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { getTableConfig, type PgTable } from "drizzle-orm/pg-core";
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, inject, test } from "vitest";
 import { newId } from "@suiem/shared/ids";
-import { connect, withUser, type DbHandle } from "./client";
 import { migrate } from "./migrate";
 import * as schema from "./schema";
-import { APPEND_ONLY_TABLES, RLS_TABLES } from "./schema";
-import { sql } from "drizzle-orm";
+import { APPEND_ONLY_TABLES } from "./schema";
 
-let owner: pg.Client;
-let app: DbHandle;
-let system: pg.Client;
+let db: pg.Client;
 
-/** Creates a user with one row in every user-owned table (as owner, bypassing RLS). */
 async function makeUser(): Promise<string> {
   const id = newId();
-  await owner.query("INSERT INTO users (id, email) VALUES ($1, $2)", [id, `${id}@test.local`]);
-  await owner.query(
-    "INSERT INTO user_auth_methods (id, user_id, kind) VALUES ($1, $2, 'email_otp')",
-    [newId(), id],
-  );
-  await owner.query(
-    "INSERT INTO user_sessions (id, user_id, token_hash, amr, expires_at) VALUES ($1, $2, $3, '{email_otp}', now() + interval '1 day')",
-    [newId(), id, randomBytes(32)],
-  );
-  await owner.query("INSERT INTO devices (id, user_id, kind) VALUES ($1, $2, 'browser')", [
-    newId(),
-    id,
-  ]);
-  await owner.query(
-    "INSERT INTO wallet_accounts (id, user_id, chain_id, address, kind, siwe_message_hash) VALUES ($1, $2, 46630, $3, 'external_eoa', $4)",
-    [newId(), id, randomBytes(20), Buffer.alloc(32, 1)],
-  );
-  await owner.query("INSERT INTO user_preferences (user_id) VALUES ($1)", [id]);
-  await owner.query("INSERT INTO profiles (user_id) VALUES ($1)", [id]);
-  await owner.query(
-    "INSERT INTO consent_records (id, user_id, purpose, policy_version, action) VALUES ($1, $2, 'terms', '2026-11-10.1', 'granted')",
-    [newId(), id],
-  );
-  await owner.query("INSERT INTO data_requests (id, user_id, type) VALUES ($1, $2, 'export')", [
-    newId(),
-    id,
-  ]);
+  await db.query("INSERT INTO users (id, handle) VALUES ($1, $2)", [id, `u_${id.slice(-12)}`]);
   return id;
 }
-
-/** Drizzle wraps driver errors; the Postgres message is on `cause`. */
-const errText = (e: unknown): string => {
-  const err = e as { message?: string; cause?: { message?: string } };
-  return `${err.message ?? ""} ${err.cause?.message ?? ""}`;
-};
-async function expectDbError(p: Promise<unknown>, re: RegExp) {
-  const e = await p.then(
-    () => undefined,
-    (err: unknown) => err,
-  );
-  expect(e, "expected the query to fail").toBeDefined();
-  expect(errText(e)).toMatch(re);
-}
-
-/** Inserts one row into each append-only table so row triggers have something to fire on. */
-async function seedAppendOnlyRows(userId: string) {
-  await owner.query(
-    "INSERT INTO audit_logs (id, actor_type, action, outcome) VALUES ($1, 'system', 'test.event', 'success')",
-    [newId()],
-  );
-  await owner.query(
-    "INSERT INTO policy_decisions (id, policy_version, capability, allowed, reason) VALUES ($1, '2026-11-10.1', 'research', true, 'test')",
-    [newId()],
-  );
-  await owner.query(
-    "INSERT INTO admin_actions (id, admin_user_id, action, reason_code, reason_note, outcome) VALUES ($1, $2, 'test.action', 'TEST_ENV', 'test', 'success')",
-    [newId(), userId],
-  );
-}
-
-const ownerColumn = (table: string) => (table === "users" ? "id" : "user_id");
+const entityId = async (slug: string) =>
+  (
+    await db.query<{ id: string }>("SELECT id FROM entities WHERE canonical_id = $1", [
+      `ent:${slug}`,
+    ])
+  ).rows[0]!.id;
 
 beforeAll(async () => {
-  owner = new pg.Client({ connectionString: inject("pgOwnerUrl") });
-  await owner.connect();
-  system = new pg.Client({ connectionString: inject("pgSystemUrl") });
-  await system.connect();
-  app = connect(inject("pgAppUrl"));
+  db = new pg.Client({ connectionString: inject("pgUrl") });
+  await db.connect();
 });
-
 afterAll(async () => {
-  await owner.end();
-  await system.end();
-  await app.close();
+  await db.end();
 });
 
 describe("migrations", () => {
   test("re-running is a no-op, and editing an applied migration is detected", async () => {
-    const again = await migrate(inject("pgOwnerUrl"));
-    expect(again.applied).toEqual([]);
-    await owner.query(
+    expect((await migrate(inject("pgUrl"))).applied).toEqual([]);
+    await db.query(
       "UPDATE schema_migrations SET checksum = 'tampered' WHERE version = '0001_foundation.sql'",
     );
-    await expect(migrate(inject("pgOwnerUrl"))).rejects.toThrow(/modified after being applied/);
-    const { createHash } = await import("node:crypto");
-    const { readFileSync } = await import("node:fs");
-    const { join } = await import("node:path");
+    await expect(migrate(inject("pgUrl"))).rejects.toThrow(/modified after being applied/);
     const real = createHash("sha256")
       .update(
         readFileSync(join(import.meta.dirname, "..", "migrations", "0001_foundation.sql"), "utf8"),
       )
       .digest("hex");
-    await owner.query(
+    await db.query(
       "UPDATE schema_migrations SET checksum = $1 WHERE version = '0001_foundation.sql'",
       [real],
     );
   });
 
-  test("every Drizzle table and column exists in the migrated database", async () => {
-    const cols = await owner.query<{ table_name: string; column_name: string }>(
-      "SELECT table_name, column_name FROM information_schema.columns WHERE table_schema = 'public'",
+  test("every Drizzle table and column exists in the database", async () => {
+    const cols = await db.query<{ t: string; c: string }>(
+      "SELECT table_name AS t, column_name AS c FROM information_schema.columns WHERE table_schema = 'public'",
     );
-    const actual = new Set(cols.rows.map((r) => `${r.table_name}.${r.column_name}`));
-    const { getTableConfig } = await import("drizzle-orm/pg-core");
+    const actual = new Set(cols.rows.map((r) => `${r.t}.${r.c}`));
+    let tables = 0;
     for (const value of Object.values(schema)) {
       if (typeof value !== "object" || value === null || !("getSQL" in value)) continue;
-      const cfg = getTableConfig(value as Parameters<typeof getTableConfig>[0]);
+      const cfg = getTableConfig(value as PgTable);
+      tables += 1;
       for (const c of cfg.columns)
         expect(actual, `${cfg.name}.${c.name}`).toContain(`${cfg.name}.${c.name}`);
     }
+    const sqlTables = await db.query(
+      "SELECT count(*)::int AS n FROM information_schema.tables WHERE table_schema = 'public' AND table_name <> 'schema_migrations'",
+    );
+    expect(tables).toBe(sqlTables.rows[0].n);
+  });
+});
+
+describe("seed", () => {
+  test("loads ~30 entities with aliases and 5 unverified testnet Stock Token instruments", async () => {
+    const e = await db.query("SELECT count(*)::int AS n FROM entities");
+    expect(e.rows[0].n).toBe(30);
+    const amb = await db.query("SELECT alias FROM entity_aliases WHERE ambiguous ORDER BY alias");
+    expect(amb.rows.map((r) => r.alias)).toEqual(
+      expect.arrayContaining(["Apple", "Meta", "V", "Visa"]),
+    );
+    const i = await db.query(
+      "SELECT symbol, status, contract_address, chain_id FROM instruments WHERE legal_type = 'testnet_test_token' ORDER BY symbol",
+    );
+    expect(i.rows.map((r) => r.symbol)).toEqual([
+      "TEST:AMD",
+      "TEST:AMZN",
+      "TEST:NFLX",
+      "TEST:PLTR",
+      "TEST:TSLA",
+    ]);
+    expect(
+      i.rows.every(
+        (r) => r.status === "unverified" && r.contract_address === null && r.chain_id === 46630,
+      ),
+    ).toBe(true);
   });
 });
 
 describe("conventions", () => {
   test("ids must be UUIDv7", async () => {
     await expect(
-      owner.query(
-        "INSERT INTO users (id, email) VALUES ('6f1c2d6e-1a2b-4c3d-8e9f-001122334455', 'v4@test.local')",
+      db.query(
+        "INSERT INTO users (id, handle) VALUES ('6f1c2d6e-1a2b-4c3d-8e9f-001122334455', 'v4_user')",
       ),
     ).rejects.toThrow(/uuid7/);
   });
-
-  test("the 'live' book is CHECK-blocked; simulated and testnet are allowed", async () => {
-    await expect(owner.query("SELECT 'live'::ledger_book")).rejects.toThrow(/ledger_book/);
-    const ok = await owner.query(
-      "SELECT 'simulated'::ledger_book AS a, 'testnet'::ledger_book AS b",
-    );
-    expect(ok.rows[0]).toEqual({ a: "simulated", b: "testnet" });
-  });
-
-  test("token amounts are exact numeric(78,0) and come back as strings", async () => {
-    const r = await owner.query(
-      "SELECT '123456789012345678901234567890123456789012345678901234567890'::token_units AS v",
-    );
-    expect(r.rows[0].v).toBe("123456789012345678901234567890123456789012345678901234567890");
+  test("the 'live' book is blocked everywhere a book is stored", async () => {
+    await expect(db.query("SELECT 'live'::ledger_book")).rejects.toThrow(/ledger_book/);
+    const u = await makeUser();
     await expect(
-      owner.query("SELECT '1.5'::numeric::token_units::text AS v"),
-    ).resolves.toMatchObject({ rows: [{ v: "2" }] });
+      db.query(
+        "INSERT INTO ledger_entries (id, user_id, book, asset, amount, decimals, entry_type) VALUES ($1, $2, 'live', 'USD', 1, 6, 'deposit')",
+        [newId(), u],
+      ),
+    ).rejects.toThrow(/ledger_book/);
   });
-
-  test("fiat is numeric(20,6) with a 3-letter currency", async () => {
-    const r = await owner.query("SELECT '12.3456789'::fiat_amount::text AS v");
-    expect(r.rows[0].v).toBe("12.345679");
-    await expect(owner.query("SELECT 'usd'::currency_code")).rejects.toThrow(/currency_code/);
-  });
-
-  test("addresses are 20 bytes and chain_id must be 46630", async () => {
-    await expect(owner.query("SELECT '\\x00'::bytea::evm_address")).rejects.toThrow(/evm_address/);
-    await expect(owner.query("SELECT 4663::suiem_chain_id")).rejects.toThrow(/suiem_chain_id/);
-    await expect(owner.query("SELECT 46630::suiem_chain_id AS c")).resolves.toMatchObject({
-      rows: [{ c: 46630 }],
+  test("token amounts are exact numeric(78,0) strings; fiat is numeric(20,6)", async () => {
+    const r = await db.query(
+      "SELECT '123456789012345678901234567890123456789012345678901234567890'::token_units AS v, '12.3456789'::fiat_amount AS f",
+    );
+    expect(r.rows[0]).toEqual({
+      v: "123456789012345678901234567890123456789012345678901234567890",
+      f: "12.345679",
     });
+  });
+  test("only chains 4663 and 46630 are storable; addresses are 20 bytes", async () => {
+    await expect(db.query("SELECT 1::suiem_chain_id")).rejects.toThrow(/suiem_chain_id/);
+    await expect(db.query("SELECT 10143::suiem_chain_id")).rejects.toThrow(/suiem_chain_id/);
+    await expect(db.query("SELECT '\\x00'::bytea::evm_address")).rejects.toThrow(/evm_address/);
+  });
+  test("elections live on mainnet 4663 only", async () => {
+    await expect(
+      db.query(
+        "INSERT INTO elections (id, slug, title, category, chain_id, starts_at, ends_at) VALUES ($1, 'x-test', 'x', 'investor', 46630, now(), now() + interval '1 day')",
+        [newId()],
+      ),
+    ).rejects.toThrow(/elections_chain_id_check/);
+    await expect(
+      db.query(
+        "INSERT INTO elections (id, slug, title, category, chain_id, starts_at, ends_at, status) VALUES ($1, 'y-test', 'y', 'investor', 4663, now(), now() + interval '1 day', 'open')",
+        [newId()],
+      ),
+    ).rejects.toThrow(/check/);
   });
 });
 
-describe("append-only tables reject UPDATE, DELETE and TRUNCATE", () => {
+describe("instrument registry guards (PRD §8.1, ADR-0004)", () => {
+  const insert = (fields: Record<string, unknown>) => {
+    const base = {
+      id: newId(),
+      symbol: `TEST:X${randomBytes(2).toString("hex").toUpperCase()}`,
+      display_name: "x",
+      network: "testnet",
+      chain_id: 46630,
+      legal_type: "demo_token",
+      decimals: 18,
+      status: "unverified",
+    };
+    const row = { ...base, ...fields };
+    const keys = Object.keys(row);
+    return db.query(
+      `INSERT INTO instruments (${keys.join(",")}) VALUES (${keys.map((_, i) => `$${i + 1}`).join(",")})`,
+      Object.values(row),
+    );
+  };
+  test("an onchain instrument cannot be active without address, source and verification time", async () => {
+    await expect(insert({ status: "active" })).rejects.toThrow(/check/);
+    await expect(
+      insert({
+        status: "active",
+        contract_address: randomBytes(20),
+        source_url: "https://x",
+        last_verified_at: new Date(),
+      }),
+    ).resolves.toBeDefined();
+  });
+  test("no real-security legal types exist; simulated must be off-chain; nothing on mainnet", async () => {
+    await expect(insert({ legal_type: "tokenized_equity" })).rejects.toThrow(/legal_type/);
+    await expect(insert({ legal_type: "simulated" })).rejects.toThrow(/check/);
+    await expect(insert({ network: "mainnet", chain_id: 4663 })).rejects.toThrow(/check/);
+    await expect(insert({ symbol: "NVDAx" })).rejects.toThrow(/symbol/);
+  });
+});
+
+describe("append-only history rejects UPDATE, DELETE and TRUNCATE", () => {
   beforeAll(async () => {
-    await seedAppendOnlyRows(await makeUser());
+    const u = await makeUser();
+    const ent = await entityId("nvidia");
+    const thesis = newId();
+    await db.query(
+      "INSERT INTO consent_records (id, user_id, purpose, policy_version, action) VALUES ($1, $2, 'terms', '2026-11-10.1', 'granted')",
+      [newId(), u],
+    );
+    await db.query("INSERT INTO theses (id, user_id, entity_id) VALUES ($1, $2, $3)", [
+      thesis,
+      u,
+      ent,
+    ]);
+    await db.query(
+      "INSERT INTO thesis_versions (id, thesis_id, version, direction, horizon_days, title, rationale, counterarguments, risks, invalidation) VALUES ($1, $2, 1, 'bullish', 90, 'Test thesis', 'r', 'c', 'k', 'i')",
+      [newId(), thesis],
+    );
+    const inst = (await db.query<{ id: string }>("SELECT id FROM instruments LIMIT 1")).rows[0]!.id;
+    const order = newId();
+    await db.query(
+      `INSERT INTO orders (id, user_id, instrument_id, book, side, status, quote_amount, quote_decimals, quote_asset, est_quantity, quantity_decimals, max_slippage_bps, quote_at, quote_expires_at, preview_hash)
+       VALUES ($1, $2, $3, 'simulated', 'buy', 'previewed', 1000000, 6, 'USD', 1, 18, 50, now(), now() + interval '30 seconds', $4)`,
+      [order, u, inst, randomBytes(32)],
+    );
+    await db.query("INSERT INTO order_events (id, order_id, status) VALUES ($1, $2, 'previewed')", [
+      newId(),
+      order,
+    ]);
+    await db.query(
+      "INSERT INTO ledger_entries (id, user_id, book, asset, amount, decimals, entry_type) VALUES ($1, $2, 'simulated', 'USD', 1, 6, 'deposit')",
+      [newId(), u],
+    );
+    await db.query(
+      "INSERT INTO reputation_evidence (id, user_id, component, source_type, source_id, value, methodology_version, observed_at) VALUES ($1, $2, 'research_quality', 'brief', $3, 1, 'v1', now())",
+      [newId(), u, newId()],
+    );
+    await db.query(
+      "INSERT INTO audit_logs (id, actor_type, action, outcome) VALUES ($1, 'system', 'test.event', 'success')",
+      [newId()],
+    );
   });
   for (const table of APPEND_ONLY_TABLES) {
     test(table, async () => {
-      const count = await owner.query(`SELECT count(*)::int AS n FROM ${table}`);
-      expect(count.rows[0].n, "table must have rows for row triggers to fire").toBeGreaterThan(0);
-      for (const client of [owner, system]) {
-        await expect(client.query(`UPDATE ${table} SET id = id`)).rejects.toThrow(
-          /append-only|permission denied/,
-        );
-        await expect(client.query(`DELETE FROM ${table}`)).rejects.toThrow(
-          /append-only|permission denied/,
-        );
-      }
-      await expect(owner.query(`TRUNCATE ${table} CASCADE`)).rejects.toThrow(/append-only/);
+      expect((await db.query(`SELECT count(*)::int AS n FROM ${table}`)).rows[0].n).toBeGreaterThan(
+        0,
+      );
+      await expect(db.query(`UPDATE ${table} SET id = id`)).rejects.toThrow(/append-only/);
+      await expect(db.query(`DELETE FROM ${table}`)).rejects.toThrow(/append-only/);
+      await expect(db.query(`TRUNCATE ${table} CASCADE`)).rejects.toThrow(/append-only/);
     });
   }
-
-  test("triggers fire even when rows exist (not only on empty tables)", async () => {
-    const u = await makeUser();
-    await expect(
-      owner.query("UPDATE consent_records SET action = 'withdrawn' WHERE user_id = $1", [u]),
-    ).rejects.toThrow(/append-only/);
-  });
 });
 
 describe("trading.live is hard-off at the database", () => {
-  test("UPDATE to enable is rejected by CHECK", async () => {
-    for (const client of [owner, system]) {
-      await expect(
-        client.query("UPDATE feature_flags SET enabled = true WHERE key = 'trading.live'"),
-      ).rejects.toThrow(/trading_live_hard_off/);
-    }
-  });
-  test("delete-and-reinsert and rename are rejected", async () => {
+  test("enable, upsert, delete and rename are all rejected", async () => {
     await expect(
-      owner.query("DELETE FROM feature_flags WHERE key = 'trading.live'"),
-    ).rejects.toThrow(/cannot be deleted or renamed/);
+      db.query("UPDATE feature_flags SET enabled = true WHERE key = 'trading.live'"),
+    ).rejects.toThrow(/trading_live_hard_off/);
     await expect(
-      owner.query("UPDATE feature_flags SET key = 'elections' WHERE key = 'trading.live'"),
-    ).rejects.toThrow(/cannot be deleted or renamed/);
-    await expect(
-      owner.query(
+      db.query(
         "INSERT INTO feature_flags (key, enabled) VALUES ('trading.live', true) ON CONFLICT (key) DO UPDATE SET enabled = true",
       ),
     ).rejects.toThrow(/trading_live_hard_off/);
-  });
-  test("no jurisdiction policy may allow live trading", async () => {
+    await expect(db.query("DELETE FROM feature_flags WHERE key = 'trading.live'")).rejects.toThrow(
+      /cannot be deleted or renamed/,
+    );
     await expect(
-      owner.query(
-        "INSERT INTO jurisdiction_policies (version, rules) VALUES ('2099-01-01.1', $1)",
-        [
-          JSON.stringify({
-            default: {},
-            undeclared: {},
-            jurisdictions: { US: { live_trading: true } },
-          }),
-        ],
-      ),
-    ).rejects.toThrow(/jurisdiction_no_live_trading/);
+      db.query("UPDATE feature_flags SET key = 'campaigns' WHERE key = 'trading.live'"),
+    ).rejects.toThrow(/cannot be deleted or renamed/);
   });
 });
 
-describe("row-level security: user A cannot read or modify user B's rows", () => {
-  let a: string;
-  let b: string;
-  beforeAll(async () => {
-    a = await makeUser();
-    b = await makeUser();
+describe("indexer and reputation invariants", () => {
+  test("chain events are unique on (chain_id, tx_hash, log_index)", async () => {
+    const tx = randomBytes(32);
+    const row = [4663, randomBytes(20), tx, 0, 1, randomBytes(32), "Voted", "{}", "soft"];
+    const sql =
+      "INSERT INTO chain_events (id, chain_id, contract_address, tx_hash, log_index, block_number, block_hash, event_name, args, finality) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)";
+    await db.query(sql, [newId(), ...row]);
+    await expect(db.query(sql, [newId(), ...row])).rejects.toThrow(/duplicate key/);
   });
-
-  for (const table of RLS_TABLES) {
-    test(`${table}: select is scoped`, async () => {
-      const col = ownerColumn(table);
-      const rows = await withUser(app.db, a, (tx) =>
-        tx.execute(sql.raw(`SELECT ${col} AS owner FROM ${table}`)),
-      );
-      expect(rows.rows.length).toBeGreaterThan(0);
-      expect(rows.rows.every((r) => r.owner === a)).toBe(true);
-      const leaked = await withUser(app.db, a, (tx) =>
-        tx.execute(
-          sql`SELECT count(*)::int AS n FROM ${sql.raw(table)} WHERE ${sql.raw(col)} = ${b}`,
-        ),
-      );
-      expect(leaked.rows[0]?.n).toBe(0);
-    });
-
-    test(`${table}: writes into another user's rows are blocked`, async () => {
-      const col = ownerColumn(table);
-      // UPDATE: either no privilege, or RLS makes B's rows invisible (0 rows affected).
-      const upd = await withUser(app.db, a, (tx) =>
-        tx.execute(
-          sql`UPDATE ${sql.raw(table)} SET ${sql.raw(col)} = ${sql.raw(col)} WHERE ${sql.raw(col)} = ${b}`,
-        ),
-      ).catch((e: Error) => e);
-      if (upd instanceof Error) expect(errText(upd)).toMatch(/permission denied/);
-      else expect(upd.rowCount).toBe(0);
-      // DELETE is never granted to the app role on user data.
-      await expectDbError(
-        withUser(app.db, a, (tx) =>
-          tx.execute(sql`DELETE FROM ${sql.raw(table)} WHERE ${sql.raw(col)} = ${b}`),
-        ),
-        /permission denied/,
-      );
-      // B's rows are untouched.
-      const still = await owner.query(`SELECT count(*)::int AS n FROM ${table} WHERE ${col} = $1`, [
-        b,
-      ]);
-      expect(still.rows[0].n).toBeGreaterThan(0);
-    });
-  }
-
-  test("inserting a row owned by another user is rejected by WITH CHECK", async () => {
-    await expectDbError(
-      withUser(app.db, a, (tx) =>
-        tx.execute(
-          sql`INSERT INTO data_requests (id, user_id, type) VALUES (${newId()}, ${b}, 'delete')`,
-        ),
-      ),
-      /row-level security/,
-    );
-    await expectDbError(
-      withUser(app.db, a, (tx) =>
-        tx.execute(
-          sql`INSERT INTO consent_records (id, user_id, purpose, policy_version, action) VALUES (${newId()}, ${b}, 'marketing_email', '2026-11-10.1', 'granted')`,
-        ),
-      ),
-      /row-level security/,
-    );
-  });
-
-  test("without app.user_id the app role sees nothing", async () => {
-    const r = await app.pool.query("SELECT count(*)::int AS n FROM users");
-    expect(r.rows[0].n).toBe(0);
-  });
-
-  test("the app role cannot read operational tables at all", async () => {
-    for (const t of [
-      "audit_logs",
-      "admin_roles",
-      "admin_actions",
-      "dual_control_requests",
-      "idempotency_keys",
-      "outbox_events",
-      "policy_decisions",
-    ]) {
-      await expect(app.pool.query(`SELECT 1 FROM ${t} LIMIT 1`)).rejects.toThrow(
-        /permission denied/,
-      );
-    }
-  });
-
-  test("the system role bypasses RLS (used only by privileged modules)", async () => {
-    const r = await system.query("SELECT count(*)::int AS n FROM users WHERE id = ANY($1)", [
-      [a, b],
-    ]);
-    expect(r.rows[0].n).toBe(2);
-  });
-});
-
-describe("dual control constraint", () => {
-  test("the approver must differ from the requester", async () => {
+  test("a 'building' reputation snapshot cannot carry a score", async () => {
     const u = await makeUser();
-    const id = newId();
-    await owner.query(
-      `INSERT INTO dual_control_requests (id, action, payload, requested_by, reason_code, reason_note, expires_at)
-       VALUES ($1, 'feature_flag.set', '{}', $2, 'TEST_ENV', 'test', now() + interval '1 day')`,
-      [id, u],
-    );
     await expect(
-      owner.query(
-        "UPDATE dual_control_requests SET status = 'approved', decided_by = requested_by, decided_at = now() WHERE id = $1",
-        [id],
+      db.query(
+        "INSERT INTO reputation_snapshots (id, user_id, methodology_version, maturity, suiem_score, components) VALUES ($1, $2, 'v1', 'building', 50, '{}')",
+        [newId(), u],
       ),
-    ).rejects.toThrow(/dual_control_distinct_approver/);
+    ).rejects.toThrow(/check/);
+  });
+  test("one active owner per wallet address", async () => {
+    const [a, b] = [await makeUser(), await makeUser()];
+    const addr = randomBytes(20);
+    const sql =
+      "INSERT INTO wallet_accounts (id, user_id, address, chain_id, siwe_message_hash) VALUES ($1, $2, $3, $4, $5)";
+    await db.query(sql, [newId(), a, addr, 4663, randomBytes(32)]);
+    await expect(db.query(sql, [newId(), b, addr, 46630, randomBytes(32)])).rejects.toThrow(
+      /wallet_accounts_active_address/,
+    );
   });
 });
