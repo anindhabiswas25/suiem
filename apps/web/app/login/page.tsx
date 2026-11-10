@@ -4,13 +4,14 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { Footer } from "../../components/AppShell";
 import { PasskeyLogin, SiweLogin } from "../../components/auth";
+import { safeRedirect } from "../../lib/redirect";
 
 function LoginInner() {
   const router = useRouter();
   const params = useSearchParams();
   const next = params.get("next");
   const done = ({ isNewUser }: { isNewUser: boolean }) => {
-    const safeNext = next && next.startsWith("/") && !next.startsWith("//") ? next : "/home";
+    const safeNext = safeRedirect(next);
     router.replace(isNewUser ? "/onboarding" : safeNext);
   };
   return (
