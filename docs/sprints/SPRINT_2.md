@@ -32,8 +32,8 @@ $ pnpm depcruise
 ✔ no dependency violations found (134 modules, 278 dependencies cruised)
 
 $ pnpm test   (unit)
- Test Files  10 passed (10)
-      Tests  55 passed (55)
+ Test Files  11 passed (11)
+      Tests  57 passed (57)
 
 $ pnpm test:integration   (Testcontainers Postgres 16 + Redis, local anvil)
  Test Files  3 passed (3)
@@ -65,6 +65,7 @@ The dependency rules were demonstrated: a temporary `apps/extension` → `@suiem
 1. **Single superuser DB role** → the API now runs as `suiem_app` (NOSUPERUSER, NOBYPASSRLS, no DDL, no deletes on history, read-only flags). Migrations use `DATABASE_OWNER_URL`. Tests: `db.int.test.ts › least-privilege API role`.
 2. **Forbidden-phrase scan missed brief fields** → it now walks every generated string field.
 3. **`trustProxy: true` allowed X-Forwarded-For spoofing of the rate-limit key** → explicit `TRUST_PROXY_HOPS` (default 0). Test: "spoofed X-Forwarded-For values do not escape the per-IP auth limit".
+4. **Open redirect via `/login?next=/\evil`** → same-origin URL check rejecting backslashes and control characters (`apps/web/lib/redirect.ts`, tests in `redirect.test.ts`).
 
 ## Deviations and things skipped
 
