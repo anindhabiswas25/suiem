@@ -7,7 +7,12 @@ export type AppLogger = Logger;
  * Pino logger whose every record passes through the allowlist redactor. `destination` lets
  * tests capture output, and lets main.ts tee records to the OpenTelemetry log bridge.
  */
-export function createLogger(options: { level: string; service: string; env: string; destination?: DestinationStream }): AppLogger {
+export function createLogger(options: {
+  level: string;
+  service: string;
+  env: string;
+  destination?: DestinationStream;
+}): AppLogger {
   return pino(
     {
       level: options.level,

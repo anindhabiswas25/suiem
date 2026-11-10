@@ -38,7 +38,7 @@ const bool = z.enum(["true", "false"]).transform((v) => v === "true");
 export const apiEnvSchema = z
   .object({
     NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
-    API_PORT: z.coerce.number().int().min(1).max(65535).default(4000),
+    API_PORT: z.coerce.number().int().min(0).max(65535).default(4000),
     WEB_ORIGIN: z.url(),
     DATABASE_URL: z.string().startsWith("postgres"),
     REDIS_URL: z.string().startsWith("redis"),

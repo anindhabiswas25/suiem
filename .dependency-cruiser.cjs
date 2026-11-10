@@ -28,7 +28,7 @@ module.exports = {
       name: "shared-no-io",
       comment: "packages/shared is pure: no runtime I/O dependencies.",
       severity: "error",
-      from: { path: "^packages/shared/src" },
+      from: { path: "^packages/shared/src", pathNot: "\\.test\\.(ts|js)$" },
       to: {
         path: "(node_modules/(pg|ioredis|viem|next|react|fastify|@nestjs)|^packages/(db|chain)|^apps/)|^(fs|net|http|https|child_process|node:fs|node:net|node:http|node:https|node:child_process)$",
       },

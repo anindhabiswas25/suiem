@@ -123,7 +123,9 @@ function generatedStrings(value: unknown, key = ""): string[] {
   if (typeof value === "string") return [value];
   if (Array.isArray(value)) return value.flatMap((v) => generatedStrings(v));
   if (value !== null && typeof value === "object") {
-    return Object.entries(value as Record<string, unknown>).flatMap(([k, v]) => generatedStrings(v, k));
+    return Object.entries(value as Record<string, unknown>).flatMap(([k, v]) =>
+      generatedStrings(v, k),
+    );
   }
   return [];
 }

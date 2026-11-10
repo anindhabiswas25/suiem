@@ -121,6 +121,7 @@ export default tseslint.config(
       "**/e2e/**/*.ts",
       "scripts/**/*.ts",
       "packages/db/src/scripts/**/*.ts",
+      "apps/**/src/scripts/**/*.ts",
     ],
     rules: { "no-console": "off" },
   },

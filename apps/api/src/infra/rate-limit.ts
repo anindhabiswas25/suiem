@@ -13,14 +13,11 @@ export interface LimitRule {
 
 export const LIMITS = {
   globalPerIp: { bucket: "ip", limit: 600, windowSeconds: 60 },
-  otpStartPerEmail: { bucket: "otp-start-email", limit: 5, windowSeconds: 900 },
-  otpStartPerIp: { bucket: "otp-start-ip", limit: 30, windowSeconds: 900 },
-  otpVerifyPerIp: { bucket: "otp-verify-ip", limit: 60, windowSeconds: 900 },
-  passkeyPerIp: { bucket: "passkey-ip", limit: 60, windowSeconds: 900 },
-  walletNoncePerUser: { bucket: "wallet-nonce-user", limit: 20, windowSeconds: 900 },
+  authPerIp: { bucket: "auth-ip", limit: 60, windowSeconds: 600 },
+  writesPerUser: { bucket: "writes-user", limit: 300, windowSeconds: 600 },
 } satisfies Record<string, LimitRule>;
 
-/** Fixed-window counters in Redis. Keys are hashed so no email or IP is stored in clear. */
+/** Fixed-window counters in Redis. Subjects are hashed, so no IP is stored in clear. */
 @Injectable()
 export class RateLimiter {
   constructor(
@@ -31,13 +28,18 @@ export class RateLimiter {
   async consume(rule: LimitRule, subject: string): Promise<void> {
     if (this.env.RATE_LIMIT_DISABLED) return;
     const window = Math.floor(Date.now() / 1000 / rule.windowSeconds);
-    const hashed = createHash("sha256").update(`${rule.bucket}:${subject}`).digest("hex").slice(0, 32);
+    const hashed = createHash("sha256")
+      .update(`${rule.bucket}:${subject}`)
+      .digest("hex")
+      .slice(0, 32);
     const key = `rl:${rule.bucket}:${hashed}:${window}`;
     const count = await this.redis.incr(key);
     if (count === 1) await this.redis.expire(key, rule.windowSeconds);
     if (count > rule.limit) {
       const retryAfter = rule.windowSeconds - (Math.floor(Date.now() / 1000) % rule.windowSeconds);
-      throw new ApiError("RATE_LIMITED", "Too many requests. Try again later.", undefined, { "retry-after": String(retryAfter) });
+      throw new ApiError("RATE_LIMITED", "Too many requests. Try again later.", undefined, {
+        "retry-after": String(retryAfter),
+      });
     }
   }
 }

@@ -26,5 +26,9 @@ const METHOD = { GET: Get, POST: Post, PATCH: Patch, DELETE: Delete } as const;
 /** Declares an endpoint once: Nest routing, auth level, validation and OpenAPI. */
 export function Route(def: RouteDef): MethodDecorator {
   ROUTE_REGISTRY.push(def);
-  return applyDecorators(METHOD[def.method](def.path), SetMetadata(ROUTE_META, def), HttpCode(def.status ?? 200));
+  return applyDecorators(
+    METHOD[def.method](def.path),
+    SetMetadata(ROUTE_META, def),
+    HttpCode(def.status ?? 200),
+  );
 }

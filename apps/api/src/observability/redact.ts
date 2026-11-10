@@ -4,11 +4,51 @@
  * six-digit codes, so a sensitive value under an allowed key is still removed.
  */
 export const ALLOWED_LOG_KEYS = new Set([
-  "level", "time", "msg", "service", "env", "requestId", "method", "route", "statusCode", "durationMs",
-  "userId", "sessionId", "adminUserId", "actorType", "action", "outcome", "event", "errorCode", "errName",
-  "errMessage", "component", "reasonCode", "purpose", "capability", "allowed", "policyVersion",
-  "flag", "enabled", "count", "migration", "chainId", "kind", "status", "type", "role", "attempt",
-  "dualControlId", "decision", "port", "phase", "target", "targetType", "jurisdiction", "pid", "hostname",
+  "level",
+  "time",
+  "msg",
+  "service",
+  "env",
+  "requestId",
+  "method",
+  "route",
+  "statusCode",
+  "durationMs",
+  "userId",
+  "sessionId",
+  "adminUserId",
+  "actorType",
+  "action",
+  "outcome",
+  "event",
+  "errorCode",
+  "errName",
+  "errMessage",
+  "component",
+  "reasonCode",
+  "purpose",
+  "capability",
+  "allowed",
+  "policyVersion",
+  "flag",
+  "enabled",
+  "count",
+  "migration",
+  "chainId",
+  "kind",
+  "status",
+  "type",
+  "role",
+  "attempt",
+  "dualControlId",
+  "decision",
+  "port",
+  "phase",
+  "target",
+  "targetType",
+  "jurisdiction",
+  "pid",
+  "hostname",
 ]);
 
 const EMAIL_RE = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi;
@@ -20,13 +60,13 @@ const UUID_RE = /\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\
 export function scrubString(value: string): string {
   // Protect UUIDs (internal, non-personal IDs) from the generic token scrubber.
   const uuids: string[] = [];
-  const masked = value.replace(UUID_RE, (m) => `\u0000${uuids.push(m) - 1}\u0000`);
+  const masked = value.replace(UUID_RE, (m) => `\uE000${uuids.push(m) - 1}\uE000`);
   const scrubbed = masked
     .replace(EMAIL_RE, "[email]")
     .replace(HEX_RE, "[hex]")
     .replace(LONG_TOKEN_RE, "[token]")
     .replace(SIX_DIGITS_RE, "[code]");
-  return scrubbed.replace(/\u0000(\d+)\u0000/g, (_, i: string) => uuids[Number(i)] ?? "");
+  return scrubbed.replace(/\uE000(\d+)\uE000/g, (_, i: string) => uuids[Number(i)] ?? "");
 }
 
 const MAX_DEPTH = 4;
@@ -49,7 +89,11 @@ export function redact(value: unknown, depth = 0): unknown {
 }
 
 /** Error → loggable fields: name, code and scrubbed message only. No stack values, no causes. */
-export function errorFields(error: unknown): { errName: string; errMessage: string; errorCode?: string } {
+export function errorFields(error: unknown): {
+  errName: string;
+  errMessage: string;
+  errorCode?: string;
+} {
   if (error instanceof Error) {
     const code = (error as { code?: unknown }).code;
     return {

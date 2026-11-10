@@ -1,9 +1,8 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { schema } from "@suiem/db";
+import { type DbHandle, schema } from "@suiem/db";
 import { newId } from "@suiem/shared/ids";
-import type { SystemDb } from "../infra/system-db";
 import { redact } from "../observability/redact";
-import { SYSTEM_DB } from "../tokens";
+import { DB } from "../tokens";
 
 export interface AuditEntry {
   actorType: "user" | "admin" | "system" | "anonymous";
@@ -12,15 +11,14 @@ export interface AuditEntry {
   outcome: "success" | "denied" | "error";
   targetType?: string;
   targetId?: string;
-  reasonCode?: string;
   requestId?: string;
   details?: Record<string, unknown>;
 }
 
-/** Immutable audit trail (append-only table). Details are redacted with the same allowlist as logs. */
+/** Append-only audit trail. Details use the same allowlist redaction as logs. */
 @Injectable()
 export class AuditService {
-  constructor(@Inject(SYSTEM_DB) private readonly db: SystemDb) {}
+  constructor(@Inject(DB) private readonly db: DbHandle) {}
 
   async write(entry: AuditEntry): Promise<void> {
     await this.db.db.insert(schema.auditLogs).values({
@@ -31,7 +29,6 @@ export class AuditService {
       outcome: entry.outcome,
       targetType: entry.targetType ?? null,
       targetId: entry.targetId ?? null,
-      reasonCode: entry.reasonCode ?? null,
       requestId: entry.requestId ?? null,
       details: (redact(entry.details ?? {}) as Record<string, unknown>) ?? {},
     });

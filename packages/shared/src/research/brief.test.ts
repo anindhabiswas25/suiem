@@ -77,8 +77,12 @@ describe("research brief v1", () => {
     ).toHaveLength(1);
     expect(forbiddenPhrases(valid)).toEqual([]);
     const fig = { ...valid.financialHighlights[0]!, text: "Risk-free growth" };
-    expect(forbiddenPhrases({ ...valid, financialHighlights: [fig] })).toEqual(["Risk-free growth"]);
-    expect(forbiddenPhrases({ ...valid, openQuestions: ["Is this a guaranteed win?"] })).toHaveLength(1);
+    expect(forbiddenPhrases({ ...valid, financialHighlights: [fig] })).toEqual([
+      "Risk-free growth",
+    ]);
+    expect(
+      forbiddenPhrases({ ...valid, openQuestions: ["Is this a guaranteed win?"] }),
+    ).toHaveLength(1);
   });
 });
 

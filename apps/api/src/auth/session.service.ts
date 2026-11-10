@@ -1,24 +1,24 @@
 import { Inject, Injectable } from "@nestjs/common";
 import type { ApiEnv } from "@suiem/config/env";
-import { schema } from "@suiem/db";
+import { type DbHandle, schema } from "@suiem/db";
 import { newId } from "@suiem/shared/ids";
-import { and, eq, gt, isNull, sql } from "drizzle-orm";
+import { and, eq, gt, isNull } from "drizzle-orm";
 import type { FastifyReply } from "fastify";
 import { createHmac, randomBytes } from "node:crypto";
 import { SESSION_COOKIE, type SessionInfo } from "../http/context";
-import type { SystemDb } from "../infra/system-db";
-import { CLOCK, type Clock, ENV, SYSTEM_DB } from "../tokens";
+import { CLOCK, type Clock, DB, ENV } from "../tokens";
 
 export const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+type Amr = SessionInfo["amr"][number];
 
 /**
- * Opaque, random session tokens. Only an HMAC of the token is stored, so a database leak
- * cannot be replayed as cookies. Sessions rotate on every login and privilege change (TM-01).
+ * Opaque random session tokens; only an HMAC is stored, so a DB leak cannot be replayed as
+ * cookies. A new session (rotation) is issued on every login.
  */
 @Injectable()
 export class SessionService {
   constructor(
-    @Inject(SYSTEM_DB) private readonly db: SystemDb,
+    @Inject(DB) private readonly db: DbHandle,
     @Inject(ENV) private readonly env: ApiEnv,
     @Inject(CLOCK) private readonly clock: Clock,
   ) {}
@@ -29,31 +29,32 @@ export class SessionService {
 
   async create(
     userId: string,
-    amr: ("email_otp" | "passkey")[],
-    options: { rotateFrom?: string; passkeyVerified?: boolean } = {},
+    amr: Amr[],
+    rotateFrom?: string,
   ): Promise<{ token: string; session: SessionInfo }> {
     const token = randomBytes(32).toString("base64url");
     const now = this.clock.now();
     const id = newId();
     const expiresAt = new Date(now.getTime() + SESSION_TTL_MS);
-    const passkeyVerifiedAt = options.passkeyVerified ? now : null;
+    const methods = [...new Set(amr)];
     await this.db.db.transaction(async (tx) => {
-      if (options.rotateFrom) {
-        await tx.update(schema.userSessions).set({ revokedAt: now }).where(eq(schema.userSessions.id, options.rotateFrom));
-      }
-      await tx.insert(schema.userSessions).values({
+      if (rotateFrom)
+        await tx
+          .update(schema.sessions)
+          .set({ revokedAt: now })
+          .where(eq(schema.sessions.id, rotateFrom));
+      await tx.insert(schema.sessions).values({
         id,
         userId,
         tokenHash: this.hash(token),
-        amr: [...new Set(amr)],
-        passkeyVerifiedAt,
+        amr: methods,
         createdAt: now,
         lastSeenAt: now,
         expiresAt,
-        rotatedFrom: options.rotateFrom ?? null,
+        rotatedFrom: rotateFrom ?? null,
       });
     });
-    return { token, session: { sessionId: id, userId, amr: [...new Set(amr)], passkeyVerifiedAt, expiresAt } };
+    return { token, session: { sessionId: id, userId, amr: methods, expiresAt } };
   }
 
   async resolve(token: string | undefined): Promise<SessionInfo | undefined> {
@@ -61,49 +62,37 @@ export class SessionService {
     const now = this.clock.now();
     const rows = await this.db.db
       .select({
-        id: schema.userSessions.id,
-        userId: schema.userSessions.userId,
-        amr: schema.userSessions.amr,
-        passkeyVerifiedAt: schema.userSessions.passkeyVerifiedAt,
-        expiresAt: schema.userSessions.expiresAt,
-        lastSeenAt: schema.userSessions.lastSeenAt,
+        id: schema.sessions.id,
+        userId: schema.sessions.userId,
+        amr: schema.sessions.amr,
+        expiresAt: schema.sessions.expiresAt,
         status: schema.users.status,
       })
-      .from(schema.userSessions)
-      .innerJoin(schema.users, eq(schema.users.id, schema.userSessions.userId))
-      .where(and(eq(schema.userSessions.tokenHash, this.hash(token)), isNull(schema.userSessions.revokedAt), gt(schema.userSessions.expiresAt, now)))
+      .from(schema.sessions)
+      .innerJoin(schema.users, eq(schema.users.id, schema.sessions.userId))
+      .where(
+        and(
+          eq(schema.sessions.tokenHash, this.hash(token)),
+          isNull(schema.sessions.revokedAt),
+          gt(schema.sessions.expiresAt, now),
+        ),
+      )
       .limit(1);
     const row = rows[0];
     if (!row || row.status !== "active") return undefined;
-    if (now.getTime() - row.lastSeenAt.getTime() > 5 * 60 * 1000) {
-      await this.db.db.update(schema.userSessions).set({ lastSeenAt: now }).where(eq(schema.userSessions.id, row.id));
-    }
     return {
       sessionId: row.id,
       userId: row.userId,
-      amr: row.amr as SessionInfo["amr"],
-      passkeyVerifiedAt: row.passkeyVerifiedAt,
+      amr: row.amr as Amr[],
       expiresAt: row.expiresAt,
     };
   }
 
   async revoke(sessionId: string): Promise<void> {
-    await this.db.db.update(schema.userSessions).set({ revokedAt: this.clock.now() }).where(eq(schema.userSessions.id, sessionId));
-  }
-
-  async revokeAllForUser(userId: string): Promise<void> {
     await this.db.db
-      .update(schema.userSessions)
+      .update(schema.sessions)
       .set({ revokedAt: this.clock.now() })
-      .where(and(eq(schema.userSessions.userId, userId), isNull(schema.userSessions.revokedAt)));
-  }
-
-  async activeCount(userId: string): Promise<number> {
-    const r = await this.db.db
-      .select({ n: sql<number>`count(*)::int` })
-      .from(schema.userSessions)
-      .where(and(eq(schema.userSessions.userId, userId), isNull(schema.userSessions.revokedAt), gt(schema.userSessions.expiresAt, this.clock.now())));
-    return r[0]?.n ?? 0;
+      .where(eq(schema.sessions.id, sessionId));
   }
 
   setCookie(reply: FastifyReply, token: string, expiresAt: Date): void {
@@ -117,6 +106,11 @@ export class SessionService {
   }
 
   clearCookie(reply: FastifyReply): void {
-    void reply.clearCookie(SESSION_COOKIE, { path: "/", httpOnly: true, secure: this.env.COOKIE_SECURE, sameSite: "lax" });
+    void reply.clearCookie(SESSION_COOKIE, {
+      path: "/",
+      httpOnly: true,
+      secure: this.env.COOKIE_SECURE,
+      sameSite: "lax",
+    });
   }
 }
