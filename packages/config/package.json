@@ -1,0 +1,21 @@
+{
+  "name": "@suiem/config",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./chains/robinhood-testnet": "./chains/robinhood-testnet.ts",
+    "./env": "./src/env.ts",
+    "./secrets": "./src/secrets.ts",
+    "./tsconfig/base.json": "./tsconfig/base.json"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "24.10.1"
+  }
+}

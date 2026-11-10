@@ -1,0 +1,27 @@
+{
+  "name": "@suiem/shared",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./money": "./src/money/index.ts",
+    "./consent": "./src/consent/index.ts",
+    "./events": "./src/events/index.ts",
+    "./schemas": "./src/schemas/index.ts",
+    "./policy": "./src/policy/index.ts",
+    "./ids": "./src/ids.ts",
+    "./errors": "./src/errors.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "uuid": "14.0.3",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "24.10.1",
+    "@suiem/config": "workspace:*"
+  }
+}

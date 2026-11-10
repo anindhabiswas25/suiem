@@ -1,0 +1,15 @@
+# Suiem contracts (Phase 7). Phase 2 ships an empty, buildable project.
+[profile.default]
+src = "src"
+test = "test"
+script = "script"
+out = "out"
+libs = ["lib"]
+solc_version = "0.8.30"
+optimizer = true
+optimizer_runs = 200
+# No fs_permissions outside this package (REPO_AUDIT §4.1).
+
+[rpc_endpoints]
+# Value supplied via env; see VERIFIED_FACTS C-07. Chain 46630 only.
+robinhood_testnet = "${ROBINHOOD_TESTNET_RPC_URL}"

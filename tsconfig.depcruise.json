@@ -1,0 +1,5 @@
+{
+  "extends": "./packages/config/tsconfig/base.json",
+  "compilerOptions": { "jsx": "preserve", "baseUrl": "." },
+  "include": ["apps/**/*", "packages/**/*", "workers/**/*"]
+}

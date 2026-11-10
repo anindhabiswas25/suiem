@@ -1,0 +1,46 @@
+{
+  "name": "suiem",
+  "private": true,
+  "description": "Suiem: AI-powered social investing and research network (Robinhood Chain testnet only).",
+  "packageManager": "pnpm@11.17.0",
+  "engines": {
+    "node": ">=24.21.0 <25",
+    "pnpm": ">=11.17.0 <12"
+  },
+  "type": "module",
+  "scripts": {
+    "dev": "turbo run dev --filter=@suiem/api --filter=@suiem/web",
+    "build": "turbo run build",
+    "typecheck": "turbo run typecheck",
+    "lint": "eslint . --max-warnings=0",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "depcruise": "depcruise apps packages workers --config .dependency-cruiser.cjs",
+    "test": "vitest run --project unit",
+    "test:integration": "vitest run --project integration",
+    "test:e2e": "pnpm --filter @suiem/web test:e2e",
+    "db:migrate": "pnpm --filter @suiem/db migrate",
+    "db:seed": "pnpm --filter @suiem/db seed",
+    "contracts:build": "cd packages/contracts && forge build",
+    "check:secrets": "docker run --rm -v \"$PWD:/repo\" -w /repo zricethezav/gitleaks:v8.30.0 detect --source /repo --config /repo/.gitleaks.toml --redact --no-banner",
+    "check:secrets:staged": "docker run --rm -v \"$PWD:/repo\" -w /repo zricethezav/gitleaks:v8.30.0 detect --source /repo --config /repo/.gitleaks.toml --redact --no-banner --no-git",
+    "check:vulns": "pnpm audit --audit-level high && docker run --rm -v \"$PWD:/src\" -w /src ghcr.io/google/osv-scanner:v2.3.2 scan source --lockfile=/src/pnpm-lock.yaml",
+    "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm depcruise && pnpm test && pnpm contracts:build"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@playwright/test": "1.65.0",
+    "@types/node": "24.10.1",
+    "dependency-cruiser": "18.7.2",
+    "eslint": "10.14.0",
+    "eslint-config-prettier": "10.1.8",
+    "fast-check": "4.10.2",
+    "globals": "17.14.0",
+    "prettier": "3.9.10",
+    "tsx": "4.23.15",
+    "turbo": "2.11.10",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.72.1",
+    "vitest": "5.1.0"
+  }
+}

@@ -30,3 +30,9 @@ reference-banchor/
 *.log
 .idea/
 .vscode/
+
+# Test and tool output
+playwright-report/
+test-results/
+.turbo/
+*.local

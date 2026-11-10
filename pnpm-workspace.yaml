@@ -1,0 +1,23 @@
+packages:
+  - "apps/*"
+  - "packages/*"
+  - "workers/*"
+
+# Supply-chain controls (ARCHITECTURE TM-19).
+# 1. Only these packages may run install scripts; everything else is denied.
+allowBuilds:
+  esbuild: true
+  cpu-features: false
+  ssh2: false
+  protobufjs: false
+  sharp: true
+  "@parcel/watcher": false
+  msgpackr-extract: false
+  unrs-resolver: true
+# 2. Refuse versions published less than 24h ago (protects against hijacked releases).
+minimumReleaseAge: 1440
+
+# Exact versions only; no implicit ranges when adding deps.
+savePrefix: ""
+strictPeerDependencies: false
+linkWorkspacePackages: true
