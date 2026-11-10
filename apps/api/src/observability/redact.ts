@@ -62,6 +62,7 @@ export function scrubString(value: string): string {
   const uuids: string[] = [];
   const masked = value.replace(UUID_RE, (m) => `\uE000${uuids.push(m) - 1}\uE000`);
   const scrubbed = masked
+    .replace(/(https?:\/\/[^\s?#"]+)\?[^\s#"]*/gi, "$1?[query]")
     .replace(EMAIL_RE, "[email]")
     .replace(HEX_RE, "[hex]")
     .replace(LONG_TOKEN_RE, "[token]")

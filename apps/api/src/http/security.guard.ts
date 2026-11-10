@@ -4,6 +4,7 @@ import type { ApiEnv } from "@suiem/config/env";
 import type { FastifyRequest } from "fastify";
 import { timingSafeEqual } from "node:crypto";
 import { SessionService } from "../auth/session.service";
+import { DevicesService } from "../extension/devices.service";
 import { LIMITS, RateLimiter } from "../infra/rate-limit";
 import { ENV } from "../tokens";
 import { CSRF_COOKIE, CSRF_HEADER, SESSION_COOKIE } from "./context";
@@ -28,6 +29,7 @@ export class SecurityGuard implements CanActivate {
   constructor(
     @Inject(Reflector) private readonly reflector: Reflector,
     @Inject(SessionService) private readonly sessions: SessionService,
+    @Inject(DevicesService) private readonly devices: DevicesService,
     @Inject(RateLimiter) private readonly limiter: RateLimiter,
     @Inject(ENV) private readonly env: ApiEnv,
   ) {}
@@ -39,6 +41,36 @@ export class SecurityGuard implements CanActivate {
 
     await this.limiter.consume(LIMITS.globalPerIp, req.ip);
     if (route.tags.includes("auth")) await this.limiter.consume(LIMITS.authPerIp, req.ip);
+
+    // Extension device tokens: Authorization: Bearer sxt_… (no cookies, so CSRF does not apply).
+    const auth = req.headers.authorization;
+    const bearer =
+      typeof auth === "string" && auth.startsWith("Bearer ") ? auth.slice(7) : undefined;
+    const deviceRoute = route.auth === "device" || route.auth === "user_or_device";
+    if (bearer !== undefined || route.extensionPublic) {
+      if (bearer !== undefined && !deviceRoute) {
+        throw new ApiError("DEVICE_SCOPE", "Extension tokens can only call extension endpoints");
+      }
+      if (
+        this.env.EXTENSION_ID &&
+        req.headers.origin !== `chrome-extension://${this.env.EXTENSION_ID}`
+      ) {
+        throw new ApiError("FORBIDDEN", "Unknown extension origin");
+      }
+      if (bearer !== undefined) {
+        const device = await this.devices.resolve(bearer);
+        if (!device)
+          throw new ApiError(
+            "UNAUTHENTICATED",
+            "Extension token is invalid or revoked. Reconnect the extension.",
+          );
+        req.suiem.device = device;
+        await this.limiter.consume(LIMITS.writesPerUser, device.userId);
+        return true;
+      }
+      return true; // extensionPublic without a token (pairing exchange): rate-limited above
+    }
+    if (route.auth === "device") throw new ApiError("UNAUTHENTICATED", "Extension token required");
 
     if (!SAFE.has(req.method)) {
       if (req.headers.origin !== this.env.WEB_ORIGIN)
@@ -52,7 +84,7 @@ export class SecurityGuard implements CanActivate {
     if (route.auth !== "public") {
       const session = await this.sessions.resolve(req.cookies[SESSION_COOKIE]);
       if (session) req.suiem.session = session;
-      if (route.auth === "user" && !session)
+      if ((route.auth === "user" || route.auth === "user_or_device") && !session)
         throw new ApiError("UNAUTHENTICATED", "Sign in required");
       if (session && !SAFE.has(req.method))
         await this.limiter.consume(LIMITS.writesPerUser, session.userId);

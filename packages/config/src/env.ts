@@ -24,6 +24,8 @@ export const ENV_VARS = {
   ALCHEMY_API_KEY:
     "Optional. Enables Alchemy as primary RPC with public fallback on both networks.",
   LOG_LEVEL: "Pino log level (info by default).",
+  EXTENSION_ID:
+    "Optional Chrome extension ID. If set, extension requests must come from chrome-extension://<id> and the web app offers one-click pairing.",
   TRUST_PROXY_HOPS:
     "Number of trusted reverse-proxy hops in front of the API (0 = trust none). Set exactly; never trust all hops.",
   RATE_LIMIT_DISABLED:
@@ -58,6 +60,10 @@ export const apiEnvSchema = z
     FLAG_ELECTIONS: bool.optional(),
     FLAG_CAMPAIGNS: bool.optional(),
     RATE_LIMIT_DISABLED: bool.default(false),
+    EXTENSION_ID: z
+      .string()
+      .regex(/^[a-p]{32}$/)
+      .optional(),
     TRUST_PROXY_HOPS: z.coerce.number().int().min(0).max(5).default(0),
   })
   .superRefine((env, ctx) => {

@@ -130,3 +130,86 @@ export const stockTokenEligibilityResponse = z.object({
   network: z.literal("testnet"),
   chainId: z.literal(46630),
 });
+
+// ---- Extension (Sprint 3) ---------------------------------------------------------------
+export const entityIdParam = z.string().regex(/^ent:[a-z0-9-]+$/);
+export const pairingCodeResponse = z.object({
+  code: z.string(),
+  expiresAt: z.string(),
+  extensionId: z.string().nullable(),
+});
+export const pairRequest = z
+  .object({
+    pairingCode: z.string().regex(/^[A-HJ-NP-Z2-9]{4}-[A-HJ-NP-Z2-9]{4}$/),
+    label: z.string().trim().min(1).max(60).optional(),
+  })
+  .strict();
+export const pairResponse = z.object({
+  installationId: z.uuid(),
+  token: z.string(),
+  handle: z.string(),
+});
+export const installationItem = z.object({
+  id: z.uuid(),
+  label: z.string().nullable(),
+  createdAt: z.string(),
+  lastSeenAt: z.string().nullable(),
+});
+export const installationsResponse = z.object({ items: z.array(installationItem) });
+export const extensionConfigResponse = z.object({
+  notifyThreshold: z.number(),
+  rateLimits: z.object({ perEntityMinutes: z.number().int(), perDomainPerHour: z.number().int() }),
+  dictionaryVersion: z.string(),
+  handle: z.string(),
+  webOrigin: z.string(),
+});
+export const researchRequestItem = z.object({
+  id: z.uuid(),
+  entityId: z.string(),
+  status: z.enum(["queued", "processing", "completed", "failed"]),
+  sourceUrl: z.string(),
+  hasExcerpt: z.boolean(),
+  createdAt: z.string(),
+});
+export const researchContextResponse = researchRequestItem.extend({ researchUrl: z.string() });
+export const researchRequestsResponse = z.object({ items: z.array(researchRequestItem) });
+
+export const entitySummary = z.object({
+  canonicalId: z.string(),
+  name: z.string(),
+  legalName: z.string().nullable(),
+  kind: z.enum(["company", "product", "fund", "index", "crypto"]),
+  sector: z.string().nullable(),
+  tickers: z.array(z.string()),
+});
+export const entitySearchQuery = z.object({ q: z.string().trim().min(1).max(60) });
+export const entitySearchResponse = z.object({ items: z.array(entitySummary) });
+export const instrumentItem = z.object({
+  id: z.uuid(),
+  symbol: z.string(),
+  displayName: z.string(),
+  network: z.enum(["mainnet", "testnet", "offchain"]),
+  chainId: z.number().nullable(),
+  legalType: z.enum(["simulated", "testnet_test_token", "demo_token", "unsupported"]),
+  status: z.enum(["unverified", "active", "halted", "unsupported"]),
+  label: z.string(),
+  contractAddress: z.string().nullable(),
+});
+export const instrumentsResponse = z.object({ items: z.array(instrumentItem) });
+
+export const watchlistAddRequest = z
+  .object({ entityId: entityIdParam, note: z.string().trim().max(500).optional() })
+  .strict();
+export const watchlistItemResponse = z.object({
+  id: z.uuid(),
+  entityId: z.string(),
+  name: z.string(),
+  note: z.string().nullable(),
+  addedAt: z.string(),
+});
+export const watchlistAddResponse = z.object({ item: watchlistItemResponse, created: z.boolean() });
+export const watchlistResponse = z.object({
+  id: z.uuid().nullable(),
+  name: z.string(),
+  items: z.array(watchlistItemResponse),
+});

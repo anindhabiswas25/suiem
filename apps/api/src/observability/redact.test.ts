@@ -45,6 +45,18 @@ describe("log redaction (allowlist)", () => {
     }
   });
 
+  test("URL query strings and device tokens are scrubbed", () => {
+    expect(scrubString("see https://x.com/a/status/1?ref=abc&u=me")).toBe(
+      "see https://x.com/a/status/1?[query]",
+    );
+    expect(scrubString("token sxt_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")).not.toContain(
+      "AAAAAAAA",
+    );
+    expect(
+      redact({ excerpt: "secret", sourceUrl: "https://x.com", token: "sxt_x", requestId: "r" }),
+    ).toEqual({ requestId: "r" });
+  });
+
   test("scrubString keeps UUIDs and plain text", () => {
     expect(scrubString("user 0196f3c2-7a7b-7c3d-8e9f-001122334455 ok")).toBe(
       "user 0196f3c2-7a7b-7c3d-8e9f-001122334455 ok",

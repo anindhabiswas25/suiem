@@ -542,6 +542,41 @@ export const featureFlags = pgTable("feature_flags", {
   updatedAt: ts("updated_at").notNull().defaultNow(),
 });
 
+// ---- Extension (0003) -------------------------------------------------------------------
+export const extensionInstallations = pgTable("extension_installations", {
+  id: uuid("id").primaryKey(),
+  userId: uuid("user_id").notNull(),
+  tokenHash: bytea("token_hash").notNull(),
+  label: text("label"),
+  createdAt: ts("created_at").notNull().defaultNow(),
+  lastSeenAt: ts("last_seen_at"),
+  revokedAt: ts("revoked_at"),
+});
+
+export const extensionPairingCodes = pgTable("extension_pairing_codes", {
+  codeHash: bytea("code_hash").primaryKey(),
+  userId: uuid("user_id").notNull(),
+  createdAt: ts("created_at").notNull().defaultNow(),
+  expiresAt: ts("expires_at").notNull(),
+  usedAt: ts("used_at"),
+});
+
+export const researchRequests = pgTable("research_requests", {
+  id: uuid("id").primaryKey(),
+  userId: uuid("user_id").notNull(),
+  entityId: uuid("entity_id").notNull(),
+  installationId: uuid("installation_id"),
+  sourceUrl: text("source_url").notNull(),
+  excerpt: text("excerpt"),
+  status: text("status")
+    .$type<"queued" | "processing" | "completed" | "failed">()
+    .notNull()
+    .default("queued"),
+  briefId: uuid("brief_id"),
+  createdAt: ts("created_at").notNull().defaultNow(),
+  updatedAt: ts("updated_at").notNull().defaultNow(),
+});
+
 /** Tables protected by append-only triggers (must match the migration). */
 export const APPEND_ONLY_TABLES = [
   "consent_records",

@@ -7,11 +7,17 @@ export interface SessionInfo {
   expiresAt: Date;
 }
 
+export interface DeviceInfo {
+  installationId: string;
+  userId: string;
+}
+
 declare module "fastify" {
   interface FastifyRequest {
     suiem: {
       requestId: string;
       session?: SessionInfo;
+      device?: DeviceInfo;
       startedAt: bigint;
     };
   }

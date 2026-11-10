@@ -10,6 +10,9 @@ import { SessionService } from "./auth/session.service";
 import { SiweService } from "./auth/siwe.service";
 import { UsersService } from "./auth/users.service";
 import { ConfigController } from "./flags/config.controller";
+import { DevicesService } from "./extension/devices.service";
+import { ExtensionController } from "./extension/extension.controller";
+import { EntitiesController } from "./research/entities.controller";
 import { FlagsService } from "./flags/flags.service";
 import { ErrorEnvelopeFilter } from "./http/errors";
 import { SecurityGuard } from "./http/security.guard";
@@ -33,7 +36,13 @@ export class AppModule {
   static forRoot(deps: AppDeps): DynamicModule {
     return {
       module: AppModule,
-      controllers: [AuthController, MeController, ConfigController],
+      controllers: [
+        AuthController,
+        MeController,
+        ConfigController,
+        ExtensionController,
+        EntitiesController,
+      ],
       providers: [
         { provide: ENV, useValue: deps.env },
         { provide: DB, useValue: deps.db },
@@ -48,6 +57,7 @@ export class AppModule {
         SiweService,
         FlagsService,
         MeService,
+        DevicesService,
         { provide: APP_GUARD, useClass: SecurityGuard },
         { provide: APP_INTERCEPTOR, useClass: ValidationInterceptor },
         { provide: APP_FILTER, useClass: ErrorEnvelopeFilter },
