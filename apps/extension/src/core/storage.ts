@@ -91,8 +91,20 @@ export async function loadSettings(): Promise<Settings> {
 export const saveSettings = (s: Settings) => setLocal("settings", s);
 
 /** The device token is kept out of chrome.storage (content scripts can read storage.local). */
-export const loadAuth = async (): Promise<Auth | null> => (await getSecret<Auth>("auth")) ?? null;
-export const saveAuth = (a: Auth | null) => (a ? setSecret("auth", a) : deleteSecret("auth"));
+export async function loadAuth(): Promise<Auth | null> {
+  // One-time migration: pre-release builds kept the token in storage.local. Move it, then delete it.
+  const legacy = (await chrome.storage.local.get("auth")).auth as Auth | undefined;
+  if (legacy) {
+    await setSecret("auth", legacy);
+    await chrome.storage.local.remove("auth");
+  }
+  return (await getSecret<Auth>("auth")) ?? null;
+}
+export async function saveAuth(a: Auth | null): Promise<void> {
+  await chrome.storage.local.remove("auth");
+  if (a) await setSecret("auth", a);
+  else await deleteSecret("auth");
+}
 
 export const loadDigest = () => getLocal<DigestItem[]>("digest", []);
 export const saveDigest = (items: DigestItem[]) => setLocal("digest", items);
