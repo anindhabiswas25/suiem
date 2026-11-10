@@ -35,6 +35,11 @@ export interface RequestOptions {
   anonymous?: boolean;
   /** Use this token instead of the stored one (pairing confirmation step). */
   token?: string;
+  /**
+   * Revocation only (DELETE of our own installation): allowed even when OFF/PAUSED/PRIVATE,
+   * because it carries no browsing data and failing closed would leave a live token behind.
+   */
+  revocation?: boolean;
 }
 
 export async function apiRequest<T>(
@@ -43,7 +48,12 @@ export async function apiRequest<T>(
   body?: unknown,
   options: RequestOptions = {},
 ): Promise<T> {
-  if (!isActive(await loadState(), Date.now())) throw new NetworkBlockedError();
+  const revocation =
+    options.revocation === true &&
+    method === "DELETE" &&
+    /^\/extension\/installations\/[0-9a-f-]{36}$/.test(path) &&
+    body === undefined;
+  if (!revocation && !isActive(await loadState(), Date.now())) throw new NetworkBlockedError();
   const headers: Record<string, string> = {};
   if (!options.anonymous) {
     const token = options.token ?? (await loadAuth())?.token;

@@ -160,22 +160,44 @@ async function handlePage(msg: PageMessage): Promise<unknown> {
         pendingPair?: PendingPair;
       };
       await chrome.storage.session.remove("pendingPair");
-      if (pendingPair)
-        await apiRequest(
-          "DELETE",
-          `/extension/installations/${pendingPair.installationId}`,
-          undefined,
-          { token: pendingPair.token },
-        ).catch(() => undefined);
+      if (pendingPair) {
+        try {
+          await apiRequest(
+            "DELETE",
+            `/extension/installations/${pendingPair.installationId}`,
+            undefined,
+            {
+              token: pendingPair.token,
+              revocation: true,
+            },
+          );
+        } catch {
+          throw new Error(
+            "Cancelled on this device, but Suiem could not be reached. Revoke the new connection in Suiem Settings → Browser extension.",
+          );
+        }
+      }
       return status();
     }
     case "disconnect": {
       const auth = await loadAuth();
-      if (auth)
-        await apiRequest("DELETE", `/extension/installations/${auth.installationId}`).catch(
-          () => undefined,
-        );
+      let revoked = true;
+      if (auth) {
+        try {
+          await apiRequest("DELETE", `/extension/installations/${auth.installationId}`, undefined, {
+            revocation: true,
+          });
+        } catch (e) {
+          // Already revoked from the web is fine; anything else means the token may still be live.
+          revoked = e instanceof ApiCallError && (e.status === 401 || e.status === 404);
+        }
+      }
       await saveAuth(null);
+      if (!revoked) {
+        throw new Error(
+          "Disconnected on this device, but Suiem could not confirm the revocation. Revoke it in Suiem Settings → Browser extension.",
+        );
+      }
       return status();
     }
     case "record":
@@ -297,6 +319,8 @@ function respond(p: Promise<unknown>, send: (r: unknown) => void) {
 }
 
 export default defineBackground(() => {
+  // Session storage (private tabs/session, panel context, pending pairing) is for trusted contexts only.
+  void chrome.storage.session.setAccessLevel({ accessLevel: "TRUSTED_CONTEXTS" });
   chrome.runtime.onInstalled.addListener((details) => {
     void refresh();
     if (details.reason === "install") void chrome.runtime.openOptionsPage();

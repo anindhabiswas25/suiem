@@ -1,6 +1,7 @@
 import type { DigestItem, DigestSettings } from "./digest";
 import { DEFAULT_DIGEST } from "./digest";
 import { DEFAULT_RATE_LIMITS, type NotifyEvent, type RateLimits } from "./ratelimit";
+import { deleteSecret, getSecret, setSecret } from "./secrets";
 import { INITIAL_STATE, type Mode, type PrivacyState } from "./state";
 
 /**
@@ -89,9 +90,9 @@ export async function loadSettings(): Promise<Settings> {
 }
 export const saveSettings = (s: Settings) => setLocal("settings", s);
 
-export const loadAuth = () => getLocal<Auth | null>("auth", null);
-export const saveAuth = (a: Auth | null) =>
-  a ? setLocal("auth", a) : chrome.storage.local.remove("auth");
+/** The device token is kept out of chrome.storage (content scripts can read storage.local). */
+export const loadAuth = async (): Promise<Auth | null> => (await getSecret<Auth>("auth")) ?? null;
+export const saveAuth = (a: Auth | null) => (a ? setSecret("auth", a) : deleteSecret("auth"));
 
 export const loadDigest = () => getLocal<DigestItem[]>("digest", []);
 export const saveDigest = (items: DigestItem[]) => setLocal("digest", items);
