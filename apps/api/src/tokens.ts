@@ -1,10 +1,8 @@
 /** DI tokens. Explicit tokens everywhere: Suiem does not rely on emitDecoratorMetadata. */
 export const ENV = Symbol("ENV");
-export const APP_DB = Symbol("APP_DB");
-export const SYSTEM_DB = Symbol("SYSTEM_DB");
+export const DB = Symbol("DB");
 export const REDIS = Symbol("REDIS");
 export const LOGGER = Symbol("LOGGER");
-export const EMAIL = Symbol("EMAIL");
 export const CLOCK = Symbol("CLOCK");
 
 export interface Clock {

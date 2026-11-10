@@ -3,7 +3,10 @@ import "vitest";
 
 declare module "vitest" {
   export interface ProvidedContext {
+    /** Schema owner (migrations/seed). */
     pgUrl: string;
+    /** Least-privilege API role. */
+    pgAppUrl: string;
     redisUrl: string;
   }
 }

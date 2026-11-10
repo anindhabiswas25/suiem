@@ -1,7 +1,8 @@
 import { applyDecorators, Delete, Get, HttpCode, Patch, Post, SetMetadata } from "@nestjs/common";
 import type { ZodType } from "zod";
 
-export type AuthLevel = "public" | "optional" | "user" | "admin";
+/** public: anyone · optional: session resolved if present · user: session required. */
+export type AuthLevel = "public" | "optional" | "user";
 
 export interface RouteDef {
   method: "GET" | "POST" | "PATCH" | "DELETE";
@@ -14,10 +15,6 @@ export interface RouteDef {
   query?: ZodType;
   response?: ZodType;
   status?: number;
-  /** Requires an Idempotency-Key header; replays return the stored response. */
-  idempotent?: boolean;
-  /** Admin routes: minimum role (superadmin always passes). */
-  roles?: string[];
 }
 
 export const ROUTE_META = "suiem:route";
@@ -26,7 +23,7 @@ export const ROUTE_REGISTRY: RouteDef[] = [];
 
 const METHOD = { GET: Get, POST: Post, PATCH: Patch, DELETE: Delete } as const;
 
-/** Declares an endpoint once: Nest routing, auth level, validation, idempotency and OpenAPI. */
+/** Declares an endpoint once: Nest routing, auth level, validation and OpenAPI. */
 export function Route(def: RouteDef): MethodDecorator {
   ROUTE_REGISTRY.push(def);
   return applyDecorators(METHOD[def.method](def.path), SetMetadata(ROUTE_META, def), HttpCode(def.status ?? 200));

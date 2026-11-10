@@ -23,7 +23,16 @@ export async function setup(project: TestProject) {
   const url = pg.getConnectionUri();
   await migrate(url);
   await seed(url);
+  const { Client } = await import("pg");
+  const owner = new Client({ connectionString: url });
+  await owner.connect();
+  await owner.query("ALTER ROLE suiem_app LOGIN PASSWORD 'test_app'");
+  await owner.end();
+  const app = new URL(url);
+  app.username = "suiem_app";
+  app.password = "test_app";
   project.provide("pgUrl", url);
+  project.provide("pgAppUrl", app.toString());
   project.provide("redisUrl", redis.getConnectionUrl());
 }
 

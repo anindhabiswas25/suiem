@@ -283,3 +283,35 @@ describe("indexer and reputation invariants", () => {
     );
   });
 });
+
+describe("least-privilege API role (suiem_app)", () => {
+  let app: pg.Client;
+  beforeAll(async () => {
+    app = new pg.Client({ connectionString: inject("pgAppUrl") });
+    await app.connect();
+  });
+  afterAll(async () => {
+    await app.end();
+  });
+  test("is not a superuser and cannot bypass RLS", async () => {
+    const r = await app.query("SELECT rolsuper, rolbypassrls FROM pg_roles WHERE rolname = current_user");
+    expect(r.rows[0]).toEqual({ rolsuper: false, rolbypassrls: false });
+  });
+  test("cannot run DDL, change flags, or touch migrations", async () => {
+    await expect(app.query("CREATE TABLE x (id int)")).rejects.toThrow(/permission denied/);
+    await expect(app.query("DROP TABLE users")).rejects.toThrow(/must be owner|permission denied/);
+    await expect(app.query("UPDATE feature_flags SET enabled = true WHERE key = 'elections'")).rejects.toThrow(/permission denied/);
+    await expect(app.query("SELECT * FROM schema_migrations")).rejects.toThrow(/permission denied/);
+  });
+  test("cannot delete user data or rewrite append-only history", async () => {
+    await expect(app.query("DELETE FROM users")).rejects.toThrow(/permission denied/);
+    await expect(app.query("DELETE FROM orders")).rejects.toThrow(/permission denied/);
+    await expect(app.query("UPDATE audit_logs SET action = 'x'")).rejects.toThrow(/permission denied/);
+    await expect(app.query("TRUNCATE ledger_entries")).rejects.toThrow(/permission denied/);
+  });
+  test("can do normal reads and writes", async () => {
+    const id = newId();
+    await app.query("INSERT INTO users (id, handle) VALUES ($1, $2)", [id, `app_${id.slice(-10)}`]);
+    await expect(app.query("SELECT handle FROM users WHERE id = $1", [id])).resolves.toMatchObject({ rowCount: 1 });
+  });
+});

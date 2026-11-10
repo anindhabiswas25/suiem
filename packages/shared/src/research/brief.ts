@@ -117,20 +117,18 @@ export const FORBIDDEN_RESEARCH_PHRASES = [
   /\bcan'?t lose\b/i,
 ];
 
+/** Collects every string in the brief except retrieved-source metadata and generation info. */
+function generatedStrings(value: unknown, key = ""): string[] {
+  if (key === "sources" || key === "generation") return [];
+  if (typeof value === "string") return [value];
+  if (Array.isArray(value)) return value.flatMap((v) => generatedStrings(v));
+  if (value !== null && typeof value === "object") {
+    return Object.entries(value as Record<string, unknown>).flatMap(([k, v]) => generatedStrings(v, k));
+  }
+  return [];
+}
+
+/** Returns generated texts that contain forbidden certainty or signal language (walks all fields). */
 export function forbiddenPhrases(brief: ResearchBriefV1): string[] {
-  const texts = [
-    brief.summary,
-    ...[
-      brief.businessModel,
-      brief.valuation,
-      brief.recentDevelopments,
-      brief.competitors,
-      brief.bullCase,
-      brief.bearCase,
-      brief.risks,
-    ]
-      .flat()
-      .map((c) => c.text),
-  ];
-  return texts.filter((t) => FORBIDDEN_RESEARCH_PHRASES.some((re) => re.test(t)));
+  return generatedStrings(brief).filter((t) => FORBIDDEN_RESEARCH_PHRASES.some((re) => re.test(t)));
 }

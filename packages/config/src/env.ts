@@ -10,8 +10,8 @@ export const ENV_VARS = {
   WEB_ORIGIN:
     "Exact origin of the web app, e.g. http://localhost:3000. Used for CSRF Origin checks, WebAuthn and SIWE domain binding.",
   API_URL: "Base URL the web app proxies /api/* to (server-side only).",
-  DATABASE_URL:
-    "Postgres URL used by the API (single application role in the hackathon build, ADR-0010 §5).",
+  DATABASE_URL: "Postgres URL for the least-privilege API role suiem_app (NOSUPERUSER, no DDL).",
+  DATABASE_OWNER_URL: "Postgres URL for the schema owner. Used only by db:migrate and db:seed.",
   REDIS_URL: "Redis URL for rate limits, WebAuthn challenges and SIWE nonces.",
   SESSION_SECRET: "32+ byte random secret used to HMAC session tokens.",
   COOKIE_SECURE: "true|false: set the Secure flag on cookies.",
