@@ -120,6 +120,7 @@ export default tseslint.config(
       "**/test/**/*.ts",
       "**/e2e/**/*.ts",
       "scripts/**/*.ts",
+      "scripts/**/*.mjs",
       "packages/db/src/scripts/**/*.ts",
       "apps/**/src/scripts/**/*.ts",
     ],

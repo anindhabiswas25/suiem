@@ -36,3 +36,4 @@ playwright-report/
 test-results/
 .turbo/
 *.local
+next-env.d.ts

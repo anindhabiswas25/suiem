@@ -9,7 +9,7 @@
   },
   "type": "module",
   "scripts": {
-    "dev": "turbo run dev --filter=@suiem/api --filter=@suiem/web",
+    "dev": "node scripts/ensure-env.mjs && turbo run dev --filter=@suiem/api --filter=@suiem/web",
     "build": "turbo run build",
     "typecheck": "turbo run typecheck",
     "lint": "eslint . --max-warnings=0",
@@ -19,14 +19,15 @@
     "test": "vitest run --project unit",
     "test:integration": "vitest run --project integration",
     "test:e2e": "pnpm --filter @suiem/web test:e2e",
-    "db:migrate": "pnpm --filter @suiem/db migrate",
-    "db:seed": "pnpm --filter @suiem/db seed",
+    "db:migrate": "node scripts/ensure-env.mjs && pnpm --filter @suiem/db migrate",
+    "db:seed": "node scripts/ensure-env.mjs && pnpm --filter @suiem/db seed",
     "contracts:build": "cd packages/contracts && forge build",
     "check:secrets": "docker run --rm -v \"$PWD:/repo\" -w /repo zricethezav/gitleaks:v8.30.0 detect --source /repo --config /repo/.gitleaks.toml --redact --no-banner",
     "check:secrets:staged": "docker run --rm -v \"$PWD:/repo\" -w /repo zricethezav/gitleaks:v8.30.0 detect --source /repo --config /repo/.gitleaks.toml --redact --no-banner --no-git",
     "check:vulns": "pnpm audit --audit-level high && docker run --rm -v \"$PWD:/src\" -w /src ghcr.io/google/osv-scanner:v2.3.2 scan source --lockfile=/src/pnpm-lock.yaml",
-    "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm depcruise && pnpm test && pnpm contracts:build",
-    "env:example": "tsx scripts/gen-env-example.ts"
+    "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm depcruise && pnpm test && pnpm test:integration && pnpm contracts:build",
+    "env:example": "tsx scripts/gen-env-example.ts",
+    "env:init": "node scripts/ensure-env.mjs"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

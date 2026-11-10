@@ -13,7 +13,7 @@ export async function createApp(deps: AppDeps): Promise<NestFastifyApplication> 
     bodyLimit: 64 * 1024,
     // Exact hop count only: trusting every X-Forwarded-For hop would let clients spoof their IP
     // and bypass per-IP rate limits (security review).
-    trustProxy: deps.env.TRUST_PROXY_HOPS,
+    trustProxy: (_addr: string, hop: number) => hop < deps.env.TRUST_PROXY_HOPS,
     genReqId: () => newId(),
     logger: false,
   });

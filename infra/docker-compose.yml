@@ -9,7 +9,7 @@ services:
       POSTGRES_PASSWORD: ${SUIEM_PG_PASSWORD:-local_only}
       POSTGRES_DB: suiem
       SUIEM_APP_PASSWORD: ${SUIEM_PG_APP_PASSWORD:-local_only_app}
-    ports: ["127.0.0.1:5432:5432"]
+    ports: ["127.0.0.1:${SUIEM_PG_PORT:-5432}:5432"]
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./postgres/init-app-role.sh:/docker-entrypoint-initdb.d/10-init-app-role.sh:ro
@@ -21,7 +21,7 @@ services:
   redis:
     image: redis:7.4.6-alpine
     command: ["redis-server", "--save", "", "--appendonly", "no"]
-    ports: ["127.0.0.1:6379:6379"]
+    ports: ["127.0.0.1:${SUIEM_REDIS_PORT:-6379}:6379"]
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 2s

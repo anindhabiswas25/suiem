@@ -18,11 +18,11 @@ module.exports = {
       to: { path: "(^packages/chain/src/write|^apps/api/src/(orders|wallet)|@suiem/chain/write)" },
     },
     {
-      name: "research-no-chain-at-all-phase2",
-      comment: "Phase 2: research has no reason to import chain code.",
+      name: "research-no-chain-code",
+      comment: "Research never imports chain code, read or write (ADR-0006).",
       severity: "error",
       from: { path: "^workers/research" },
-      to: { path: "^packages/chain" },
+      to: { path: "(^packages/chain|@suiem/chain|node_modules/viem|node_modules/wagmi)" },
     },
     {
       name: "shared-no-io",
