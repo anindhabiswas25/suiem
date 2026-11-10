@@ -1,0 +1,9 @@
+{
+  "extends": "@suiem/config/tsconfig/base.json",
+  "compilerOptions": {
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": false,
+    "useDefineForClassFields": false
+  },
+  "include": ["src", "test", "../../packages/config/vitest-context.d.ts"]
+}

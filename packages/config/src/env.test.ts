@@ -31,17 +31,14 @@ describe("loadApiEnv", () => {
   const base = {
     WEB_ORIGIN: "http://localhost:3000",
     DATABASE_URL: "postgres://a",
-    DATABASE_SYSTEM_URL: "postgres://b",
     REDIS_URL: "redis://c",
     SESSION_SECRET: "x".repeat(32),
     WEBAUTHN_RP_ID: "localhost",
-    SMTP_HOST: "localhost",
-    EMAIL_FROM: "no-reply@suiem.local",
   };
 
-  test("refuses single-maintainer mode in production", () => {
+  test("refuses disabled rate limits in production", () => {
     expect(() =>
-      loadApiEnv({ ...base, NODE_ENV: "production", ADMIN_SINGLE_MAINTAINER_MODE: "true" }),
+      loadApiEnv({ ...base, NODE_ENV: "production", RATE_LIMIT_DISABLED: "true" }),
     ).toThrow(/forbidden in production/);
   });
 

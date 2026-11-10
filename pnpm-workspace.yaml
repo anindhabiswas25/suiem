@@ -14,8 +14,10 @@ allowBuilds:
   "@parcel/watcher": false
   msgpackr-extract: false
   unrs-resolver: true
+  cbor-extract: false
 # 2. Refuse versions published less than 24h ago (protects against hijacked releases).
 minimumReleaseAge: 1440
+minimumReleaseAgeStrict: true
 
 # Exact versions only; no implicit ranges when adding deps.
 savePrefix: ""

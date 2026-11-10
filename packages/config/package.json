@@ -4,16 +4,18 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./chains/robinhood-testnet": "./chains/robinhood-testnet.ts",
+    "./chains": "./chains/index.ts",
     "./env": "./src/env.ts",
     "./secrets": "./src/secrets.ts",
+    "./jurisdictions": "./src/jurisdictions.ts",
     "./tsconfig/base.json": "./tsconfig/base.json"
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "zod": "4.6.7"
+    "zod": "4.6.7",
+    "viem": "2.57.17"
   },
   "devDependencies": {
     "@types/node": "24.10.1"

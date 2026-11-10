@@ -1,1 +1,4 @@
-{ "extends": "@suiem/config/tsconfig/base.json", "include": ["src", "../config/vitest-context.d.ts"] }
+{
+  "extends": "@suiem/config/tsconfig/base.json",
+  "include": ["src", "../config/vitest-context.d.ts"]
+}
