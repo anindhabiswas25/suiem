@@ -11,7 +11,9 @@ export const API_PREFIX = "api/v1";
 export async function createApp(deps: AppDeps): Promise<NestFastifyApplication> {
   const adapter = new FastifyAdapter({
     bodyLimit: 64 * 1024,
-    trustProxy: deps.env.NODE_ENV === "production",
+    // Exact hop count only: trusting every X-Forwarded-For hop would let clients spoof their IP
+    // and bypass per-IP rate limits (security review).
+    trustProxy: deps.env.TRUST_PROXY_HOPS,
     genReqId: () => newId(),
     logger: false,
   });

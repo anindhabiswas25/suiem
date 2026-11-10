@@ -24,6 +24,8 @@ export const ENV_VARS = {
   ALCHEMY_API_KEY:
     "Optional. Enables Alchemy as primary RPC with public fallback on both networks.",
   LOG_LEVEL: "Pino log level (info by default).",
+  TRUST_PROXY_HOPS:
+    "Number of trusted reverse-proxy hops in front of the API (0 = trust none). Set exactly; never trust all hops.",
   RATE_LIMIT_DISABLED:
     "true|false: disables Redis rate limiting. Test-only; refused in production.",
   FLAG_TRADING_TESTNET: "Env override for the trading.testnet flag (true|false).",
@@ -56,6 +58,7 @@ export const apiEnvSchema = z
     FLAG_ELECTIONS: bool.optional(),
     FLAG_CAMPAIGNS: bool.optional(),
     RATE_LIMIT_DISABLED: bool.default(false),
+    TRUST_PROXY_HOPS: z.coerce.number().int().min(0).max(5).default(0),
   })
   .superRefine((env, ctx) => {
     if (env.NODE_ENV === "production" && env.RATE_LIMIT_DISABLED) {

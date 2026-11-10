@@ -434,3 +434,26 @@ describe("API contract", () => {
     expect(text).not.toMatch(/suiem_sid|suiem_csrf|0x[0-9a-fA-F]{40}/);
   });
 });
+
+describe("client IP for rate limiting", () => {
+  test("spoofed X-Forwarded-For values do not escape the per-IP auth limit (no proxy hop trusted by default)", async () => {
+    const strict = await startHarness({ envOverrides: { RATE_LIMIT_DISABLED: "false" } });
+    try {
+      await strict.redis.flushdb();
+      const statuses: number[] = [];
+      for (let i = 0; i < 61; i++) {
+        const r = await strict.app.inject({
+          method: "GET",
+          url: "/api/v1/auth/csrf",
+          headers: { "x-forwarded-for": `203.0.113.${i}` },
+        });
+        statuses.push(r.statusCode);
+      }
+      expect(statuses.slice(0, 60).every((s) => s === 200)).toBe(true);
+      expect(statuses[60]).toBe(429);
+    } finally {
+      await strict.redis.flushdb();
+      await strict.close();
+    }
+  });
+});
