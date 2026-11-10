@@ -42,6 +42,15 @@ describe("loadApiEnv", () => {
     ).toThrow(/forbidden in production/);
   });
 
+  test("production requires EXTENSION_ID", () => {
+    expect(() => loadApiEnv({ ...base, NODE_ENV: "production" })).toThrow(
+      /EXTENSION_ID is required/,
+    );
+    expect(() =>
+      loadApiEnv({ ...base, NODE_ENV: "production", EXTENSION_ID: "a".repeat(32) }),
+    ).not.toThrow();
+  });
+
   test("error messages never echo secret values", () => {
     try {
       loadApiEnv({ ...base, SESSION_SECRET: "short-secret-value" });

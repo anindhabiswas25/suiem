@@ -26,6 +26,8 @@ export const ENV_VARS = {
   LOG_LEVEL: "Pino log level (info by default).",
   EXTENSION_ID:
     "Optional Chrome extension ID. If set, extension requests must come from chrome-extension://<id> and the web app offers one-click pairing.",
+  NEXT_PUBLIC_EXTENSION_ID:
+    "Web build: extension ID for one-click pairing (default extension key gives cpgeijpinjipcioicabhgfmcbacdkmcj).",
   TRUST_PROXY_HOPS:
     "Number of trusted reverse-proxy hops in front of the API (0 = trust none). Set exactly; never trust all hops.",
   RATE_LIMIT_DISABLED:
@@ -67,6 +69,13 @@ export const apiEnvSchema = z
     TRUST_PROXY_HOPS: z.coerce.number().int().min(0).max(5).default(0),
   })
   .superRefine((env, ctx) => {
+    if (env.NODE_ENV === "production" && !env.EXTENSION_ID) {
+      ctx.addIssue({
+        code: "custom",
+        message:
+          "EXTENSION_ID is required in production so only the real extension can pair (security review).",
+      });
+    }
     if (env.NODE_ENV === "production" && env.RATE_LIMIT_DISABLED) {
       ctx.addIssue({ code: "custom", message: "RATE_LIMIT_DISABLED is forbidden in production." });
     }

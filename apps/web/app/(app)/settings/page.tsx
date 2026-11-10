@@ -6,6 +6,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import type { z } from "zod";
 import { PageHeader } from "../../../components/AppShell";
+import { ExtensionSettings } from "../../../components/ExtensionSettings";
 import { WalletLink } from "../../../components/WalletLink";
 import { api, ApiRequestError } from "../../../lib/api";
 import { COUNTRIES } from "../../../lib/countries";
@@ -210,6 +211,8 @@ export default function Settings() {
           </div>
         </details>
       </Card>
+
+      <ExtensionSettings />
 
       <Card title="Consents">
         {consents.isPending ? <LoadingState /> : null}

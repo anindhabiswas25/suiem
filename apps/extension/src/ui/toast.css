@@ -1,0 +1,65 @@
+.toast {
+  font:
+    14px/1.4 ui-sans-serif,
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    sans-serif;
+  background: #111d35;
+  color: #e8edf7;
+  border: 1px solid #2a3b63;
+  border-radius: 12px;
+  padding: 14px 16px;
+  width: 340px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.sub {
+  color: #a9b5cf;
+  font-size: 13px;
+}
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+button {
+  font: inherit;
+  font-size: 13px;
+  min-height: 32px;
+  padding: 0 10px;
+  border-radius: 8px;
+  border: 1px solid #2a3b63;
+  background: #17264a;
+  color: #e8edf7;
+  cursor: pointer;
+}
+button.primary {
+  background: #7aa7ff;
+  border-color: #7aa7ff;
+  color: #0b1426;
+  font-weight: 600;
+}
+button:focus-visible {
+  outline: 3px solid #ffd166;
+  outline-offset: 2px;
+}
+.brand {
+  color: #a9b5cf;
+  font-size: 11px;
+  margin-top: 2px;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .toast {
+    animation: in 0.18s ease-out;
+  }
+  @keyframes in {
+    from {
+      transform: translateY(8px);
+      opacity: 0;
+    }
+  }
+}

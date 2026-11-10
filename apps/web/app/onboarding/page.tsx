@@ -357,13 +357,20 @@ export default function Onboarding() {
         {step === 6 && (
           <Card title="Suiem Intelligence browser extension">
             <p style={{ margin: 0 }}>
-              Coming in the next release: a Chrome extension that notices companies on pages you
-              read and offers research when <em>you</em> ask. Every permission is explained and
-              optional, and you can turn it OFF, PAUSE it or use Private mode at any time.
+              An optional Chrome extension that notices companies on sites <em>you</em> choose (for
+              example x.com) and offers research when you ask. It can be turned OFF, PAUSED or put
+              in Private mode at any time, and it never buys anything.
             </p>
-            <Alert>
-              The extension is not available yet. Nothing is installed or requested now.
-            </Alert>
+            <ol style={{ margin: 0, paddingLeft: 20 }}>
+              <li>
+                Install it from the Suiem release (see the extension README: load unpacked in{" "}
+                <code>chrome://extensions</code>).
+              </li>
+              <li>
+                Then connect it in <Link href="/settings">Settings → Browser extension</Link>.
+              </li>
+            </ol>
+            <Alert>Nothing is installed or requested now. You can skip this.</Alert>
             <div className="s-row">
               {back}
               <Button variant="primary" onClick={() => setStep(7)}>

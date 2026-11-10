@@ -9,3 +9,6 @@ packages/contracts/cache
 playwright-report
 test-results
 *.md
+.wxt
+.output
+.output-e2e

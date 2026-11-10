@@ -29,6 +29,9 @@ export default tseslint.config(
       "**/playwright-report/**",
       "**/test-results/**",
       "**/next-env.d.ts",
+      "**/.wxt/**",
+      "**/.output/**",
+      "**/.output-e2e/**",
     ],
   },
   js.configs.recommended,
@@ -123,8 +126,40 @@ export default tseslint.config(
       "scripts/**/*.mjs",
       "packages/db/src/scripts/**/*.ts",
       "apps/**/src/scripts/**/*.ts",
+      "apps/extension/scripts/**/*.mjs",
     ],
     rules: { "no-console": "off" },
+  },
+  // Extension: core/net.ts is the ONLY module allowed to touch the network (Sprint 3, ADR-0003 §1).
+  {
+    files: ["apps/extension/src/**/*.{ts,tsx}"],
+    ignores: ["apps/extension/src/core/net.ts", "**/*.test.ts"],
+    rules: {
+      "no-restricted-globals": [
+        "error",
+        {
+          name: "fetch",
+          message: "Only src/core/net.ts may call the network (it enforces OFF/PAUSED/PRIVATE).",
+        },
+        { name: "XMLHttpRequest", message: "Only src/core/net.ts may call the network." },
+        { name: "WebSocket", message: "Only src/core/net.ts may call the network." },
+        { name: "EventSource", message: "Only src/core/net.ts may call the network." },
+      ],
+      "no-restricted-properties": [
+        "error",
+        { object: "navigator", property: "sendBeacon", message: "No beacons from the extension." },
+        {
+          object: "window",
+          property: "fetch",
+          message: "Only src/core/net.ts may call the network.",
+        },
+        {
+          object: "globalThis",
+          property: "fetch",
+          message: "Only src/core/net.ts may call the network.",
+        },
+      ],
+    },
   },
   prettier,
 );

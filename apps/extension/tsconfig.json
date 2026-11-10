@@ -1,1 +1,12 @@
-{ "extends": "@suiem/config/tsconfig/base.json", "include": ["src"] }
+{
+  "extends": "./.wxt/tsconfig.json",
+  "compilerOptions": {
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "jsx": "react-jsx",
+    "types": ["chrome", "node"],
+    "skipLibCheck": true,
+    "resolveJsonModule": true
+  },
+  "include": [".wxt/wxt.d.ts", "src", "wxt.config.ts", "e2e"]
+}
