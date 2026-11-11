@@ -30,7 +30,8 @@
     "env:init": "node scripts/ensure-env.mjs",
     "test:e2e:extension": "pnpm --filter @suiem/extension test:e2e",
     "extension:build": "pnpm --filter @suiem/extension build",
-    "extension:zip": "pnpm --filter @suiem/extension zip"
+    "extension:zip": "pnpm --filter @suiem/extension zip",
+    "research:smoke": "pnpm --filter @suiem/research smoke"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

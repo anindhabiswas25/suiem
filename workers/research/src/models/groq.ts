@@ -29,6 +29,8 @@ export class GroqModel implements ResearchModel {
         body: JSON.stringify({
           model: this.model,
           temperature: 0.2,
+          // gpt-oss is a reasoning model; low effort keeps us inside the free-plan token limits.
+          reasoning_effort: "low",
           max_completion_tokens: input.maxOutputTokens ?? 3000,
           messages: [
             { role: "system", content: input.system },

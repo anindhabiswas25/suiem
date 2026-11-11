@@ -6,7 +6,8 @@
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",
     "smoke": "tsx --env-file-if-exists=../../.env src/scripts/smoke.ts",
-    "record-fixtures": "tsx --env-file-if-exists=../../.env src/scripts/record-fixtures.ts"
+    "record-fixtures": "tsx --env-file-if-exists=../../.env src/scripts/record-fixtures.ts",
+    "start": "tsx --env-file-if-exists=../../.env src/main.ts"
   },
   "devDependencies": {
     "@types/node": "24.10.1",

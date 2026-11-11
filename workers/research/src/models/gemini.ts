@@ -54,7 +54,10 @@ export class GeminiModel implements ResearchModel {
           contents: [{ role: "user", parts: [{ text: input.user }] }],
           generationConfig: {
             temperature: 0.2,
-            maxOutputTokens: input.maxOutputTokens ?? 4000,
+            // Thinking tokens count against maxOutputTokens: keep thinking low and leave room for the JSON
+            // (with the default level a brief was cut off at MAX_TOKENS during the live smoke test).
+            maxOutputTokens: Math.max(8192, (input.maxOutputTokens ?? 4000) * 2),
+            thinkingConfig: { thinkingLevel: "low" },
             responseMimeType: "application/json",
             responseSchema: toGeminiSchema(input.schema),
           },
