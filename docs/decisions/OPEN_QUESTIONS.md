@@ -66,6 +66,9 @@ Date opened: 2026-11-10. **Scope changed to the hackathon on 2026-11-10 (ADR-001
 | OQ-H-05 | Passkey-only users have no wallet: is that acceptable for a judge (wallet needed only to vote)? | PO | Sprint 7 | Yes: research works without a wallet; linking prompted at vote time |
 | OQ-H-06 | Display name for SIWE/passkey users: allow a free-text name, or default to a short address/handle? | PO | Sprint 6 | Optional free-text name, default `user-xxxx` |
 
+| OQ-H-07 | Extension distribution for judges: unpacked zip (default) or an unlisted Chrome Web Store listing (needs a developer account and review time) | PO | Sprint 8 | Unpacked zip + README |
+| OQ-H-08 | x.com markup may change; detector falls back to `article`/`p` text if `[data-testid="tweetText"]` disappears | Eng | Demo day | Re-check live before recording |
+
 ## Conflicts recorded (PRD §0.2 rule 12)
 
 | ID | Conflict | Resolution proposed |

@@ -40,8 +40,8 @@ Times are rough targets in UTC. Each sprint ends with a commit, `docs/sprints/SP
 | # | Sprint | Budget | Key outputs | Exit check |
 | --- | --- | --- | --- | --- |
 | 1 | Discovery | done | Phase 1 docs, ADRs 0001–0009 | Approved |
-| 2 | Foundation + app shell | ~5h | Monorepo; DB schema for the whole demo; passkey + SIWE auth; both networks in wagmi; every nav route; design system; deploy-ready | `SPRINT_2.md` checks |
-| 3 | Suiem Intelligence extension | ~6h | WXT MV3; ON/PAUSED/OFF/PRIVATE truly gating work; local entity detection; dismissible notification; side panel; user-invoked research; local daily digest | OFF/PAUSED = zero activity test |
+| 2 | Foundation + app shell ✅ done 2026-11-10 (`docs/sprints/SPRINT_2.md`) | ~5h | Monorepo; DB schema for the whole demo; passkey + SIWE auth; both networks in wagmi; every nav route; design system; deploy-ready | `SPRINT_2.md` checks |
+| 3 | Suiem Intelligence extension ✅ done 2026-11-11 (`docs/sprints/SPRINT_3.md`) | ~6h | WXT MV3; ON/PAUSED/OFF/PRIVATE truly gating work; local entity detection; dismissible notification; side panel; user-invoked research; local daily digest | OFF/PAUSED = zero activity test |
 | 4 | AI research, registry, watchlist, thesis | ~6h | Entity/instrument registry seed; Claude research pipeline (brief v1 schema, citations, real retrieved sources only); research page; watchlists; thesis create/version/publish | Briefs validate; no uncited claims |
 | 5 | Invest on testnet | ~5h | S5-01 re-read restricted list; verify testnet Stock Token addresses (OQ-P-03) or deploy a labelled demo venue on 46630 (PO approval); portfolio; order preview (quote time, fees, slippage, network); user-signed testnet buy; reconciliation from the receipt; separate simulated book | One real testnet tx, reconciled |
 | 6 | Social + reputation | ~6h | Feed; profiles with privacy; follow; publish; comments; helpful votes; Suiem Score v1 (50/50) with "Building track record"; leaderboard; methodology page | Score reproducible; $WIF has no effect (test) |
