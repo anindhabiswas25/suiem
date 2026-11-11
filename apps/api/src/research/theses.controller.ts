@@ -19,8 +19,9 @@ import type { z } from "zod";
 import { AuditService } from "../audit/audit.service";
 import { ApiError } from "../http/errors";
 import { Route } from "../http/route";
-import { CLOCK, type Clock, DB } from "../tokens";
-import { quoteFor } from "./research.controller";
+import type { Redis } from "ioredis";
+import { CLOCK, type Clock, DB, REDIS } from "../tokens";
+import { quoteFor, thesisDraftKey } from "./research.controller";
 import { RESEARCH, type ResearchRuntime } from "./runtime";
 
 type Content = z.infer<typeof thesisContent>;
@@ -36,7 +37,15 @@ export class ThesesController {
     @Inject(RESEARCH) private readonly rt: ResearchRuntime,
     @Inject(CLOCK) private readonly clock: Clock,
     @Inject(AuditService) private readonly audit: AuditService,
+    @Inject(REDIS) private readonly redis: Redis,
   ) {}
+
+  /** AI drafted from one of the cited briefs (set server-side; the user can't clear it). */
+  private async aiDrafted(userId: string, refs: Content["evidence"]): Promise<boolean> {
+    for (const briefId of new Set(refs.map((r) => r.briefId)))
+      if (await this.redis.exists(thesisDraftKey(userId, briefId))) return true;
+    return false;
+  }
 
   /** Evidence must point at claims in the user's OWN briefs; text is copied from the brief. */
   private async resolveEvidence(userId: string, refs: Content["evidence"]) {
@@ -70,7 +79,10 @@ export class ThesesController {
   private async priceContext(ticker: string | null) {
     try {
       const q = await quoteFor(this.rt, ticker);
+      // SPY at the same moment: the start of the benchmark-relative evaluation (Sprint 6).
+      const spy = await quoteFor(this.rt, "SPY").catch(() => null);
       return {
+        benchmark: spy ? { symbol: "SPY", price: spy.price, asOf: spy.asOf } : null,
         symbol: q.symbol,
         price: q.price,
         currency: q.currency,
@@ -259,8 +271,11 @@ export class ThesesController {
     const evidence = await this.resolveEvidence(userId, body.evidence);
     const priceContext = await this.priceContext(entity.ticker);
     const id = newId();
+    const aiAssisted = await this.aiDrafted(userId, body.evidence);
     await this.db.db.transaction(async (tx) => {
-      await tx.insert(schema.theses).values({ id, userId, entityId: entity.id, currentVersion: 1 });
+      await tx
+        .insert(schema.theses)
+        .values({ id, userId, entityId: entity.id, currentVersion: 1, aiAssisted });
       await this.appendVersion(tx, id, 1, body, evidence, priceContext);
     });
     await this.audit.write({
@@ -311,7 +326,13 @@ export class ThesesController {
     const next = row.t.currentVersion + 1;
     await this.db.db.transaction(async (tx) => {
       await this.appendVersion(tx, id, next, body, evidence, priceContext);
-      await tx.update(schema.theses).set({ currentVersion: next }).where(eq(schema.theses.id, id));
+      await tx
+        .update(schema.theses)
+        .set({
+          currentVersion: next,
+          ...((await this.aiDrafted(userId, body.evidence)) ? { aiAssisted: true } : {}),
+        })
+        .where(eq(schema.theses.id, id));
     });
     return this.view(userId, await this.load(id));
   }

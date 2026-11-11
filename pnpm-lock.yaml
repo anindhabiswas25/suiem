@@ -95,6 +95,9 @@ importers:
       '@suiem/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@suiem/reputation':
+        specifier: workspace:*
+        version: link:../../workers/reputation
       '@suiem/research':
         specifier: workspace:*
         version: link:../../workers/research

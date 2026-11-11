@@ -22,6 +22,17 @@ import { OrdersService } from "./orders/orders.service";
 import { PortfolioService } from "./orders/portfolio.service";
 import { INVEST, type InvestRuntime } from "./orders/runtime";
 import { WatchlistsController } from "./research/watchlists.controller";
+import { PostsController } from "./social/posts.controller";
+import { ProfilesController } from "./social/profiles.controller";
+import { ReputationController } from "./social/reputation.controller";
+import {
+  finnhubQuotes,
+  REPUTATION,
+  type ReputationRuntime,
+  reputationRuntime,
+} from "./social/reputation.runtime";
+import { ReputationView } from "./social/reputation.view";
+import { SocialService } from "./social/social.service";
 import { FlagsService } from "./flags/flags.service";
 import { ErrorEnvelopeFilter } from "./http/errors";
 import { SecurityGuard } from "./http/security.guard";
@@ -42,6 +53,8 @@ export interface AppDeps {
   research?: ResearchRuntime;
   /** Testnet client, venue deployment, quote signer and prices. Defaults to env. */
   invest?: InvestRuntime;
+  /** Reputation jobs (quotes for SPY and thesis evaluation). Defaults to Finnhub via research. */
+  reputation?: ReputationRuntime;
 }
 
 @Module({})
@@ -60,6 +73,9 @@ export class AppModule {
         WatchlistsController,
         ThesesController,
         OrdersController,
+        ProfilesController,
+        PostsController,
+        ReputationController,
       ],
       providers: [
         { provide: ENV, useValue: deps.env },
@@ -69,6 +85,13 @@ export class AppModule {
         { provide: CLOCK, useValue: deps.clock },
         { provide: RESEARCH, useValue: research },
         { provide: INVEST, useValue: deps.invest ?? investRuntimeFromEnv(deps.env, research) },
+        {
+          provide: REPUTATION,
+          useValue:
+            deps.reputation ?? reputationRuntime(deps.db, finnhubQuotes(research), deps.clock),
+        },
+        SocialService,
+        ReputationView,
         OrdersService,
         PortfolioService,
         AuditService,

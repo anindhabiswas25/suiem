@@ -377,6 +377,11 @@ export const priceContextSchema = z
     retrievedAt: z.string(),
     source: z.string(),
     sourceUrl: z.string(),
+    /** SPY at the same moment (Sprint 6): the start of the benchmark-relative evaluation. */
+    benchmark: z
+      .object({ symbol: z.string(), price: z.string(), asOf: z.string() })
+      .nullable()
+      .optional(),
   })
   .nullable();
 export const thesisVersionItem = z.object({

@@ -15,6 +15,10 @@ export const LIMITS = {
   globalPerIp: { bucket: "ip", limit: 600, windowSeconds: 60 },
   authPerIp: { bucket: "auth-ip", limit: 60, windowSeconds: 600 },
   writesPerUser: { bucket: "writes-user", limit: 300, windowSeconds: 600 },
+  // Social (PRD §9.3): posts 10/hour, comments 30/hour, helpful votes 50/day per user.
+  postsPerUser: { bucket: "posts-user", limit: 10, windowSeconds: 3600 },
+  commentsPerUser: { bucket: "comments-user", limit: 30, windowSeconds: 3600 },
+  helpfulPerUser: { bucket: "helpful-user", limit: 50, windowSeconds: 86_400 },
 } satisfies Record<string, LimitRule>;
 
 /** Fixed-window counters in Redis. Subjects are hashed, so no IP is stored in clear. */

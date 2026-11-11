@@ -130,7 +130,13 @@ function briefItem(
 }
 
 /** Published research by a user (theses not private; brief posts that are visible). */
-async function researchItems(pool: Q, userId: string | null, asOf: Date, entityIds?: string[]) {
+async function researchItems(
+  pool: Q,
+  userId: string | null,
+  asOf: Date,
+  entityIds?: string[],
+  order: "ASC" | "DESC" = "ASC",
+) {
   const theses = (
     await pool.query<{
       id: string;
@@ -150,7 +156,7 @@ async function researchItems(pool: Q, userId: string | null, asOf: Date, entityI
          FROM theses t JOIN thesis_versions v ON v.thesis_id = t.id AND v.version = t.current_version
         WHERE t.visibility <> 'private' AND t.status <> 'draft' AND v.created_at <= $1
           AND ($2::uuid IS NULL OR t.user_id = $2) AND ($3::uuid[] IS NULL OR t.entity_id = ANY($3))
-        ORDER BY v.created_at DESC LIMIT 1000`,
+        ORDER BY v.created_at ${order} LIMIT 2000`,
       [asOf, userId, entityIds ?? null],
     )
   ).rows;
@@ -168,7 +174,7 @@ async function researchItems(pool: Q, userId: string | null, asOf: Date, entityI
         WHERE p.kind = 'research_brief' AND p.deleted_at IS NULL AND p.hidden_at IS NULL
           AND p.visibility <> 'private' AND p.created_at <= $1
           AND ($2::uuid IS NULL OR p.user_id = $2) AND ($3::uuid[] IS NULL OR p.entity_id = ANY($3))
-        ORDER BY p.created_at DESC LIMIT 1000`,
+        ORDER BY p.created_at ${order} LIMIT 2000`,
       [asOf, userId, entityIds ?? null],
     )
   ).rows;
@@ -230,8 +236,19 @@ export async function collectEvidence(db: DbHandle, userId: string, asOf: Date):
   ).rows;
 
   const own = await researchItems(pool, userId, asOf);
-  // Copy-check corpus: the most recent published research by anyone, across all companies.
-  const others = await researchItems(pool, null, asOf);
+  // Copy-check corpus: every earlier item on the subject's companies (oldest first, so the
+  // originals are always included), plus the most recent research across all companies.
+  const entityIds = [...new Set(own.items.map((i) => i.entityId).filter((x): x is string => !!x))];
+  const scoped = entityIds.length
+    ? await researchItems(pool, null, asOf, entityIds, "ASC")
+    : { items: [] };
+  const recent = await researchItems(pool, null, asOf, undefined, "DESC");
+  const seen = new Set<string>();
+  const others = {
+    items: [...scoped.items, ...recent.items].filter((o) =>
+      seen.has(o.item.id) ? false : (seen.add(o.item.id), true),
+    ),
+  };
   const corpus = others.items
     .filter((o) => o.authorId !== userId)
     .map((o) => ({

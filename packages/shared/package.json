@@ -15,7 +15,8 @@
     "./research": "./src/research/brief.ts",
     "./extension": "./src/extension/messages.ts",
     "./entities": "./src/entities/index.ts",
-    "./invest": "./src/invest/registry.ts"
+    "./invest": "./src/invest/registry.ts",
+    "./social": "./src/social/index.ts"
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json"

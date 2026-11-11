@@ -4,7 +4,9 @@ import { loadApiEnv } from "@suiem/config/env";
 import { connect } from "@suiem/db";
 import { enqueueResearch, researchQueue, startResearchWorker } from "@suiem/research";
 import { Redis } from "ioredis";
+import { startReputationJobs } from "@suiem/reputation";
 import { createApp } from "./app";
+import { finnhubQuotes, reputationRuntime } from "./social/reputation.runtime";
 import { pipelineDeps, researchRuntimeFromEnv } from "./research/runtime";
 import { createRedis } from "./infra/redis";
 import { createLogger } from "./observability/logger";
@@ -53,7 +55,14 @@ export async function bootstrap(source: Record<string, string | undefined> = pro
     startResearchWorker(new Redis(env.REDIS_URL, { maxRetriesPerRequest: null }), deps, 2);
     logger.info({ component: "research" }, "research worker running inline (concurrency 2)");
   }
-  const app = await createApp({ env, db, redis, logger, clock: systemClock, research });
+  const reputation = reputationRuntime(db, finnhubQuotes(research), systemClock, (event, fields) =>
+    logger.info({ component: "reputation", ...fields }, event),
+  );
+  if (env.REPUTATION_JOBS === "inline") {
+    startReputationJobs(reputation.deps);
+    logger.info({ component: "reputation" }, "reputation jobs running inline (every 15 minutes)");
+  }
+  const app = await createApp({ env, db, redis, logger, clock: systemClock, research, reputation });
   await app.listen({ port: env.API_PORT, host: "0.0.0.0" });
   logger.info({ port: env.API_PORT, component: "boot" }, "api listening");
   return app;

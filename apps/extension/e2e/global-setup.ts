@@ -104,6 +104,7 @@ export default async function globalSetup() {
     env: {
       ...apiEnv,
       RESEARCH_WORKER: "off",
+      REPUTATION_JOBS: "off",
       NODE_ENV: "test",
       API_PORT: String(apiPort),
       WEB_ORIGIN: "http://localhost:3000",

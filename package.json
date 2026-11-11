@@ -36,7 +36,8 @@
     "contracts:test": "pnpm contracts:deps && cd packages/contracts && forge test",
     "contracts:deploy:testnet": "tsx --env-file=.env scripts/deploy-testnet.ts --verify",
     "contracts:abis": "tsx scripts/gen-abis.ts",
-    "invest:smoke": "tsx --env-file=.env scripts/invest-smoke.ts"
+    "invest:smoke": "tsx --env-file=.env scripts/invest-smoke.ts",
+    "user:role": "node scripts/ensure-env.mjs && pnpm --filter @suiem/db user:role"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

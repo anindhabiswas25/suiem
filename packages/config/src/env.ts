@@ -50,6 +50,8 @@ export const ENV_VARS = {
   ORDER_MAX_SLIPPAGE_BPS: "Default slippage bound used for minOut (default 50).",
   RESEARCH_WORKER:
     "inline (default): the API process also runs the research queue worker. off: run workers/research separately.",
+  REPUTATION_JOBS:
+    "inline (default): the API process runs the reputation jobs (SPY marks, thesis evaluation, score snapshots) every 15 minutes. off: disabled.",
   EXTENSION_ID:
     "Optional Chrome extension ID. If set, extension requests must come from chrome-extension://<id> and the web app offers one-click pairing.",
   NEXT_PUBLIC_EXTENSION_ID:
@@ -102,6 +104,7 @@ export const apiEnvSchema = z
     RESEARCH_DAILY_LIMIT_PER_USER: z.coerce.number().int().min(1).max(1000).default(10),
     RESEARCH_CACHE_TTL_HOURS: z.coerce.number().int().min(0).max(168).default(12),
     RESEARCH_WORKER: z.enum(["inline", "off"]).default("inline"),
+    REPUTATION_JOBS: z.enum(["inline", "off"]).default("inline"),
     QUOTE_SIGNER_PRIVATE_KEY: z
       .string()
       .regex(/^0x[0-9a-fA-F]{64}$/)

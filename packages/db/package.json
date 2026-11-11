@@ -12,7 +12,8 @@
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",
     "migrate": "tsx --env-file-if-exists=../../.env src/scripts/migrate.ts",
-    "seed": "tsx --env-file-if-exists=../../.env src/scripts/seed.ts"
+    "seed": "tsx --env-file-if-exists=../../.env src/scripts/seed.ts",
+    "user:role": "tsx --env-file-if-exists=../../.env src/scripts/user-role.ts"
   },
   "dependencies": {
     "@suiem/chain": "workspace:*",

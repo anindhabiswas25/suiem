@@ -38,7 +38,8 @@ import { actorUserId } from "../extension/extension.controller";
 import { ApiError } from "../http/errors";
 import { Route } from "../http/route";
 import type { AppLogger } from "../observability/logger";
-import { CLOCK, type Clock, DB, LOGGER } from "../tokens";
+import type { Redis } from "ioredis";
+import { CLOCK, type Clock, DB, LOGGER, REDIS } from "../tokens";
 import { pipelineDeps, RESEARCH, type ResearchRuntime } from "./runtime";
 
 const iso = (d: Date) => d.toISOString();
@@ -61,6 +62,7 @@ export class ResearchController {
     @Inject(CLOCK) private readonly clock: Clock,
     @Inject(LOGGER) private readonly logger: AppLogger,
     @Inject(AuditService) private readonly audit: AuditService,
+    @Inject(REDIS) private readonly redis: Redis,
   ) {}
 
   private deps() {
@@ -400,6 +402,8 @@ export class ResearchController {
     const slot = await this.takeSlot(userId, "draft", this.rt.dailyLimit);
     try {
       const d = await draftThesis(this.deps(), b.id, b.brief as ResearchBriefV1, body.direction);
+      // Remember that AI drafted from this brief: a thesis citing it is labelled AI-assisted.
+      await this.redis.set(thesisDraftKey(userId, b.id), "1", "EX", 7 * 86_400);
       return { ...d, saved: false as const };
     } catch (e) {
       if (e instanceof ResearchFailure && !e.tokensSpent) await this.rt.quota.refund(slot);
@@ -424,6 +428,9 @@ export class ResearchController {
 }
 
 /** Quote → decimal strings with timestamp and source. Throws NOT_FOUND / PROVIDER_UNAVAILABLE. */
+export const thesisDraftKey = (userId: string, briefId: string) =>
+  `thesis-draft:${userId}:${briefId}`;
+
 export async function quoteFor(
   rt: ResearchRuntime,
   ticker: string | null,
