@@ -14,7 +14,8 @@
     "./errors": "./src/errors.ts",
     "./research": "./src/research/brief.ts",
     "./extension": "./src/extension/messages.ts",
-    "./entities": "./src/entities/index.ts"
+    "./entities": "./src/entities/index.ts",
+    "./invest": "./src/invest/registry.ts"
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json"

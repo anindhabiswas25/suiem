@@ -21,7 +21,7 @@
     "test:e2e": "pnpm --filter @suiem/web test:e2e",
     "db:migrate": "node scripts/ensure-env.mjs && pnpm --filter @suiem/db migrate",
     "db:seed": "node scripts/ensure-env.mjs && pnpm --filter @suiem/db seed",
-    "contracts:build": "cd packages/contracts && forge build",
+    "contracts:build": "pnpm contracts:deps && cd packages/contracts && forge build",
     "check:secrets": "docker run --rm -v \"$PWD:/repo\" -w /repo zricethezav/gitleaks:v8.30.0 detect --source /repo --config /repo/.gitleaks.toml --redact --no-banner",
     "check:secrets:staged": "docker run --rm -v \"$PWD:/repo\" -w /repo zricethezav/gitleaks:v8.30.0 detect --source /repo --config /repo/.gitleaks.toml --redact --no-banner --no-git",
     "check:vulns": "pnpm audit --audit-level high && docker run --rm -v \"$PWD:/src\" -w /src ghcr.io/google/osv-scanner:v2.3.2 scan source --lockfile=/src/pnpm-lock.yaml",
@@ -31,7 +31,11 @@
     "test:e2e:extension": "pnpm --filter @suiem/extension test:e2e",
     "extension:build": "pnpm --filter @suiem/extension build",
     "extension:zip": "pnpm --filter @suiem/extension zip",
-    "research:smoke": "pnpm --filter @suiem/research smoke"
+    "research:smoke": "pnpm --filter @suiem/research smoke",
+    "contracts:deps": "cd packages/contracts && ([ -d lib/openzeppelin-contracts ] || forge install OpenZeppelin/openzeppelin-contracts@v5.6.1 --no-git) && ([ -d lib/forge-std ] || forge install foundry-rs/forge-std@v1.16.2 --no-git)",
+    "contracts:test": "pnpm contracts:deps && cd packages/contracts && forge test",
+    "contracts:deploy:testnet": "tsx --env-file=.env scripts/deploy-testnet.ts --verify",
+    "contracts:abis": "tsx scripts/gen-abis.ts"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
@@ -52,6 +56,7 @@
     "turbo": "2.11.10",
     "typescript": "6.0.3",
     "typescript-eslint": "8.72.1",
+    "viem": "2.57.17",
     "vitest": "5.1.0"
   }
 }

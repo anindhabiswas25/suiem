@@ -45,11 +45,22 @@ function* sourceFiles(dir: string): Generator<string> {
   }
 }
 
-describe("Phase 2 has no chain write path", () => {
+/**
+ * Sprint 5: chain writes exist ONLY in these reviewed places (testnet 46630 demo venue). Anything
+ * else that references a write builder fails this test.
+ */
+const ALLOWED = [
+  /^packages\/chain\/src\/write\//,
+  /^apps\/web\/components\/invest\//,
+  /^scripts\/(deploy-testnet|invest-smoke)\.ts$/,
+];
+
+describe("chain writes exist only in the reviewed testnet modules", () => {
   test("no source file references a chain write builder", () => {
     const hits: string[] = [];
     for (const top of SCAN) {
       for (const file of sourceFiles(join(ROOT, top))) {
+        if (ALLOWED.some((re) => re.test(relative(ROOT, file)))) continue;
         const text = readFileSync(file, "utf8");
         for (const word of FORBIDDEN)
           if (new RegExp(`\\b${word}\\b`).test(text)) hits.push(`${relative(ROOT, file)}: ${word}`);

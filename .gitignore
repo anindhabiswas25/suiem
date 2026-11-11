@@ -41,3 +41,8 @@ next-env.d.ts
 # Stray tsc output next to TS sources (packages are consumed as .ts)
 packages/*/src/**/*.js
 apps/extension/test-results/
+
+# Foundry deps (installed by pnpm contracts:deps) and local deployments
+packages/contracts/lib/
+packages/contracts/broadcast/
+packages/contracts/deployments/anvil-*.json

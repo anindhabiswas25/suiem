@@ -51,6 +51,8 @@ export default tseslint.config(
   // Phase 2 rule (ADR-0001, PHASE_2 acceptance): no chain write builders anywhere in app code.
   {
     files: ["apps/**/*.{ts,tsx}", "packages/**/*.{ts,tsx}", "workers/**/*.{ts,tsx}"],
+    // Sprint 5: the reviewed testnet write modules (see packages/chain/src/no-write-builders.test.ts).
+    ignores: ["packages/chain/src/write/**", "apps/web/components/invest/**"],
     rules: {
       "no-restricted-imports": [
         "error",

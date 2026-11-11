@@ -35,6 +35,19 @@ export const ENV_VARS = {
   RESEARCH_DAILY_LIMIT_PER_USER: "Research briefs per user per UTC day (default 10).",
   RESEARCH_CACHE_TTL_HOURS:
     "Hours a public-data-only brief and provider responses may be reused (default 12).",
+  QUOTE_SIGNER_PRIVATE_KEY:
+    "Testnet-only key that signs SuiemDemoVenue EIP-712 quotes (chain 46630 only). Never logged.",
+  TESTNET_DEPLOYER_PRIVATE_KEY:
+    "Testnet-only deployer for packages/contracts (chain 46630 only). Used by the deploy script, not the API.",
+  DEMO_DEPLOYMENT_FILE:
+    "Path to the SuiemDemoVenue deployment manifest (default packages/contracts/deployments/46630.json).",
+  ORDER_MAX_USD_PER_ORDER: "Largest order in USD (default 1000).",
+  ORDER_MAX_USD_PER_DAY: "Largest total order value per user per UTC day in USD (default 5000).",
+  DEMO_FEE_BPS: "Fee in basis points signed into demo venue quotes (default 10).",
+  SIM_FEE_BPS: "Simulated book fee in basis points (default 10).",
+  SIM_SLIPPAGE_BPS:
+    "Simulated book slippage in basis points, applied against the trader (default 5).",
+  ORDER_MAX_SLIPPAGE_BPS: "Default slippage bound used for minOut (default 50).",
   RESEARCH_WORKER:
     "inline (default): the API process also runs the research queue worker. off: run workers/research separately.",
   EXTENSION_ID:
@@ -89,6 +102,21 @@ export const apiEnvSchema = z
     RESEARCH_DAILY_LIMIT_PER_USER: z.coerce.number().int().min(1).max(1000).default(10),
     RESEARCH_CACHE_TTL_HOURS: z.coerce.number().int().min(0).max(168).default(12),
     RESEARCH_WORKER: z.enum(["inline", "off"]).default("inline"),
+    QUOTE_SIGNER_PRIVATE_KEY: z
+      .string()
+      .regex(/^0x[0-9a-fA-F]{64}$/)
+      .optional(),
+    TESTNET_DEPLOYER_PRIVATE_KEY: z
+      .string()
+      .regex(/^0x[0-9a-fA-F]{64}$/)
+      .optional(),
+    DEMO_DEPLOYMENT_FILE: z.string().min(1).optional(),
+    ORDER_MAX_USD_PER_ORDER: z.coerce.number().int().min(1).max(1_000_000).default(1000),
+    ORDER_MAX_USD_PER_DAY: z.coerce.number().int().min(1).max(10_000_000).default(5000),
+    DEMO_FEE_BPS: z.coerce.number().int().min(0).max(100).default(10),
+    SIM_FEE_BPS: z.coerce.number().int().min(0).max(100).default(10),
+    SIM_SLIPPAGE_BPS: z.coerce.number().int().min(0).max(100).default(5),
+    ORDER_MAX_SLIPPAGE_BPS: z.coerce.number().int().min(0).max(1000).default(50),
   })
   .superRefine((env, ctx) => {
     if (env.NODE_ENV === "production" && !env.EXTENSION_ID) {
