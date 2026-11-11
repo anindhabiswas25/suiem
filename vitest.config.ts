@@ -9,12 +9,14 @@ const exclude = [
 ];
 
 export default defineConfig({
+  // Web component tests render React with the automatic JSX runtime (react-dom/server, no DOM needed).
+  esbuild: { jsx: "automatic" },
   test: {
     projects: [
       {
         test: {
           name: "unit",
-          include: ["apps/**/*.test.ts", "packages/**/*.test.ts", "workers/**/*.test.ts"],
+          include: ["apps/**/*.test.ts", "apps/**/*.test.tsx", "packages/**/*.test.ts", "workers/**/*.test.ts"],
           exclude: [...exclude, "**/*.int.test.ts"],
           environment: "node",
         },

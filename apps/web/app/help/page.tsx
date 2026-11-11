@@ -88,6 +88,38 @@ export default function Help() {
           </ul>
         </Card>
 
+        <Card title="Your three books (never added together)">
+          <ul style={{ margin: 0, paddingLeft: 20 }}>
+            <li>
+              <strong>Simulated:</strong> paper trading at real Finnhub quotes for any company in
+              the registry. Nothing is bought. Fills use a disclosed model: a 0.10% fee and 0.05%
+              slippage against you.
+            </li>
+            <li>
+              <strong>Testnet demo · no value:</strong> Suiem demo tokens (for example dTSLA) on
+              Robinhood Chain testnet, bought and sold for demo dollars (dUSD) through the
+              SuiemDemoVenue contract. These are real testnet transactions you sign in your own
+              wallet. Quotes are valid for about a minute; approvals are always for the exact
+              amount, never unlimited.
+            </li>
+            <li>
+              <strong>Testnet test token · no value:</strong> the official test Stock Tokens from
+              the Robinhood Chain testnet faucet in your linked wallet. Suiem only shows these
+              balances and never trades them.
+            </li>
+            <li>
+              <strong>Demo and testnet tokens have no value and are not securities</strong>, not
+              shares and not Robinhood Stock Tokens.
+            </li>
+            <li>
+              <strong>P&amp;L method (average cost):</strong> each buy adds its quantity and full
+              cost including fees; a sell removes cost in proportion to the quantity sold, and
+              realized P&amp;L is the cash received minus that cost. Values show the price, its time
+              and its source. All maths uses whole-number arithmetic, never floating point.
+            </li>
+          </ul>
+        </Card>
+
         <Card title="Where Stock Token features are unavailable">
           <p style={{ margin: 0 }}>
             Stock Token features are blocked for users in the United States, Canada, the United

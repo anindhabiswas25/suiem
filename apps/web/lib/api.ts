@@ -26,8 +26,9 @@ export async function api<T>(
   method: "GET" | "POST" | "PATCH" | "DELETE",
   path: string,
   body?: unknown,
+  extraHeaders: Record<string, string> = {},
 ): Promise<T> {
-  const headers: Record<string, string> = {};
+  const headers: Record<string, string> = { ...extraHeaders };
   if (method !== "GET") headers["x-csrf-token"] = await ensureCsrf();
   if (body !== undefined) headers["content-type"] = "application/json";
   const r = await fetch(`/api/v1${path}`, {

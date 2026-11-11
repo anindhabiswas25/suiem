@@ -199,6 +199,9 @@ importers:
       '@simplewebauthn/browser':
         specifier: 14.0.0
         version: 14.0.0
+      '@suiem/chain':
+        specifier: workspace:*
+        version: link:../../packages/chain
       '@suiem/config':
         specifier: workspace:*
         version: link:../../packages/config
@@ -271,6 +274,9 @@ importers:
 
   packages/db:
     dependencies:
+      '@suiem/chain':
+        specifier: workspace:*
+        version: link:../chain
       '@suiem/shared':
         specifier: workspace:*
         version: link:../shared

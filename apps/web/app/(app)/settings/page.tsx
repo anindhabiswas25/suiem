@@ -97,6 +97,12 @@ export default function Settings() {
               </option>
             ))}
           </select>
+          <span className="s-small s-muted">
+            Why we ask: Robinhood's Stock Tokens may not be offered in some countries (the RHJ
+            restricted jurisdictions list). Suiem checks your declared country on the server before
+            showing any Stock Token feature, including the testnet demo. Paper trading and research
+            work everywhere. We don't use your IP address to guess your location.
+          </span>
         </label>
         <fieldset className="s-stack" style={{ border: 0, padding: 0, margin: 0 }}>
           <legend style={{ fontWeight: 600, marginBottom: 6 }}>Interests</legend>

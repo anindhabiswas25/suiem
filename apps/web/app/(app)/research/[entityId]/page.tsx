@@ -3,28 +3,19 @@ import type {
   briefListResponse,
   briefResponse,
   entitySummary,
-  instrumentsResponse,
   questionItem,
   quoteResponse,
   researchRequestsResponse,
   watchlistsResponse,
 } from "@suiem/shared/schemas";
-import {
-  Alert,
-  Button,
-  Card,
-  EmptyState,
-  ErrorState,
-  LoadingState,
-  NetworkBadge,
-  Status,
-} from "@suiem/ui";
+import { Alert, Button, Card, EmptyState, ErrorState, LoadingState, Status } from "@suiem/ui";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import type { z } from "zod";
 import { PageHeader } from "../../../../components/AppShell";
+import { TradingSection } from "../../../../components/invest/TradingSection";
 import {
   AiLabel,
   type Brief,
@@ -35,7 +26,6 @@ import {
 import { api, ApiRequestError } from "../../../../lib/api";
 
 type Entity = z.infer<typeof entitySummary>;
-type Instruments = z.infer<typeof instrumentsResponse>;
 type Requests = z.infer<typeof researchRequestsResponse>;
 type BriefRow = z.infer<typeof briefResponse>;
 type Question = z.infer<typeof questionItem>;
@@ -52,10 +42,6 @@ export default function ResearchEntity() {
   const entity = useQuery<Entity>({
     queryKey: ["entity", id],
     queryFn: () => api("GET", `/entities/${enc}`),
-  });
-  const instruments = useQuery<Instruments>({
-    queryKey: ["instruments", id],
-    queryFn: () => api("GET", `/entities/${enc}/instruments`),
   });
   const requests = useQuery<Requests>({
     queryKey: ["requests", id],
@@ -153,24 +139,7 @@ export default function ResearchEntity() {
         </div>
       </Card>
 
-      <Card title="Trading">
-        <ul className="s-stack" style={{ listStyle: "none", padding: 0, margin: 0 }}>
-          {instruments.data?.items.map((i) => (
-            <li key={i.id} className="s-row">
-              <strong>{i.symbol}</strong>
-              <span className="s-muted">{i.label}</span>
-              <NetworkBadge network={i.network} />
-            </li>
-          ))}
-        </ul>
-        {instruments.data?.items.length === 0 ? (
-          <span className="s-muted s-small">No registry instruments for this company yet.</span>
-        ) : null}
-        <Status tone="neutral">Testnet trading arrives in Sprint 5.</Status>
-        <span className="s-small s-muted">
-          Testnet tokens have no value and are not securities or shares.
-        </span>
-      </Card>
+      <TradingSection entityId={id} />
     </>
   );
 }
