@@ -31,6 +31,8 @@ const valid: ResearchBriefV1 = {
     },
   ],
   valuation: [],
+  industryContext: [],
+  baseCase: [],
   recentDevelopments: [],
   competitors: [],
   bullCase: [],
@@ -49,7 +51,12 @@ const valid: ResearchBriefV1 = {
   ],
   dataFreshness: "fresh",
   disclaimer: "Educational research, not investment advice.",
-  generation: { model: "claude", promptVersion: "p1", generatedAt: "2026-11-10T00:00:00Z" },
+  generation: {
+    model: "test-model",
+    provider: "test",
+    promptVersion: "p1",
+    generatedAt: "2026-11-10T00:00:00Z",
+  },
 };
 
 describe("research brief v1", () => {

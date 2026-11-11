@@ -1,0 +1,86 @@
+[
+  {
+    "accessionNumber": "0001140361-26-042798",
+    "form": "8-K",
+    "filingDate": "2026-11-09",
+    "reportDate": "2026-11-05",
+    "primaryDocument": "ef20085077_8k.htm"
+  },
+  {
+    "accessionNumber": "0000320193-26-000026",
+    "form": "10-K",
+    "filingDate": "2026-11-03",
+    "reportDate": "2026-09-26",
+    "primaryDocument": "aapl-20260926.htm"
+  },
+  {
+    "accessionNumber": "0000320193-26-000024",
+    "form": "8-K",
+    "filingDate": "2026-11-02",
+    "reportDate": "2026-11-02",
+    "primaryDocument": "aapl-20261102.htm"
+  },
+  {
+    "accessionNumber": "0000320193-26-000020",
+    "form": "10-Q",
+    "filingDate": "2026-07-31",
+    "reportDate": "2026-06-27",
+    "primaryDocument": "aapl-20260627.htm"
+  },
+  {
+    "accessionNumber": "0000320193-26-000018",
+    "form": "8-K",
+    "filingDate": "2026-07-30",
+    "reportDate": "2026-07-30",
+    "primaryDocument": "aapl-20260730.htm"
+  },
+  {
+    "accessionNumber": "0000320193-26-000013",
+    "form": "10-Q",
+    "filingDate": "2026-05-01",
+    "reportDate": "2026-03-28",
+    "primaryDocument": "aapl-20260328.htm"
+  },
+  {
+    "accessionNumber": "0000320193-26-000011",
+    "form": "8-K",
+    "filingDate": "2026-04-30",
+    "reportDate": "2026-04-30",
+    "primaryDocument": "aapl-20260430.htm"
+  },
+  {
+    "accessionNumber": "0001140361-26-015711",
+    "form": "8-K",
+    "filingDate": "2026-04-20",
+    "reportDate": "2026-04-17",
+    "primaryDocument": "ef20071035_8k.htm"
+  },
+  {
+    "accessionNumber": "0001140361-26-006577",
+    "form": "8-K",
+    "filingDate": "2026-02-24",
+    "reportDate": "2026-02-24",
+    "primaryDocument": "ef20060722_8k.htm"
+  },
+  {
+    "accessionNumber": "0000320193-26-000006",
+    "form": "10-Q",
+    "filingDate": "2026-01-30",
+    "reportDate": "2025-12-27",
+    "primaryDocument": "aapl-20251227.htm"
+  },
+  {
+    "accessionNumber": "0000320193-26-000005",
+    "form": "8-K",
+    "filingDate": "2026-01-29",
+    "reportDate": "2026-01-29",
+    "primaryDocument": "aapl-20260129.htm"
+  },
+  {
+    "accessionNumber": "0001140361-26-000199",
+    "form": "8-K",
+    "filingDate": "2026-01-02",
+    "reportDate": "2025-12-30",
+    "primaryDocument": "ef20060722_8k.htm"
+  }
+]

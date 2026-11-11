@@ -132,6 +132,7 @@ export const entities = pgTable("entities", {
   sector: text("sector"),
   country: char("country", { length: 2 }),
   description: text("description"),
+  cik: char("cik", { length: 10 }),
   createdAt: ts("created_at").notNull().defaultNow(),
 });
 
@@ -182,6 +183,13 @@ export const researchBriefs = pgTable("research_briefs", {
     .notNull(),
   visibility: text("visibility").$type<Visibility>().notNull().default("private"),
   createdAt: ts("created_at").notNull().defaultNow(),
+  sourcePack: jsonb("source_pack")
+    .notNull()
+    .default(sql`'[]'::jsonb`),
+  publicOnly: boolean("public_only").notNull().default(true),
+  cachedFrom: uuid("cached_from"),
+  generatedAt: ts("generated_at").notNull().defaultNow(),
+  provider: text("provider").notNull().default("unknown"),
 });
 
 export const briefSources = pgTable("brief_sources", {
@@ -212,6 +220,7 @@ export const watchlistItems = pgTable("watchlist_items", {
   instrumentId: uuid("instrument_id"),
   note: text("note"),
   addedAt: ts("added_at").notNull().defaultNow(),
+  thesisId: uuid("thesis_id"),
 });
 
 export const theses = pgTable("theses", {
@@ -566,8 +575,10 @@ export const researchRequests = pgTable("research_requests", {
   userId: uuid("user_id").notNull(),
   entityId: uuid("entity_id").notNull(),
   installationId: uuid("installation_id"),
-  sourceUrl: text("source_url").notNull(),
+  sourceUrl: text("source_url"),
   excerpt: text("excerpt"),
+  failureReason: text("failure_reason"),
+  source: text("source").$type<"extension" | "web">().notNull().default("extension"),
   status: text("status")
     .$type<"queued" | "processing" | "completed" | "failed">()
     .notNull()
@@ -575,6 +586,49 @@ export const researchRequests = pgTable("research_requests", {
   briefId: uuid("brief_id"),
   createdAt: ts("created_at").notNull().defaultNow(),
   updatedAt: ts("updated_at").notNull().defaultNow(),
+});
+
+// ---- Research (0004) --------------------------------------------------------------------
+export const researchSourceCache = pgTable(
+  "research_source_cache",
+  {
+    provider: text("provider").$type<"edgar" | "finnhub">().notNull(),
+    key: text("key").notNull(),
+    payload: jsonb("payload").notNull(),
+    retrievedAt: ts("retrieved_at").notNull(),
+    expiresAt: ts("expires_at").notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.provider, t.key] })],
+);
+
+export const briefFeedback = pgTable("brief_feedback", {
+  id: uuid("id").primaryKey(),
+  briefId: uuid("brief_id").notNull(),
+  userId: uuid("user_id").notNull(),
+  kind: text("kind").$type<"helpful" | "incorrect" | "outdated">().notNull(),
+  note: text("note"),
+  createdAt: ts("created_at").notNull().defaultNow(),
+});
+
+export const researchQuestions = pgTable("research_questions", {
+  id: uuid("id").primaryKey(),
+  briefId: uuid("brief_id").notNull(),
+  userId: uuid("user_id").notNull(),
+  question: text("question").notNull(),
+  answer: jsonb("answer").notNull(),
+  model: text("model").notNull(),
+  createdAt: ts("created_at").notNull().defaultNow(),
+});
+
+export const thesisReviews = pgTable("thesis_reviews", {
+  id: uuid("id").primaryKey(),
+  thesisId: uuid("thesis_id").notNull(),
+  userId: uuid("user_id").notNull(),
+  outcome: text("outcome")
+    .$type<"played_out" | "did_not_play_out" | "mixed" | "too_early">()
+    .notNull(),
+  note: text("note").notNull(),
+  createdAt: ts("created_at").notNull().defaultNow(),
 });
 
 /** Tables protected by append-only triggers (must match the migration). */
@@ -586,4 +640,5 @@ export const APPEND_ONLY_TABLES = [
   "reputation_evidence",
   "audit_logs",
   "policy_versions",
+  "thesis_reviews",
 ] as const;

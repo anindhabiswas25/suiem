@@ -24,6 +24,17 @@ export const ENV_VARS = {
   ALCHEMY_API_KEY:
     "Optional. Enables Alchemy as primary RPC with public fallback on both networks.",
   LOG_LEVEL: "Pino log level (info by default).",
+  GROQ_API_KEY: "Groq API key (primary research model). Never logged.",
+  GROQ_MODEL: "Groq model ID (default openai/gpt-oss-120b; strict structured outputs).",
+  GEMINI_API_KEY: "Google Gemini API key (fallback research model, free tier). Never logged.",
+  GEMINI_MODEL: "Gemini model ID (default gemini-3.5-flash; see VERIFIED_FACTS R-02).",
+  FINNHUB_API_KEY:
+    "Finnhub API key (news, quotes, profile, peers, metrics; free plan). Never logged.",
+  SEC_USER_AGENT:
+    "User-Agent sent to SEC EDGAR, e.g. 'Suiem research contact@example.com'. Required by the SEC.",
+  RESEARCH_DAILY_LIMIT_PER_USER: "Research briefs per user per UTC day (default 10).",
+  RESEARCH_CACHE_TTL_HOURS:
+    "Hours a public-data-only brief and provider responses may be reused (default 12).",
   EXTENSION_ID:
     "Optional Chrome extension ID. If set, extension requests must come from chrome-extension://<id> and the web app offers one-click pairing.",
   NEXT_PUBLIC_EXTENSION_ID:
@@ -67,6 +78,14 @@ export const apiEnvSchema = z
       .regex(/^[a-p]{32}$/)
       .optional(),
     TRUST_PROXY_HOPS: z.coerce.number().int().min(0).max(5).default(0),
+    GROQ_API_KEY: z.string().min(10).optional(),
+    GROQ_MODEL: z.string().min(1).default("openai/gpt-oss-120b"),
+    GEMINI_API_KEY: z.string().min(10).optional(),
+    GEMINI_MODEL: z.string().min(1).default("gemini-3.5-flash"),
+    FINNHUB_API_KEY: z.string().min(10).optional(),
+    SEC_USER_AGENT: z.string().min(5).optional(),
+    RESEARCH_DAILY_LIMIT_PER_USER: z.coerce.number().int().min(1).max(1000).default(10),
+    RESEARCH_CACHE_TTL_HOURS: z.coerce.number().int().min(0).max(168).default(12),
   })
   .superRefine((env, ctx) => {
     if (env.NODE_ENV === "production" && !env.EXTENSION_ID) {

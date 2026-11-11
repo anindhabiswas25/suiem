@@ -1,0 +1,16 @@
+{
+  "ticker": "2330.TW",
+  "name": "Taiwan Semiconductor Manufacturing Co Ltd",
+  "country": "TW",
+  "currency": "TWD",
+  "estimateCurrency": "TWD",
+  "exchange": "TAIWAN STOCK EXCHANGE",
+  "ipo": "1994-09-05",
+  "marketCapitalization": 57958845.029297,
+  "logo": "https://static2.finnhub.io/file/publicdatany/finnhubimage/stock_logo/2330.TW.png",
+  "shareOutstanding": 25932.37,
+  "finnhubIndustry": "Semiconductors",
+  "phone": "88635636688",
+  "weburl": "https://www.tsmc.com/",
+  "floatingShare": 22575.17
+}

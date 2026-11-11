@@ -1,0 +1,66 @@
+[
+  {
+    "id": 143705078,
+    "datetime": 1794345515,
+    "headline": "Taiwan Semiconductor Sales Jump 60% In October As AI Boom Continues",
+    "source": "Yahoo",
+    "summary": "Taiwan Semiconductor Manufacturing reported that its October sales surged 59.7% year over year in local currency.",
+    "url": "https://finnhub.io/api/news?id=f7e44980f0b5f28ceeb02bc823ad7a41e60f7663e885140786ee80083f03bbcf"
+  },
+  {
+    "id": 143705079,
+    "datetime": 1794344400,
+    "headline": "Ayar Labs Wins Demo of the Year Award at 2026 TSMC North America Technology Symposium",
+    "source": "Yahoo",
+    "summary": "SAN JOSE, Calif., November 10, 2026--Ayar Labs, the leader in optical interconnect solutions for AI scale-up, won the Demo of the Year Award at the 2026 TSMC North America Technology Symposium, in Santa Clara, California. The award is presented annually to the most popular demo, as chosen by visitors to the \"Innovate with TSMC!\" Demo Zone—a platform showcasing innovations from TSMC’s emerging customers at the Technology Symposium.",
+    "url": "https://finnhub.io/api/news?id=3cbd9c42f1c1f6c3cbcd27ec8df97648e8974d071a53b9085592f42cee47d616"
+  },
+  {
+    "id": 143705080,
+    "datetime": 1794341700,
+    "headline": "TSMC record sales strengthen Wedbush’s bullish outlook",
+    "source": "Yahoo",
+    "summary": "Wedbush has reiterated its 'outperform' rating and NT$3,300 price target on Taiwan Semiconductor Manufacturing Co (ADR) (NYSE:TSM), after October sales exceeded seasonal expectations. Revenue of the Taiwanese semiconductor manufacturer increased 14.7% month on month to a record NT$586.89...",
+    "url": "https://finnhub.io/api/news?id=95acfa0c07223a8ae8dcdd7ab9c99eec13f7161d347fb7d5a289f646c545603d"
+  },
+  {
+    "id": 143705081,
+    "datetime": 1794340392,
+    "headline": "TSMC Is at the Center of an AI Boom That Flipped 25 Years of U.S. Trade. Is the Stock a Buy?",
+    "source": "Yahoo",
+    "summary": "America now buys far more computer and electronics gear from Taiwan than from China. One company sits at the center of that shift, and its sales just jumped 60%.",
+    "url": "https://finnhub.io/api/news?id=c4321d8f42c0a8a55ebfb0fdc7ed2f10657d946ad623e8df3498c19276ba7ace"
+  },
+  {
+    "id": 143694766,
+    "datetime": 1794336300,
+    "headline": "Baron Global Durable Advantage ETF Q3 2026 Top Contributors And Detractors",
+    "source": "SeekingAlpha",
+    "summary": "Baron Global Durable Advantage ETF highlights top drivers like NVIDIA and Meta alongside detractors in Q3 2026. Read the full commentary for details.",
+    "url": "https://finnhub.io/api/news?id=59122c5eff3c86ff61beab073e8577d6f4e29f38be7fb7ac1203da7904653925"
+  },
+  {
+    "id": 143692616,
+    "datetime": 1794335586,
+    "headline": "5 AI Stock Picks and Performance of Billionaire Stanley Druckenmiller",
+    "source": "Yahoo",
+    "summary": "Billionaire Stanley Druckenmiller has been bullish on AI since before ChatGPT launched. He is one of the most closely followed macro investors on Wall Street. He averaged about 30% a year at Duquesne Capital with no losing year, and his 1992 bet against the British pound made more than $1 billion. Druckenmiller’s AI Stock Picks […]",
+    "url": "https://finnhub.io/api/news?id=91f24f3ca29b8f1e1f8c7e6174b779fff7245e577627cb4ef794868d8f12e1aa"
+  },
+  {
+    "id": 143692597,
+    "datetime": 1794334894,
+    "headline": "Google, Nvidia and Microsoft “Literally Feeding Themselves Money” with $26 Billion Anthropic IPO Buy",
+    "source": "Yahoo",
+    "summary": "Key TakeawaysAlphabet’s Google, Nvidia, Microsoft, Broadcom, AMD, Micron and TSMC will buy $26 billion of Anthropic’s shares at its IPO price, on top of an offering of up to $64. 4 billion.",
+    "url": "https://finnhub.io/api/news?id=00468a3345e78589c39b2f0d9525737b11501cd13514f6fee8b20ef2ed9ba4dd"
+  },
+  {
+    "id": 143692605,
+    "datetime": 1794334849,
+    "headline": "Anthropic IPO Could Value Claude Maker at $1.4 Trillion",
+    "source": "Yahoo",
+    "summary": "Nvidia, Microsoft, Google and four other companies are buying $26 billion of stock in a private placement",
+    "url": "https://finnhub.io/api/news?id=4c0e8e0818c366e0204120b8ced73af8dfd8aa83725f71730cc3abdbeb1caace"
+  }
+]

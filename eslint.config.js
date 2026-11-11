@@ -126,6 +126,7 @@ export default tseslint.config(
       "scripts/**/*.mjs",
       "packages/db/src/scripts/**/*.ts",
       "apps/**/src/scripts/**/*.ts",
+      "workers/**/src/scripts/**/*.ts",
       "apps/extension/scripts/**/*.mjs",
     ],
     rules: { "no-console": "off" },

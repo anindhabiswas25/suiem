@@ -4,10 +4,25 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "typecheck": "tsc -p tsconfig.json"
+    "typecheck": "tsc -p tsconfig.json",
+    "smoke": "tsx --env-file-if-exists=../../.env src/scripts/smoke.ts",
+    "record-fixtures": "tsx --env-file-if-exists=../../.env src/scripts/record-fixtures.ts"
   },
   "devDependencies": {
+    "@types/node": "24.10.1",
+    "@types/pg": "8.23.1"
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
     "@suiem/config": "workspace:*",
-    "@types/node": "24.10.1"
+    "@suiem/db": "workspace:*",
+    "@suiem/shared": "workspace:*",
+    "bullmq": "6.7.2",
+    "drizzle-orm": "0.45.4",
+    "ioredis": "6.0.0",
+    "pg": "8.23.1",
+    "zod": "4.6.7"
   }
 }

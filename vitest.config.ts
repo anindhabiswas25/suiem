@@ -22,7 +22,11 @@ export default defineConfig({
       {
         test: {
           name: "integration",
-          include: ["apps/**/*.int.test.ts", "packages/**/*.int.test.ts"],
+          include: [
+            "apps/**/*.int.test.ts",
+            "packages/**/*.int.test.ts",
+            "workers/**/*.int.test.ts",
+          ],
           exclude,
           environment: "node",
           testTimeout: 60_000,

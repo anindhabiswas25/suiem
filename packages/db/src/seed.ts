@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { newId } from "@suiem/shared/ids";
 import pg from "pg";
 import { DEMO_USERS, SEED_ENTITIES, TESTNET_STOCK_TOKENS } from "./seed-data";
+import { CIK_MAP } from "@suiem/shared/entities";
 
 const POLICY_DIR = join(import.meta.dirname, "..", "..", "..", "docs", "policies");
 export const INITIAL_POLICY_VERSION = "2026-11-10.1";
@@ -50,10 +51,19 @@ export async function seed(url: string): Promise<{ entities: number; instruments
     const entityIds = new Map<string, string>();
     for (const e of SEED_ENTITIES) {
       const r = await client.query<{ id: string }>(
-        `INSERT INTO entities (id, canonical_id, name, legal_name, kind, sector, country)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)
-         ON CONFLICT (canonical_id) DO UPDATE SET name = EXCLUDED.name RETURNING id`,
-        [newId(), e.canonicalId, e.name, e.legalName, e.kind, e.sector, e.country],
+        `INSERT INTO entities (id, canonical_id, name, legal_name, kind, sector, country, cik)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+         ON CONFLICT (canonical_id) DO UPDATE SET name = EXCLUDED.name, cik = EXCLUDED.cik RETURNING id`,
+        [
+          newId(),
+          e.canonicalId,
+          e.name,
+          e.legalName,
+          e.kind,
+          e.sector,
+          e.country,
+          CIK_MAP[e.canonicalId]?.cik ?? null,
+        ],
       );
       const id = r.rows[0]!.id;
       entityIds.set(e.slug, id);

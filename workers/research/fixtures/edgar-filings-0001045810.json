@@ -1,0 +1,86 @@
+[
+  {
+    "accessionNumber": "0001045810-26-000078",
+    "form": "8-K",
+    "filingDate": "2026-09-03",
+    "reportDate": "2026-09-02",
+    "primaryDocument": "nvda-20260902.htm"
+  },
+  {
+    "accessionNumber": "0001045810-26-000075",
+    "form": "10-Q",
+    "filingDate": "2026-08-26",
+    "reportDate": "2026-07-26",
+    "primaryDocument": "nvda-20260726.htm"
+  },
+  {
+    "accessionNumber": "0001045810-26-000073",
+    "form": "8-K",
+    "filingDate": "2026-08-26",
+    "reportDate": "2026-08-26",
+    "primaryDocument": "nvda-20260826.htm"
+  },
+  {
+    "accessionNumber": "0001045810-26-000069",
+    "form": "8-K",
+    "filingDate": "2026-08-17",
+    "reportDate": "2026-08-17",
+    "primaryDocument": "nvda-20260817.htm"
+  },
+  {
+    "accessionNumber": "0001045810-26-000060",
+    "form": "8-K",
+    "filingDate": "2026-07-02",
+    "reportDate": "2026-06-28",
+    "primaryDocument": "nvda-20260628.htm"
+  },
+  {
+    "accessionNumber": "0001045810-26-000056",
+    "form": "8-K",
+    "filingDate": "2026-06-30",
+    "reportDate": "2026-06-24",
+    "primaryDocument": "nvda-20260624.htm"
+  },
+  {
+    "accessionNumber": "0001193125-26-275783",
+    "form": "8-K",
+    "filingDate": "2026-06-18",
+    "reportDate": "2026-06-15",
+    "primaryDocument": "d48176d8k.htm"
+  },
+  {
+    "accessionNumber": "0001045810-26-000052",
+    "form": "10-Q",
+    "filingDate": "2026-05-20",
+    "reportDate": "2026-04-26",
+    "primaryDocument": "nvda-20260426.htm"
+  },
+  {
+    "accessionNumber": "0001045810-26-000051",
+    "form": "8-K",
+    "filingDate": "2026-05-20",
+    "reportDate": "2026-05-20",
+    "primaryDocument": "nvda-20260520.htm"
+  },
+  {
+    "accessionNumber": "0001045810-26-000028",
+    "form": "8-K",
+    "filingDate": "2026-05-08",
+    "reportDate": "2026-05-07",
+    "primaryDocument": "nvda-20260507.htm"
+  },
+  {
+    "accessionNumber": "0001045810-26-000026",
+    "form": "8-K",
+    "filingDate": "2026-04-27",
+    "reportDate": "2026-04-24",
+    "primaryDocument": "nvda-20260424.htm"
+  },
+  {
+    "accessionNumber": "0001045810-26-000024",
+    "form": "8-K",
+    "filingDate": "2026-03-06",
+    "reportDate": "2026-03-02",
+    "primaryDocument": "nvda-20260302.htm"
+  }
+]

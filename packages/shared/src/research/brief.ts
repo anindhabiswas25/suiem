@@ -46,6 +46,21 @@ export const sourceSchema = z
   })
   .strict();
 
+/** Every section that holds cited claims (order = PRD §6.5 display order). */
+export const BRIEF_CLAIM_SECTIONS = [
+  "businessModel",
+  "financialHighlights",
+  "valuation",
+  "industryContext",
+  "competitors",
+  "recentDevelopments",
+  "risks",
+  "bullCase",
+  "baseCase",
+  "bearCase",
+] as const;
+export type BriefClaimSection = (typeof BRIEF_CLAIM_SECTIONS)[number];
+
 export const researchBriefV1 = z
   .object({
     schemaVersion: z.literal(BRIEF_SCHEMA_VERSION),
@@ -59,11 +74,15 @@ export const researchBriefV1 = z
       .strict(),
     summary: z.string().min(1).max(2000),
     businessModel: z.array(claimSchema),
+    /** Computed in code from EDGAR filings, never by the model. */
     financialHighlights: z.array(financialFigureSchema),
-    valuation: z.array(claimSchema),
+    /** From Finnhub metrics, labelled with source and as-of date, never by the model. */
+    valuation: z.array(financialFigureSchema),
+    industryContext: z.array(claimSchema),
     recentDevelopments: z.array(claimSchema),
     competitors: z.array(claimSchema),
     bullCase: z.array(claimSchema),
+    baseCase: z.array(claimSchema),
     bearCase: z.array(claimSchema).min(1),
     risks: z.array(claimSchema).min(1),
     openQuestions: z.array(z.string().max(300)),
@@ -71,7 +90,12 @@ export const researchBriefV1 = z
     dataFreshness: z.enum(["fresh", "stale", "partial", "unknown"]),
     disclaimer: z.string().min(1),
     generation: z
-      .object({ model: z.string(), promptVersion: z.string(), generatedAt: z.iso.datetime() })
+      .object({
+        model: z.string(),
+        provider: z.string(),
+        promptVersion: z.string(),
+        generatedAt: z.iso.datetime(),
+      })
       .strict(),
   })
   .strict()
@@ -79,16 +103,7 @@ export const researchBriefV1 = z
     const sourceIds = new Set(brief.sources.map((s) => s.id));
     if (sourceIds.size !== brief.sources.length)
       ctx.addIssue({ code: "custom", path: ["sources"], message: "duplicate source id" });
-    const sections = [
-      "businessModel",
-      "financialHighlights",
-      "valuation",
-      "recentDevelopments",
-      "competitors",
-      "bullCase",
-      "bearCase",
-      "risks",
-    ] as const;
+    const sections = BRIEF_CLAIM_SECTIONS;
     const seen = new Set<string>();
     for (const section of sections) {
       brief[section].forEach((claim, i) => {
@@ -115,6 +130,9 @@ export const FORBIDDEN_RESEARCH_PHRASES = [
   /\brisk[- ]free\b/i,
   /\b(strong )?(buy|sell) (now|signal)\b/i,
   /\bcan'?t lose\b/i,
+  /\b(BUY|SELL)\b/,
+  /\b(you should|we recommend|i recommend) (buy|sell|hold)/i,
+  /\bwill definitely\b/i,
 ];
 
 /** Collects every string in the brief except retrieved-source metadata and generation info. */
