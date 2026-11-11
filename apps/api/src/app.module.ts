@@ -13,6 +13,10 @@ import { ConfigController } from "./flags/config.controller";
 import { DevicesService } from "./extension/devices.service";
 import { ExtensionController } from "./extension/extension.controller";
 import { EntitiesController } from "./research/entities.controller";
+import { ResearchController } from "./research/research.controller";
+import { RESEARCH, type ResearchRuntime, researchRuntimeFromEnv } from "./research/runtime";
+import { ThesesController } from "./research/theses.controller";
+import { WatchlistsController } from "./research/watchlists.controller";
 import { FlagsService } from "./flags/flags.service";
 import { ErrorEnvelopeFilter } from "./http/errors";
 import { SecurityGuard } from "./http/security.guard";
@@ -29,6 +33,8 @@ export interface AppDeps {
   redis: Redis;
   logger: AppLogger;
   clock: Clock;
+  /** Research providers, models, quota and queue. Defaults to env-built providers with no queue. */
+  research?: ResearchRuntime;
 }
 
 @Module({})
@@ -42,6 +48,9 @@ export class AppModule {
         ConfigController,
         ExtensionController,
         EntitiesController,
+        ResearchController,
+        WatchlistsController,
+        ThesesController,
       ],
       providers: [
         { provide: ENV, useValue: deps.env },
@@ -49,6 +58,10 @@ export class AppModule {
         { provide: REDIS, useValue: deps.redis },
         { provide: LOGGER, useValue: deps.logger },
         { provide: CLOCK, useValue: deps.clock },
+        {
+          provide: RESEARCH,
+          useValue: deps.research ?? researchRuntimeFromEnv(deps.env, deps.db, deps.redis),
+        },
         AuditService,
         RateLimiter,
         SessionService,

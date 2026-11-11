@@ -167,9 +167,15 @@ export const researchRequestItem = z.object({
   id: z.uuid(),
   entityId: z.string(),
   status: z.enum(["queued", "processing", "completed", "failed"]),
-  sourceUrl: z.string(),
+  source: z.enum(["extension", "web"]).optional(),
+  sourceUrl: z.string().nullable(),
   hasExcerpt: z.boolean(),
   createdAt: z.string(),
+  briefId: z.uuid().nullable().optional(),
+  failureReason: z.string().nullable().optional(),
+  /** Present when completed: shown in the extension side panel. */
+  summary: z.string().nullable().optional(),
+  topRisks: z.array(z.string()).optional(),
 });
 export const researchContextResponse = researchRequestItem.extend({ researchUrl: z.string() });
 export const researchRequestsResponse = z.object({ items: z.array(researchRequestItem) });
@@ -212,4 +218,235 @@ export const watchlistResponse = z.object({
   id: z.uuid().nullable(),
   name: z.string(),
   items: z.array(watchlistItemResponse),
+});
+
+// ---- Sprint 4: research, compare, watchlists, theses -------------------------------------
+export const uuidParam = z.uuid();
+export const createBriefRequest = z.object({ entityId: entityIdParam }).strict();
+export const createBriefResponse = researchRequestItem;
+export const briefListQuery = z.object({
+  entityId: entityIdParam.optional(),
+  limit: z.coerce.number().int().min(1).max(50).default(20),
+});
+export const briefListItem = z.object({
+  id: z.uuid(),
+  entityId: z.string(),
+  entityName: z.string(),
+  summary: z.string(),
+  model: z.string(),
+  provider: z.string(),
+  dataFreshness: z.enum(["fresh", "stale", "partial", "unknown"]),
+  generatedAt: z.string(),
+  cached: z.boolean(),
+});
+export const briefListResponse = z.object({ items: z.array(briefListItem) });
+const answerClaim = z.object({
+  id: z.string(),
+  text: z.string(),
+  kind: z.enum(["fact", "estimate", "analysis", "opinion"]),
+  sourceIds: z.array(z.string()),
+});
+export const questionItem = z.object({
+  id: z.uuid(),
+  question: z.string(),
+  insufficientSources: z.boolean(),
+  claims: z.array(answerClaim),
+  model: z.string(),
+  provider: z.string(),
+  createdAt: z.string(),
+});
+export const briefResponse = z.object({
+  id: z.uuid(),
+  entityId: z.string(),
+  /** Full brief v1 (validated before it was stored). */
+  brief: z.record(z.string(), z.unknown()),
+  model: z.string(),
+  provider: z.string(),
+  promptVersion: z.string(),
+  schemaVersion: z.string(),
+  dataFreshness: z.enum(["fresh", "stale", "partial", "unknown"]),
+  generatedAt: z.string(),
+  cached: z.boolean(),
+  questions: z.array(questionItem),
+  myFeedback: z.array(
+    z.object({
+      kind: z.enum(["helpful", "incorrect", "outdated"]),
+      note: z.string().nullable(),
+      createdAt: z.string(),
+    }),
+  ),
+});
+export const questionRequest = z.object({ question: z.string().trim().min(3).max(500) }).strict();
+export const feedbackRequest = z
+  .object({
+    kind: z.enum(["helpful", "incorrect", "outdated"]),
+    note: z.string().trim().max(1000).optional(),
+  })
+  .strict();
+export const feedbackResponse = z.object({ id: z.uuid(), kind: z.string(), createdAt: z.string() });
+export const compareRequest = z
+  .object({ entityIds: z.array(entityIdParam).min(2).max(3) })
+  .strict();
+const compareCell = z.object({
+  value: z.string().nullable(),
+  unit: z.string().nullable(),
+  currency: z.string().nullable(),
+  period: z.string().nullable(),
+  asOf: z.string().nullable(),
+  basis: z.string().nullable(),
+  formula: z.string().nullable(),
+  sourceUrl: z.string().nullable(),
+  sourceLabel: z.string().nullable(),
+});
+export const compareResponse = z.object({
+  entities: z.array(
+    z.object({
+      canonicalId: z.string(),
+      name: z.string(),
+      ticker: z.string().nullable(),
+      dataNotes: z.array(z.string()),
+    }),
+  ),
+  rows: z.array(z.object({ metric: z.string(), label: z.string(), cells: z.array(compareCell) })),
+  generatedAt: z.string(),
+});
+export const quoteResponse = z.object({
+  symbol: z.string(),
+  currency: z.literal("USD"),
+  price: z.string(),
+  change: z.string().nullable(),
+  changePercent: z.string().nullable(),
+  previousClose: z.string().nullable(),
+  asOf: z.string(),
+  retrievedAt: z.string(),
+  source: z.string(),
+  sourceUrl: z.string(),
+});
+
+const direction = z.enum(["bullish", "bearish", "neutral"]);
+export const thesisEvidenceRef = z
+  .object({ briefId: z.uuid(), claimId: z.string().regex(/^c[0-9]{1,4}$/) })
+  .strict();
+export const thesisDraftRequest = z
+  .object({ briefId: z.uuid(), direction: direction.optional() })
+  .strict();
+export const thesisDraftResponse = z.object({
+  title: z.string(),
+  direction,
+  horizonDays: z.number().int(),
+  rationale: z.string(),
+  counterarguments: z.string(),
+  risks: z.string(),
+  invalidation: z.string(),
+  evidence: z.array(z.object({ briefId: z.uuid(), claimId: z.string(), text: z.string() })),
+  model: z.string(),
+  provider: z.string(),
+  promptVersion: z.string(),
+  /** Always true: a draft for the user to edit. It is not saved. */
+  aiDraft: z.literal(true),
+  saved: z.literal(false),
+});
+export const thesisContent = z
+  .object({
+    direction,
+    horizonDays: z.number().int().min(1).max(3650),
+    title: z.string().trim().min(3).max(140),
+    rationale: z.string().trim().min(1).max(4000),
+    evidence: z.array(thesisEvidenceRef).max(10).default([]),
+    counterarguments: z.string().trim().min(1).max(4000),
+    risks: z.string().trim().min(1).max(4000),
+    invalidation: z.string().trim().min(1).max(2000),
+  })
+  .strict();
+export const createThesisRequest = thesisContent.extend({ entityId: entityIdParam }).strict();
+export const updateThesisRequest = thesisContent;
+export const visibilitySchema = z.enum(["private", "followers", "public"]);
+export const publishThesisRequest = z.object({ visibility: visibilitySchema }).strict();
+export const reviewThesisRequest = z
+  .object({
+    outcome: z.enum(["played_out", "did_not_play_out", "mixed", "too_early"]),
+    note: z.string().trim().min(1).max(4000),
+  })
+  .strict();
+export const priceContextSchema = z
+  .object({
+    symbol: z.string(),
+    price: z.string(),
+    currency: z.string(),
+    asOf: z.string(),
+    retrievedAt: z.string(),
+    source: z.string(),
+    sourceUrl: z.string(),
+  })
+  .nullable();
+export const thesisVersionItem = z.object({
+  version: z.number().int(),
+  direction,
+  horizonDays: z.number().int(),
+  title: z.string(),
+  rationale: z.string(),
+  evidence: z.array(z.object({ briefId: z.uuid(), claimId: z.string(), text: z.string() })),
+  counterarguments: z.string(),
+  risks: z.string(),
+  invalidation: z.string(),
+  priceContext: priceContextSchema,
+  createdAt: z.string(),
+});
+export const thesisResponse = z.object({
+  id: z.uuid(),
+  entityId: z.string(),
+  entityName: z.string(),
+  owner: z.object({ handle: z.string().nullable(), isMe: z.boolean() }),
+  visibility: visibilitySchema,
+  status: z.enum(["draft", "published", "closed"]),
+  currentVersion: z.number().int(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+  publishedAt: z.string().nullable(),
+  versions: z.array(thesisVersionItem),
+  reviews: z.array(
+    z.object({ id: z.uuid(), outcome: z.string(), note: z.string(), createdAt: z.string() }),
+  ),
+});
+export const thesisListResponse = z.object({
+  items: z.array(
+    z.object({
+      id: z.uuid(),
+      entityId: z.string(),
+      entityName: z.string(),
+      title: z.string(),
+      direction,
+      visibility: visibilitySchema,
+      status: z.string(),
+      currentVersion: z.number().int(),
+      updatedAt: z.string(),
+    }),
+  ),
+});
+
+export const watchlistCreateRequest = z.object({ name: z.string().trim().min(1).max(60) }).strict();
+export const watchlistItemAddRequest = z
+  .object({ entityId: entityIdParam, note: z.string().trim().max(500).optional() })
+  .strict();
+export const watchlistItemPatchRequest = z
+  .object({
+    note: z.string().trim().max(500).nullable().optional(),
+    thesisId: z.uuid().nullable().optional(),
+  })
+  .strict()
+  .refine((v) => v.note !== undefined || v.thesisId !== undefined, "nothing to update");
+export const watchlistFullItem = watchlistItemResponse.extend({
+  thesisId: z.uuid().nullable(),
+  ticker: z.string().nullable(),
+});
+export const watchlistFull = z.object({
+  id: z.uuid(),
+  name: z.string(),
+  createdAt: z.string(),
+  items: z.array(watchlistFullItem),
+});
+export const watchlistsResponse = z.object({ items: z.array(watchlistFull) });
+export const watchlistItemMutationResponse = z.object({
+  item: watchlistFullItem,
+  created: z.boolean(),
 });

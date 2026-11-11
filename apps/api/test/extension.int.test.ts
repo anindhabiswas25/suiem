@@ -202,7 +202,15 @@ describe("device token scope", () => {
       ["GET", "/extension/installations", undefined],
       ["POST", "/auth/logout", {}],
       ["GET", "/config", undefined],
-      ["GET", "/research/requests", undefined],
+      ["POST", "/research/briefs", { entityId: "ent:nvidia" }],
+      ["GET", "/research/briefs", undefined],
+      ["POST", "/research/compare", { entityIds: ["ent:nvidia", "ent:apple"] }],
+      ["POST", "/research/theses/draft", { briefId: "00000000-0000-7000-8000-000000000000" }],
+      ["GET", "/entities/ent:nvidia/quote", undefined],
+      ["GET", "/watchlists", undefined],
+      ["POST", "/watchlists", { name: "x" }],
+      ["GET", "/theses", undefined],
+      ["POST", "/theses", {}],
     ] as const) {
       const r = await device(m, p, token, b);
       expect(r.status, `${m} ${p}`).toBe(403);

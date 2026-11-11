@@ -25,9 +25,11 @@ export type QuotaScope = "brief" | "question" | "draft";
 export interface QuotaSlot {
   key: string;
 }
-const slotKey = (userId: string, now: Date, scope: QuotaScope) => `research:quota:${scope}:${userId}:${day(now)}`;
+const slotKey = (userId: string, now: Date, scope: QuotaScope) =>
+  `research:quota:${scope}:${userId}:${day(now)}`;
 /** DECR only while the counter is positive (atomic). */
-const DECR_POSITIVE = "local v = tonumber(redis.call('get', KEYS[1]) or '0') if v > 0 then return redis.call('decr', KEYS[1]) end return 0";
+const DECR_POSITIVE =
+  "local v = tonumber(redis.call('get', KEYS[1]) or '0') if v > 0 then return redis.call('decr', KEYS[1]) end return 0";
 
 export class RedisQuota implements Quota {
   constructor(private readonly redis: Redis) {}

@@ -19,6 +19,7 @@ import { AuditService } from "../audit/audit.service";
 import { ApiError } from "../http/errors";
 import { Route } from "../http/route";
 import { DB, ENV } from "../tokens";
+import { RESEARCH, type ResearchRuntime } from "../research/runtime";
 import { DevicesService } from "./devices.service";
 
 export const actorUserId = (req: FastifyRequest): string => {
@@ -37,6 +38,7 @@ export class ExtensionController {
     @Inject(AuditService) private readonly audit: AuditService,
     @Inject(DB) private readonly db: DbHandle,
     @Inject(ENV) private readonly env: ApiEnv,
+    @Inject(RESEARCH) private readonly research: ResearchRuntime,
   ) {}
 
   @Route({
@@ -188,6 +190,7 @@ export class ExtensionController {
       targetId: id,
       requestId: req.suiem.requestId,
     });
+    await this.research.enqueue(id);
     return {
       id: row.id,
       entityId: body.entityId,

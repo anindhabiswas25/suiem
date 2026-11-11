@@ -2,7 +2,10 @@ import { createSuiemPublicClient, assertSuiemChain } from "@suiem/chain";
 import { robinhoodMainnet, robinhoodTestnet } from "@suiem/config/chains";
 import { loadApiEnv } from "@suiem/config/env";
 import { connect } from "@suiem/db";
+import { enqueueResearch, researchQueue, startResearchWorker } from "@suiem/research";
+import { Redis } from "ioredis";
 import { createApp } from "./app";
+import { pipelineDeps, researchRuntimeFromEnv } from "./research/runtime";
 import { createRedis } from "./infra/redis";
 import { createLogger } from "./observability/logger";
 import { errorFields } from "./observability/redact";
@@ -27,7 +30,30 @@ export async function bootstrap(source: Record<string, string | undefined> = pro
   }
   const db = connect(env.DATABASE_URL, { applicationName: "suiem-api" });
   const redis = createRedis(env.REDIS_URL);
-  const app = await createApp({ env, db, redis, logger, clock: systemClock });
+  // Research queue (BullMQ needs its own connections with maxRetriesPerRequest: null).
+  const queueConn = new Redis(env.REDIS_URL, { maxRetriesPerRequest: null });
+  const queue = researchQueue(queueConn);
+  const research = researchRuntimeFromEnv(env, db, redis, (id) => enqueueResearch(queue, id));
+  logger.info(
+    {
+      component: "research",
+      models: research.models.map((m) => `${m.provider}:${m.model}`),
+      edgar: !!research.filings,
+      finnhub: !!research.market,
+    },
+    "research providers",
+  );
+  if (env.RESEARCH_WORKER === "inline") {
+    const deps = pipelineDeps(
+      research,
+      db,
+      () => systemClock.now(),
+      (event, fields) => logger.info({ component: "research", ...fields }, event),
+    );
+    startResearchWorker(new Redis(env.REDIS_URL, { maxRetriesPerRequest: null }), deps, 2);
+    logger.info({ component: "research" }, "research worker running inline (concurrency 2)");
+  }
+  const app = await createApp({ env, db, redis, logger, clock: systemClock, research });
   await app.listen({ port: env.API_PORT, host: "0.0.0.0" });
   logger.info({ port: env.API_PORT, component: "boot" }, "api listening");
   return app;

@@ -7,12 +7,11 @@ import {
   entitySearchResponse,
   entitySummary,
   instrumentsResponse,
-  researchRequestsResponse,
   watchlistAddRequest,
   watchlistAddResponse,
   watchlistResponse,
 } from "@suiem/shared/schemas";
-import { and, desc, eq, ilike, or, sql } from "drizzle-orm";
+import { and, desc, eq, ilike, or } from "drizzle-orm";
 import type { FastifyRequest } from "fastify";
 import { getAddress } from "viem";
 import type { z } from "zod";
@@ -210,45 +209,5 @@ export class EntitiesController {
       .returning({ id: schema.watchlistItems.id });
     const item = (await this.items(watchlistId)).find((i) => i.entityId === body.entityId)!;
     return { item, created: inserted.length === 1 };
-  }
-
-  @Route({
-    method: "GET",
-    path: "/research/requests",
-    summary: "The user's queued research requests (briefs arrive in Sprint 4)",
-    tags: ["research"],
-    auth: "user",
-    response: researchRequestsResponse,
-  })
-  async requests(@Req() req: FastifyRequest) {
-    const q = req.query as { entityId?: string };
-    const filter =
-      q.entityId && entityIdParam.safeParse(q.entityId).success
-        ? eq(schema.entities.canonicalId, q.entityId)
-        : sql`true`;
-    const rows = await this.db.db
-      .select({
-        id: schema.researchRequests.id,
-        entityId: schema.entities.canonicalId,
-        status: schema.researchRequests.status,
-        sourceUrl: schema.researchRequests.sourceUrl,
-        excerpt: schema.researchRequests.excerpt,
-        createdAt: schema.researchRequests.createdAt,
-      })
-      .from(schema.researchRequests)
-      .innerJoin(schema.entities, eq(schema.entities.id, schema.researchRequests.entityId))
-      .where(and(eq(schema.researchRequests.userId, req.suiem.session!.userId), filter))
-      .orderBy(desc(schema.researchRequests.createdAt))
-      .limit(50);
-    return {
-      items: rows.map((r) => ({
-        id: r.id,
-        entityId: r.entityId,
-        status: r.status,
-        sourceUrl: r.sourceUrl,
-        hasExcerpt: r.excerpt !== null,
-        createdAt: r.createdAt.toISOString(),
-      })),
-    };
   }
 }

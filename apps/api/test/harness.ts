@@ -8,6 +8,7 @@ import { generatePrivateKey, privateKeyToAccount, type PrivateKeyAccount } from 
 import { inject } from "vitest";
 import { createApp } from "../src/app";
 import { createLogger } from "../src/observability/logger";
+import type { ResearchRuntime } from "../src/research/runtime";
 import { systemClock, type Clock } from "../src/tokens";
 
 export const WEB_ORIGIN = "http://localhost:3000";
@@ -22,7 +23,12 @@ export interface Harness {
 }
 
 export async function startHarness(
-  options: { clock?: Clock; envOverrides?: Record<string, string> } = {},
+  options: {
+    clock?: Clock;
+    envOverrides?: Record<string, string>;
+    /** Research runtime factory (fixture providers + mock models). Default: none configured. */
+    research?: (db: DbHandle) => ResearchRuntime;
+  } = {},
 ): Promise<Harness> {
   const env = loadApiEnv({
     NODE_ENV: "test",
@@ -47,7 +53,14 @@ export async function startHarness(
     },
   });
   const logger = createLogger({ level: "info", service: "test", env: "test", destination });
-  const app = await createApp({ env, db, redis, logger, clock: options.clock ?? systemClock });
+  const app = await createApp({
+    env,
+    db,
+    redis,
+    logger,
+    clock: options.clock ?? systemClock,
+    research: options.research?.(db),
+  });
   return {
     app,
     db,
