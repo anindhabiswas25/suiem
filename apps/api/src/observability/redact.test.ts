@@ -64,3 +64,13 @@ describe("log redaction (allowlist)", () => {
     expect(redact({ nested: { email: "a@b.co" } })).toEqual({});
   });
 });
+
+describe("RPC secrets in logs (Sprint 7)", () => {
+  test("a QuickNode URL never reaches a log line or error fields", () => {
+    const token = "abcdef0123456789abcdef0123456789abcdef01";
+    const msg = `HTTP request failed. URL: https://name.robinhood-mainnet.quiknode.pro/${token}/`;
+    expect(scrubString(msg)).not.toContain(token);
+    expect(scrubString(msg)).not.toContain("quiknode.pro/");
+    expect(scrubString(msg)).toContain("https://<quicknode>/…");
+  });
+});

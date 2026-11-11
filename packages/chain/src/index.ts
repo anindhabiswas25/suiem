@@ -6,3 +6,4 @@ export {
   SmartAccountUnavailableError,
   type SmartAccountProvider,
 } from "./smart-account";
+export { redactRpcSecrets, redactError, registerSecretRpcUrl, rpcLabel, secretHttp } from "./rpc";

@@ -68,6 +68,8 @@ export function scrubString(value: string): string {
   const uuids: string[] = [];
   const masked = value.replace(UUID_RE, (m) => `\uE000${uuids.push(m) - 1}\uE000`);
   const scrubbed = masked
+    // Secret RPC endpoints carry their token in the path (Sprint 7: QuickNode).
+    .replace(/https?:\/\/[^\s"'`<>]*quiknode\.pro[^\s"'`<>]*/gi, "https://<quicknode>/…")
     .replace(/(https?:\/\/[^\s?#"]+)\?[^\s#"]*/gi, "$1?[query]")
     .replace(EMAIL_RE, "[email]")
     .replace(HEX_RE, "[hex]")

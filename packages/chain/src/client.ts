@@ -5,7 +5,8 @@ import {
   TESTNET_FACTS,
   type SuiemChainId,
 } from "@suiem/config/chains";
-import { createPublicClient, fallback, http, type PublicClient } from "viem";
+import { createPublicClient, fallback, type PublicClient } from "viem";
+import { secretHttp } from "./rpc";
 
 export interface ChainClientOptions {
   chainId: SuiemChainId;
@@ -14,6 +15,8 @@ export interface ChainClientOptions {
   /** Optional Alchemy key: primary with public fallback (ADR-0002, PO OQ-PR-03). */
   alchemyApiKey?: string;
   timeoutMs?: number;
+  /** Requests per second per RPC (plan limits). Default 15; 0 = unlimited. */
+  maxRps?: number;
 }
 
 const BY_ID = {
@@ -21,7 +24,7 @@ const BY_ID = {
   [robinhoodTestnet.id]: { chain: robinhoodTestnet, alchemy: TESTNET_FACTS.alchemyHttpBase },
 } as const;
 
-/** Ordered RPC URLs. Alchemy URLs contain the key: never log them. */
+/** Ordered RPC URLs. Alchemy and QuickNode URLs contain secrets: never log them (see ./rpc). */
 export function rpcUrls(options: ChainClientOptions): string[] {
   if (options.rpcUrl) return [options.rpcUrl];
   const cfg = BY_ID[options.chainId];
@@ -31,10 +34,15 @@ export function rpcUrls(options: ChainClientOptions): string[] {
   return urls;
 }
 
-/** Read-only public client. No wallet client and no write path in the API (ADR-0001). */
+/**
+ * Read-only public client. No wallet client and no write path in the API (ADR-0001).
+ * Every transport redacts its URL from errors and paces requests (`secretHttp`).
+ */
 export function createSuiemPublicClient(options: ChainClientOptions): PublicClient {
   const timeout = options.timeoutMs ?? 10_000;
-  const transports = rpcUrls(options).map((url) => http(url, { timeout, retryCount: 1 }));
+  const transports = rpcUrls(options).map((url) =>
+    secretHttp(url, { timeout, retryCount: 2, maxRps: options.maxRps }),
+  );
   return createPublicClient({
     chain: BY_ID[options.chainId].chain,
     transport: transports.length === 1 ? transports[0]! : fallback(transports),

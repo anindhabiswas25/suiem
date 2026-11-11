@@ -3,7 +3,9 @@ import { robinhoodMainnet } from "./robinhood-mainnet";
 /**
  * $WIF exists only on mainnet 4663. Source: organiser API (VERIFIED_FACTS W-11…W-14).
  * There is deliberately no testnet $WIF constant: any $WIF lookup on another chain is a bug.
- * Burn semantics (burn/burnFrom) are unverified until Sprint 7 task S7-01 (W-16).
+ * Burn semantics verified onchain in Sprint 7 (W-16): `burn` and `burnFrom` exist and lower
+ * `totalSupply`; no fee on transfer, no pause, no blocklist, not a proxy.
+ * Lookalike defence: this constant is the ONLY $WIF address; nothing accepts one from user input.
  */
 export const WIF = {
   /** VERIFIED_FACTS W-11. */
@@ -12,7 +14,10 @@ export const WIF = {
   address: "0x5173b8eA6923c2d40267890D45C46a3480954773",
   /** VERIFIED_FACTS W-13. */
   decimals: 18,
+  /** VERIFIED_FACTS W-16 (onchain `symbol()`). */
   symbol: "WIF",
+  /** VERIFIED_FACTS W-16 (onchain `name()`). */
+  name: "World is Flat",
 } as const;
 
 /** The hackathon organiser's own vote contract (VERIFIED_FACTS W-14). Reference only. */

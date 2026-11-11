@@ -14,6 +14,15 @@ importers:
       '@playwright/test':
         specifier: 1.65.0
         version: 1.65.0
+      '@suiem/chain':
+        specifier: workspace:*
+        version: link:packages/chain
+      '@suiem/config':
+        specifier: workspace:*
+        version: link:packages/config
+      '@suiem/db':
+        specifier: workspace:*
+        version: link:packages/db
       '@testcontainers/postgresql':
         specifier: 12.2.1
         version: 12.2.1(bare-buffer@3.7.1)(supports-color@7.2.0)
