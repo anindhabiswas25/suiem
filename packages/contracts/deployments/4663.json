@@ -1,0 +1,26 @@
+{
+  "chainId": 4663,
+  "elections": "0xdb6cc943e480b4e003d458705b7b35e55f69009d",
+  "wif": "0x5173b8eA6923c2d40267890D45C46a3480954773",
+  "owner": "0x7f84f0710F5D7d44DeD117800198F970066C0b9E",
+  "deployer": "0x7f84f0710F5D7d44DeD117800198F970066C0b9E",
+  "block": 111713485,
+  "transactions": [
+    {
+      "contract": "SuiemElections",
+      "address": "0xdb6cc943e480b4e003d458705b7b35e55f69009d",
+      "hash": "0x851a241f55fc0f1ce54aef618d42afd5141adbed864b89d6ba52badfde1711e2",
+      "block": 111713485
+    }
+  ],
+  "constructorArgs": [
+    "0x7f84f0710F5D7d44DeD117800198F970066C0b9E",
+    "0x5173b8eA6923c2d40267890D45C46a3480954773"
+  ],
+  "sourceHash": "0x05aeb057b95c3dbf1a9cd1a68393060d04d230462a25f68cf2975443f5a780c2",
+  "gitSha": "083e32d255d41402d33a83b5de6635f3cac5cd5d",
+  "compiler": "solc 0.8.30 (optimizer 200 runs)",
+  "deployedAt": "2026-11-11T12:52:36.662Z",
+  "explorer": "https://robinhoodchain.blockscout.com",
+  "verified": false
+}

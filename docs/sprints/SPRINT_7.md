@@ -122,11 +122,26 @@ Total for the deploy, 3 creates and 3 finalizes is about 1.52M gas, **≈ 0.0000
 
 ## Deployment, elections and real mainnet transactions
 
-**Pending PO approval.** Filled in after the approved transactions:
+**Deployed 2026-11-11 12:52 UTC** after PO approval (the PO funded the deployer with 0.0002 ETH and said "continue"). Checked onchain after the deploy:
+- `owner()` is the deployer `0x7f84…0b9E`
+- `WIF()` is `0x5173…4773`
+- `electionCount()` is 0
+- the ETH balance is 0
+- the deploy cost about 0.000024 ETH, leaving the deployer 0.000176 ETH
+
+The manifest is `packages/contracts/deployments/4663.json` and contains no RPC URL.
+
+**Blockscout verification:** the automatic attempt was blocked by Cloudflare's bot challenge, so the contract is not verified yet. Manual verification in a browser on the contract page uses "Verify & publish" → "Solidity (Standard JSON input)":
+- upload `packages/contracts/deployments/SuiemElections.standard-input.json`
+- compiler `v0.8.30`
+- contract `src/SuiemElections.sol:SuiemElections`
+- ABI-encoded constructor args `0x0000000000000000000000007f84f0710f5d7d44ded117800198f970066c0b9e0000000000000000000000005173b8ea6923c2d40267890d45c46a3480954773`
+
+Elections and later transactions are still pending (candidates, PO approval):
 
 | # | What | Tx | Block |
 | --- | --- | --- | --- |
-| 1 | Deploy `SuiemElections` | — | — |
+| 1 | Deploy `SuiemElections` at [`0xDB6CC943E480b4E003d458705B7B35e55F69009D`](https://robinhoodchain.blockscout.com/address/0xDB6CC943E480b4E003d458705B7B35e55F69009D) | [`0x851a241f…11e2`](https://robinhoodchain.blockscout.com/tx/0x851a241f55fc0f1ce54aef618d42afd5141adbed864b89d6ba52badfde1711e2) | 111,713,485 |
 | 2 | createElection "Demo round" | — | — |
 | 3 | createElection "Hackathon Week 1 · Research Contributor" | — | — |
 | 4 | createElection "Hackathon Week 1 · Investor" | — | — |
