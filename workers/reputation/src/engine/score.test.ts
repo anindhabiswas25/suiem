@@ -54,7 +54,7 @@ function research(
 const trusted = (i: number) => ({
   id: `rater-${i}`,
   createdAt: "2026-01-01T00:00:00.000Z",
-  hasResearch: true,
+  researchSince: "2026-01-02T00:00:00.000Z",
   isDemo: false,
 });
 
@@ -407,7 +407,7 @@ describe("rings and sockpuppets are discounted", () => {
     puppets.raters = Array.from({ length: 8 }, (_, i) => ({
       id: `rater-${i}`,
       createdAt: day(8, 6),
-      hasResearch: false,
+      researchSince: null,
       isDemo: false,
     }));
     puppets.votes = honest.votes;
@@ -424,7 +424,7 @@ describe("rings and sockpuppets are discounted", () => {
     e.raters.push({
       id: "demo-1",
       createdAt: "2026-01-01T00:00:00.000Z",
-      hasResearch: true,
+      researchSince: "2026-01-02T00:00:00.000Z",
       isDemo: true,
     });
     e.votes = [

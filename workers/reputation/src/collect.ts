@@ -150,7 +150,7 @@ async function researchItems(pool: Q, userId: string | null, asOf: Date, entityI
          FROM theses t JOIN thesis_versions v ON v.thesis_id = t.id AND v.version = t.current_version
         WHERE t.visibility <> 'private' AND t.status <> 'draft' AND v.created_at <= $1
           AND ($2::uuid IS NULL OR t.user_id = $2) AND ($3::uuid[] IS NULL OR t.entity_id = ANY($3))
-        ORDER BY v.created_at LIMIT 500`,
+        ORDER BY v.created_at DESC LIMIT 1000`,
       [asOf, userId, entityIds ?? null],
     )
   ).rows;
@@ -168,7 +168,7 @@ async function researchItems(pool: Q, userId: string | null, asOf: Date, entityI
         WHERE p.kind = 'research_brief' AND p.deleted_at IS NULL AND p.hidden_at IS NULL
           AND p.visibility <> 'private' AND p.created_at <= $1
           AND ($2::uuid IS NULL OR p.user_id = $2) AND ($3::uuid[] IS NULL OR p.entity_id = ANY($3))
-        ORDER BY p.created_at LIMIT 500`,
+        ORDER BY p.created_at DESC LIMIT 1000`,
       [asOf, userId, entityIds ?? null],
     )
   ).rows;
@@ -218,16 +218,20 @@ export async function collectEvidence(db: DbHandle, userId: string, asOf: Date):
       status: "evaluated" | "unevaluable";
       correct: boolean | null;
     }>(
-      "SELECT id, thesis_id, evaluated_at, status, correct FROM thesis_evaluations WHERE user_id = $1 AND evaluated_at <= $2",
+      // Only theses published within 24h of being written count (no cherry-picking winners
+      // later, no farming decisions with private theses), at most one per company per day.
+      `SELECT DISTINCT ON (t.entity_id, date_trunc('day', e.window_start)) e.id, e.thesis_id, e.evaluated_at, e.status, e.correct
+         FROM thesis_evaluations e JOIN theses t ON t.id = e.thesis_id
+        WHERE e.user_id = $1 AND e.evaluated_at <= $2
+          AND t.published_at IS NOT NULL AND t.published_at <= e.window_start + interval '24 hours'
+        ORDER BY t.entity_id, date_trunc('day', e.window_start), e.window_start, e.id`,
       [userId, asOf],
     )
   ).rows;
 
   const own = await researchItems(pool, userId, asOf);
-  const entityIds = [...new Set(own.items.map((i) => i.entityId).filter((x): x is string => !!x))];
-  const others = entityIds.length
-    ? await researchItems(pool, null, asOf, entityIds)
-    : { items: [] };
+  // Copy-check corpus: the most recent published research by anyone, across all companies.
+  const others = await researchItems(pool, null, asOf);
   const corpus = others.items
     .filter((o) => o.authorId !== userId)
     .map((o) => ({
@@ -286,10 +290,20 @@ export async function collectEvidence(db: DbHandle, userId: string, asOf: Date):
   const raterIds = [...new Set(votes.map((v) => v.raterId))];
   const raters = raterIds.length
     ? (
-        await pool.query<{ id: string; created_at: Date; is_demo: boolean; has_research: boolean }>(
+        await pool.query<{
+          id: string;
+          created_at: Date;
+          is_demo: boolean;
+          research_since: Date | null;
+        }>(
           `SELECT u.id, u.created_at, u.is_demo,
-                  (EXISTS (SELECT 1 FROM theses t WHERE t.user_id = u.id)
-                   OR EXISTS (SELECT 1 FROM research_briefs b WHERE b.user_id = u.id)) AS has_research
+                  least(
+                    (SELECT min(t.published_at) FROM theses t
+                      WHERE t.user_id = u.id AND t.status <> 'draft' AND t.visibility <> 'private'),
+                    (SELECT min(p.created_at) FROM posts p
+                      WHERE p.user_id = u.id AND p.kind = 'research_brief' AND p.deleted_at IS NULL
+                        AND p.hidden_at IS NULL AND p.visibility <> 'private')
+                  ) AS research_since
              FROM users u WHERE u.id = ANY($1)`,
           [raterIds],
         )
@@ -297,7 +311,7 @@ export async function collectEvidence(db: DbHandle, userId: string, asOf: Date):
         id: r.id,
         createdAt: iso(r.created_at),
         isDemo: r.is_demo,
-        hasResearch: r.has_research,
+        researchSince: r.research_since ? iso(r.research_since) : null,
       }))
     : [];
 

@@ -64,7 +64,8 @@ export interface CorpusText {
 export interface Rater {
   id: string;
   createdAt: string;
-  hasResearch: boolean;
+  /** When the rater first published research (thesis or brief post), or null if never. */
+  researchSince: string | null;
   isDemo: boolean;
 }
 
@@ -231,7 +232,7 @@ export function weighVotes(
         w = div(w * c.newRaterWeightPpm, PPM);
         reasons.push("new_account");
       }
-      if (!r.hasResearch) {
+      if (r.researchSince === null || ms(r.researchSince) > ms(v.createdAt)) {
         w = div(w * c.noResearchRaterWeightPpm, PPM);
         reasons.push("no_research");
       }
