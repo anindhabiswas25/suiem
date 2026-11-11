@@ -21,6 +21,7 @@ export default defineConfig({
   srcDir: "src",
   outDir: E2E ? ".output-e2e" : ".output",
   modules: ["@wxt-dev/module-react"],
+  zip: { artifactTemplate: "suiem-extension-{{version}}-{{browser}}.zip" },
   manifest: {
     name: "Suiem Intelligence",
     short_name: "Suiem",

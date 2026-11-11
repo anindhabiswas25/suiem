@@ -18,6 +18,8 @@ const values = {
   WEBAUTHN_RP_ID: "localhost",
   WEBAUTHN_RP_NAME: "Suiem",
   LOG_LEVEL: "info",
+  // Stable ID from apps/extension/extension-key.json (public, not a secret): enables one-click pairing.
+  EXTENSION_ID: "cpgeijpinjipcioicabhgfmcbacdkmcj",
 };
 writeFileSync(
   path,
