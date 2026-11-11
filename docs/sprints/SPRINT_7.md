@@ -168,7 +168,7 @@ Checked afterwards:
 | 5c | Vote 1: `vote(1, 1, 3)`, **3 $WIF burned** for @demo_ada (supply −3.0 WIF) | [`0x73820307…b3d2`](https://robinhoodchain.blockscout.com/tx/0x738203074f5184f605329e1d87f377e5c447ee401a7634c7304e91a7ffd7b3d2) | 111,721,427 |
 | 5d | Vote 2: exact approve 1 WIF | [`0x5cc0a04f…a7a3`](https://robinhoodchain.blockscout.com/tx/0x5cc0a04fc4ae76ed861581d098a865c25aab03ed0d2002d024c3616aa8faa7a3) | 111,721,454 |
 | 5e | Vote 2: `vote(1, 2, 1)`, **1 $WIF burned** for @demo_alan (supply −1.0 WIF) | [`0x890e3dac…510c`](https://robinhoodchain.blockscout.com/tx/0x890e3dac00eb7a0dd974d2cebd7874f992c456096348ede305f1c9d5af8c510c) | 111,721,466 |
-| 6 | finalize "Demo round" | — | — |
+| 6 | `finalize(1)` for `demo-round-1` after it closed at 15:05:48 UTC (PO approved in chat). Final tallies 3 / 1 / 0, winner @demo_ada | [`0x414f4ecc…9ac5`](https://robinhoodchain.blockscout.com/tx/0x414f4ecc2d660af04c3fe2b4e0659ef1ae0671154bd6d2573c69d7c188489ac5) | 111,803,272 |
 
 ## What was cut
 
