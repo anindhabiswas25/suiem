@@ -1,0 +1,25 @@
+{
+  "name": "@suiem/reputation",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "start": "tsx --env-file-if-exists=../../.env src/main.ts"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./engine": "./src/engine/index.ts"
+  },
+  "dependencies": {
+    "@suiem/config": "workspace:*",
+    "@suiem/db": "workspace:*",
+    "@suiem/shared": "workspace:*",
+    "drizzle-orm": "0.45.4",
+    "pg": "8.23.1"
+  },
+  "devDependencies": {
+    "@types/node": "24.10.1",
+    "@types/pg": "8.23.1"
+  }
+}

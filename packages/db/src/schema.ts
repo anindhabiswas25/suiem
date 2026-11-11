@@ -39,6 +39,9 @@ export const users = pgTable("users", {
     .notNull()
     .default("active"),
   isDemo: boolean("is_demo").notNull().default(false),
+  /** Set only by the CLI script `pnpm user:role` (column not updatable by the API role). */
+  role: text("role").$type<"user" | "moderator">().notNull().default("user"),
+  handleChangedAt: ts("handle_changed_at"),
   createdAt: ts("created_at").notNull().defaultNow(),
   updatedAt: ts("updated_at").notNull().defaultNow(),
 });
@@ -234,6 +237,7 @@ export const theses = pgTable("theses", {
   createdAt: ts("created_at").notNull().defaultNow(),
   updatedAt: ts("updated_at").notNull().defaultNow(),
   publishedAt: ts("published_at"),
+  aiAssisted: boolean("ai_assisted").notNull().default(false),
 });
 
 export const thesisVersions = pgTable("thesis_versions", {
@@ -374,7 +378,11 @@ export const profiles = pgTable("profiles", {
     .$type<Visibility>()
     .notNull()
     .default("private"),
-  followersVisibility: text("followers_visibility").$type<Visibility>().notNull().default("public"),
+  followersVisibility: text("followers_visibility")
+    .$type<Visibility>()
+    .notNull()
+    .default("private"),
+  thesesVisibility: text("theses_visibility").$type<Visibility>().notNull().default("private"),
   walletVisibility: text("wallet_visibility").$type<Visibility>().notNull().default("private"),
   appearInLeaderboards: boolean("appear_in_leaderboards").notNull().default(false),
   updatedAt: ts("updated_at").notNull().defaultNow(),
@@ -398,11 +406,15 @@ export const posts = pgTable("posts", {
   entityId: uuid("entity_id"),
   thesisId: uuid("thesis_id"),
   briefId: uuid("brief_id"),
-  visibility: text("visibility").$type<Visibility>().notNull().default("public"),
+  visibility: text("visibility").$type<Visibility>().notNull(),
   aiAssisted: boolean("ai_assisted").notNull().default(false),
   sponsored: boolean("sponsored").notNull().default(false),
+  sourced: boolean("sourced").notNull().default(false),
+  attachment: jsonb("attachment"),
   createdAt: ts("created_at").notNull().defaultNow(),
   deletedAt: ts("deleted_at"),
+  hiddenAt: ts("hidden_at"),
+  hiddenReason: text("hidden_reason"),
 });
 
 export const comments = pgTable("comments", {
@@ -413,6 +425,8 @@ export const comments = pgTable("comments", {
   body: text("body").notNull(),
   createdAt: ts("created_at").notNull().defaultNow(),
   deletedAt: ts("deleted_at"),
+  hiddenAt: ts("hidden_at"),
+  hiddenReason: text("hidden_reason"),
 });
 
 export const reactions = pgTable(
@@ -460,6 +474,8 @@ export const reputationSnapshots = pgTable("reputation_snapshots", {
   contributionScore: numeric("contribution_score", { precision: 5, scale: 2 }),
   components: jsonb("components").notNull(),
   computedAt: ts("computed_at").notNull().defaultNow(),
+  snapshotHash: bytea("snapshot_hash"),
+  previousId: uuid("previous_id"),
 });
 
 // ---- $WIF economy (mainnet) ---------------------------------------------------------------
@@ -645,6 +661,131 @@ export const thesisReviews = pgTable("thesis_reviews", {
   createdAt: ts("created_at").notNull().defaultNow(),
 });
 
+// ---- Sprint 6: social graph, moderation, thesis evaluation, appeals, notifications ---------
+export const mutes = pgTable(
+  "mutes",
+  {
+    muterId: uuid("muter_id").notNull(),
+    mutedId: uuid("muted_id").notNull(),
+    createdAt: ts("created_at").notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.muterId, t.mutedId] })],
+);
+
+export const blocks = pgTable(
+  "blocks",
+  {
+    blockerId: uuid("blocker_id").notNull(),
+    blockedId: uuid("blocked_id").notNull(),
+    createdAt: ts("created_at").notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.blockerId, t.blockedId] })],
+);
+
+export const commentReactions = pgTable(
+  "comment_reactions",
+  {
+    commentId: uuid("comment_id").notNull(),
+    userId: uuid("user_id").notNull(),
+    kind: text("kind").$type<"helpful" | "not_helpful">().notNull(),
+    createdAt: ts("created_at").notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.commentId, t.userId] })],
+);
+
+export type ReportReason =
+  | "spam"
+  | "scam"
+  | "harassment"
+  | "impersonation"
+  | "manipulation"
+  | "undisclosed_sponsorship"
+  | "fraudulent_performance"
+  | "other";
+
+export const moderationReports = pgTable("moderation_reports", {
+  id: uuid("id").primaryKey(),
+  reporterId: uuid("reporter_id").notNull(),
+  targetType: text("target_type").$type<"post" | "comment" | "user">().notNull(),
+  targetId: uuid("target_id").notNull(),
+  reason: text("reason").$type<ReportReason>().notNull(),
+  note: text("note"),
+  status: text("status").$type<"open" | "actioned" | "dismissed">().notNull().default("open"),
+  resolvedBy: uuid("resolved_by"),
+  resolvedAt: ts("resolved_at"),
+  resolutionReason: text("resolution_reason"),
+  createdAt: ts("created_at").notNull().defaultNow(),
+});
+
+export const benchmarkMarks = pgTable("benchmark_marks", {
+  id: uuid("id").primaryKey(),
+  symbol: text("symbol").notNull(),
+  price: numeric("price", { precision: 20, scale: 6 }).notNull(),
+  asOf: ts("as_of").notNull(),
+  source: text("source").notNull(),
+  observedAt: ts("observed_at").notNull().defaultNow(),
+});
+
+export const thesisEvaluations = pgTable("thesis_evaluations", {
+  id: uuid("id").primaryKey(),
+  thesisId: uuid("thesis_id").notNull(),
+  thesisVersion: integer("thesis_version").notNull(),
+  userId: uuid("user_id").notNull(),
+  methodology: text("methodology").notNull(),
+  status: text("status").$type<"evaluated" | "unevaluable">().notNull(),
+  direction: text("direction").$type<"bullish" | "bearish" | "neutral">().notNull(),
+  horizonDays: integer("horizon_days").notNull(),
+  windowStart: ts("window_start").notNull(),
+  windowEnd: ts("window_end").notNull(),
+  symbol: text("symbol"),
+  startPrice: numeric("start_price", { precision: 20, scale: 6 }),
+  endPrice: numeric("end_price", { precision: 20, scale: 6 }),
+  benchmarkSymbol: text("benchmark_symbol").notNull(),
+  benchmarkStart: numeric("benchmark_start", { precision: 20, scale: 6 }),
+  benchmarkEnd: numeric("benchmark_end", { precision: 20, scale: 6 }),
+  instrumentReturnPpm: bigint("instrument_return_ppm", { mode: "bigint" }),
+  benchmarkReturnPpm: bigint("benchmark_return_ppm", { mode: "bigint" }),
+  relativeReturnPpm: bigint("relative_return_ppm", { mode: "bigint" }),
+  correct: boolean("correct"),
+  reason: text("reason"),
+  sources: jsonb("sources").notNull(),
+  evaluatedAt: ts("evaluated_at").notNull().defaultNow(),
+});
+
+export const reputationAppeals = pgTable("reputation_appeals", {
+  id: uuid("id").primaryKey(),
+  userId: uuid("user_id").notNull(),
+  snapshotId: uuid("snapshot_id"),
+  reason: text("reason").notNull(),
+  status: text("status").$type<"open" | "reviewed" | "recalculated">().notNull().default("open"),
+  resolvedBy: uuid("resolved_by"),
+  resolvedAt: ts("resolved_at"),
+  resolutionNote: text("resolution_note"),
+  createdAt: ts("created_at").notNull().defaultNow(),
+});
+
+export type NotificationKind =
+  | "new_follower"
+  | "comment"
+  | "reply"
+  | "helpful"
+  | "thesis_evaluated"
+  | "report_outcome"
+  | "appeal_outcome";
+
+export const notifications = pgTable("notifications", {
+  id: uuid("id").primaryKey(),
+  userId: uuid("user_id").notNull(),
+  kind: text("kind").$type<NotificationKind>().notNull(),
+  actorId: uuid("actor_id"),
+  postId: uuid("post_id"),
+  commentId: uuid("comment_id"),
+  thesisId: uuid("thesis_id"),
+  details: jsonb("details").notNull().default({}),
+  readAt: ts("read_at"),
+  createdAt: ts("created_at").notNull().defaultNow(),
+});
+
 /** Tables protected by append-only triggers (must match the migration). */
 export const APPEND_ONLY_TABLES = [
   "consent_records",
@@ -655,4 +796,7 @@ export const APPEND_ONLY_TABLES = [
   "audit_logs",
   "policy_versions",
   "thesis_reviews",
+  "thesis_evaluations",
+  "reputation_snapshots",
+  "benchmark_marks",
 ] as const;

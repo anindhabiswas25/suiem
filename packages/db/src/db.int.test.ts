@@ -246,6 +246,18 @@ describe("append-only history rejects UPDATE, DELETE and TRUNCATE", () => {
       "INSERT INTO audit_logs (id, actor_type, action, outcome) VALUES ($1, 'system', 'test.event', 'success')",
       [newId()],
     );
+    await db.query(
+      "INSERT INTO thesis_evaluations (id, thesis_id, thesis_version, user_id, methodology, status, direction, horizon_days, window_start, window_end, benchmark_symbol, reason) VALUES ($1, $2, 1, $3, 'v1-hackathon', 'unevaluable', 'bullish', 90, now(), now() + interval '90 days', 'SPY', 'test')",
+      [newId(), thesis, u],
+    );
+    await db.query(
+      "INSERT INTO reputation_snapshots (id, user_id, methodology_version, maturity, components) VALUES ($1, $2, 'v1-hackathon', 'building', '{}')",
+      [newId(), u],
+    );
+    await db.query(
+      "INSERT INTO benchmark_marks (id, symbol, price, as_of, source) VALUES ($1, 'SPY', 500, now(), 'test')",
+      [newId()],
+    );
   });
   for (const table of APPEND_ONLY_TABLES) {
     test(table, async () => {
