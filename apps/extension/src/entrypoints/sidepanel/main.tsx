@@ -46,6 +46,57 @@ function resolveEntity(ctx: PanelContext | null): string | null {
   return null;
 }
 
+interface LatestRequest {
+  id: string;
+  entityId: string;
+  status: "queued" | "processing" | "completed" | "failed";
+  briefId?: string | null;
+  failureReason?: string | null;
+  summary?: string | null;
+  topRisks?: string[];
+}
+
+/** The latest brief for this company: summary, top risks and a link to the full brief. No buy button. */
+function LatestBrief({ item, webOrigin }: { item: LatestRequest; webOrigin: string }) {
+  const link = `${webOrigin}/research/${encodeURIComponent(item.entityId)}`;
+  if (item.status === "queued" || item.status === "processing")
+    return (
+      <StatusPill tone="warning">
+        <span data-testid="brief-status">
+          Researching… this panel updates when the brief is ready.
+        </span>
+      </StatusPill>
+    );
+  if (item.status === "failed")
+    return (
+      <StatusPill tone="negative">
+        <span data-testid="brief-status">{item.failureReason ?? "Research failed."}</span>
+      </StatusPill>
+    );
+  return (
+    <div className="s-stack" style={{ gap: 6 }} data-testid="brief-ready">
+      <strong>Latest brief</strong>
+      <span className="s-small" data-testid="brief-summary">
+        {item.summary}
+      </span>
+      {item.topRisks?.length ? (
+        <>
+          <strong className="s-small">Top risks</strong>
+          <ul style={{ margin: 0, paddingLeft: 18 }} className="s-small">
+            {item.topRisks.map((r) => (
+              <li key={r}>{r}</li>
+            ))}
+          </ul>
+        </>
+      ) : null}
+      <a href={link} target="_blank" rel="noreferrer" data-testid="full-brief">
+        Read the full brief with sources
+      </a>
+      <span className="s-small s-muted">AI-generated, cited, not investment advice.</span>
+    </div>
+  );
+}
+
 function Panel() {
   const [status, setStatus] = useState<Status | null>(null);
   const [ctx, setCtx] = useState<PanelContext | null>(null);
@@ -56,6 +107,8 @@ function Panel() {
   const [preview, setPreview] = useState(false);
   const [includeExcerpt, setIncludeExcerpt] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
+  const [latest, setLatest] = useState<LatestRequest | null>(null);
+  const [pollKick, setPollKick] = useState(0);
   const [result, setResult] = useState<{
     tone: "positive" | "negative";
     text: string;
@@ -98,6 +151,35 @@ function Panel() {
       (e) => setInstrumentsError(errorText(e)),
     );
   }, [entityId, active, status?.connected]);
+
+  // While the panel is open, the extension is ON and connected: poll this entity's latest research
+  // request so a finished brief shows here (summary, top risks, link). Stops once nothing is pending.
+  useEffect(() => {
+    setLatest(null);
+    if (!entityId || !active || !status?.connected) return;
+    let stopped = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const tick = async () => {
+      try {
+        const r = await apiRequest<{ items: LatestRequest[] }>(
+          "GET",
+          `/research/requests?entityId=${encodeURIComponent(entityId)}`,
+        );
+        if (stopped) return;
+        const item = r.items[0] ?? null;
+        setLatest(item);
+        if (item && (item.status === "queued" || item.status === "processing"))
+          timer = setTimeout(() => void tick(), 4000);
+      } catch {
+        /* blocked when paused/off, or offline: show nothing */
+      }
+    };
+    void tick();
+    return () => {
+      stopped = true;
+      if (timer) clearTimeout(timer);
+    };
+  }, [entityId, active, status?.connected, pollKick]);
 
   const payload = useMemo(() => {
     if (!entityId || !ctx?.sourceUrl) return null;
@@ -253,6 +335,7 @@ function Panel() {
                         );
                         await record("research_requested", entity.canonicalId, sourceDomain);
                         setPreview(false);
+                        setPollKick((n) => n + 1);
                         setResult({
                           tone: "positive",
                           text: "Queued. Your brief will appear in Suiem Research.",
@@ -272,6 +355,7 @@ function Panel() {
                 Open the panel from a page to attach its address as the source.
               </span>
             ) : null}
+            {latest ? <LatestBrief item={latest} webOrigin={status.webOrigin} /> : null}
           </Card>
 
           <div className="s-row">

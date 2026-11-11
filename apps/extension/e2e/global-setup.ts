@@ -93,11 +93,17 @@ export default async function globalSetup() {
   }
 
   // 3. The real API
+  // No live AI or data providers in E2E: strip keys and run no research worker. The spec simulates
+  // a completed brief in the database to check the side panel.
+  const apiEnv = { ...process.env };
+  for (const k of ["GROQ_API_KEY", "GEMINI_API_KEY", "FINNHUB_API_KEY", "SEC_USER_AGENT"])
+    delete apiEnv[k];
   const api = spawn("node", ["--import", "tsx", "src/main.ts"], {
     cwd: join(ROOT, "apps", "api"),
     stdio: ["ignore", "ignore", "inherit"],
     env: {
-      ...process.env,
+      ...apiEnv,
+      RESEARCH_WORKER: "off",
       NODE_ENV: "test",
       API_PORT: String(apiPort),
       WEB_ORIGIN: "http://localhost:3000",

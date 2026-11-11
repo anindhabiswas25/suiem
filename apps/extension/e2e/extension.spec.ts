@@ -7,6 +7,8 @@ import {
   type Worker,
 } from "@playwright/test";
 import { mkdtempSync } from "node:fs";
+import pg from "pg";
+import { newId } from "../../../packages/shared/src/ids";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
@@ -302,6 +304,12 @@ test("5. highlighting sends nothing; research sends only the previewed fields af
   await expect(panel.getByTestId("entity-card")).toContainText("Palantir Technologies Inc.");
   await expect(panel.getByText("TEST:PLTR")).toBeVisible(); // instruments from the real API
   await expect(panel.getByText(/Testnet · no value/).first()).toBeVisible();
+  // Opening the panel (ON, connected) checks this company's research status once; wait for it.
+  await expect
+    .poll(async () =>
+      (await proxyLog()).some((r) => r.path.startsWith("/api/v1/research/requests")),
+    )
+    .toBe(true);
   await resetProxy();
   await panel.getByTestId("request-research").click();
   const preview = JSON.parse((await panel.getByTestId("research-preview").textContent()) ?? "{}");
@@ -322,6 +330,39 @@ test("5. highlighting sends nothing; research sends only the previewed fields af
     hasCookie: false,
     origin: `chrome-extension://${EXT_ID}`,
   });
+
+  // The panel polls the request while it is pending; when the brief completes it shows the
+  // summary, top risks and a link to the full brief (simulated completion: no AI in E2E).
+  await expect(panel.getByTestId("brief-status")).toHaveText(/Researching/);
+  const db = new pg.Client({ connectionString: process.env.E2E_PG_URL });
+  await db.connect();
+  await db.query(
+    `WITH r AS (SELECT id, user_id, entity_id FROM research_requests WHERE source_url = $1 ORDER BY created_at DESC LIMIT 1),
+          b AS (INSERT INTO research_briefs (id, user_id, entity_id, schema_version, brief, model, provider, prompt_version, data_freshness)
+                SELECT $3::uuid, user_id, entity_id, 'brief.v1', $2::jsonb, 'test-model', 'groq', 'research.v1', 'fresh' FROM r RETURNING id)
+     UPDATE research_requests SET status = 'completed', brief_id = (SELECT id FROM b) WHERE id = (SELECT id FROM r)`,
+    [
+      `${FIX}/palantir.html`,
+      JSON.stringify({
+        summary: "Palantir sells data analytics software.",
+        risks: [{ text: "Government contract concentration." }],
+      }),
+      newId(),
+    ],
+  );
+  await db.end();
+  await expect(panel.getByTestId("brief-summary")).toHaveText(
+    "Palantir sells data analytics software.",
+    { timeout: 15_000 },
+  );
+  await expect(panel.getByTestId("brief-ready")).toContainText(
+    "Government contract concentration.",
+  );
+  await expect(panel.getByTestId("full-brief")).toHaveAttribute(
+    "href",
+    /\/research\/ent%3Apalantir$/,
+  );
+  await expect(panel.getByText(/\bbuy\b/i)).toHaveCount(0); // still no buy action in the extension
 
   await panel.getByTestId("add-watchlist").click();
   await expect(panel.getByTestId("panel-result")).toHaveText(/Added to your watchlist/);
