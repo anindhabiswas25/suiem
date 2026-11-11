@@ -202,6 +202,7 @@ export async function runModels<T>(
         if (!(e instanceof ModelError)) throw e;
         attempts.push(`${model.provider}#${attempt + 1}: ${e.kind}`);
         if (e.kind === "bad_output") {
+          spent = true; // the provider answered (tokens were used), even though the JSON was unusable
           errors = ["the output was not valid JSON for the schema"];
           sawValidation = true;
         } else next = true; // 429 / 5xx / timeout / config → fall back immediately

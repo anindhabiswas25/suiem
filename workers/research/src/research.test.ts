@@ -339,6 +339,12 @@ describe("model calls, retry and fallback", () => {
     expect(e).toBeInstanceOf(ResearchFailure);
     expect((e as ResearchFailure).reason).toMatch(/busy or at their free-tier limits/);
   });
+  test("tokensSpent is true once a provider answered (validation or unparseable output), false if none did", async () => {
+    const spent = await runModels(quietDeps([new MockModel("groq", "g", [new ModelError("groq", "bad_output", "x")]), new MockModel("gemini", "f", [new ModelError("gemini", "rate_limit", "429")])]), "t", () => input, okCheck).catch((x: unknown) => x);
+    expect((spent as ResearchFailure).tokensSpent).toBe(true);
+    const none = await runModels(quietDeps([new MockModel("groq", "g", [rateLimited("groq")])]), "t", () => input, okCheck).catch((x: unknown) => x);
+    expect((none as ResearchFailure).tokensSpent).toBe(false);
+  });
   test("a provider over its daily token budget is skipped", async () => {
     const deps = quietDeps([
       new MockModel("groq", "g", [{ ok: true }]),
