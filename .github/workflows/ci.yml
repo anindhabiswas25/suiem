@@ -32,7 +32,9 @@ jobs:
         with: { node-version-file: .nvmrc, cache: pnpm }
       - uses: foundry-rs/foundry-toolchain@v1
       - run: pnpm install --frozen-lockfile
-      # Testcontainers starts Postgres 16 and Redis; anvil is spawned by the chain boot tests.
+      # Testcontainers starts Postgres 16 and Redis; anvil is spawned by the chain boot tests and by
+      # the orders test, which deploys the real contracts to a local anvil (chain 46630).
+      - run: pnpm contracts:deps
       - run: pnpm test:integration
   e2e:
     runs-on: ubuntu-24.04
@@ -70,5 +72,9 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: foundry-rs/foundry-toolchain@v1
+      - run: forge install OpenZeppelin/openzeppelin-contracts@v5.6.1 foundry-rs/forge-std@v1.16.2 --no-git
+        working-directory: packages/contracts
       - run: forge build
+        working-directory: packages/contracts
+      - run: forge test
         working-directory: packages/contracts

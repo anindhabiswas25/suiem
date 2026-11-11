@@ -325,19 +325,32 @@ describe("research context and watchlist", () => {
     ).toBe(true);
   });
 
-  test("instruments carry network and 'no value' labels; there is no buy endpoint", async () => {
+  test("instruments carry network and 'no value' labels; the extension has no order route", async () => {
     const { token } = await pairNew();
     const r = await device("GET", "/entities/ent:tesla/instruments", token);
-    expect(r.json.items).toEqual([
-      expect.objectContaining({
-        symbol: "TEST:TSLA",
-        network: "testnet",
-        chainId: 46630,
-        status: "unverified",
-        contractAddress: null,
-        label: "Testnet · no value · address unverified",
-      }),
-    ]);
+    const bySymbol = Object.fromEntries(r.json.items.map((i: { symbol: string }) => [i.symbol, i]));
+    expect(bySymbol["TEST:TSLA"]).toMatchObject({
+      network: "testnet",
+      chainId: 46630,
+      status: "active",
+      contractAddress: "0xC9f9c86933092BbbfFF3CCb4b105A4A94bf3Bd4E",
+      label: "Testnet · no value",
+    });
+    expect(bySymbol["DEMO:TSLA"]).toMatchObject({
+      network: "testnet",
+      label: expect.stringMatching(/no value/),
+    });
+    expect(bySymbol["SIM:TSLA"]).toMatchObject({ network: "offchain", label: "Simulated" });
+    expect(
+      (
+        await device("POST", "/orders/preview", token, {
+          entityId: "ent:tesla",
+          book: "testnet",
+          side: "buy",
+          amount: "1",
+        })
+      ).status,
+    ).toBe(403);
   });
 
   test("web research page lists the user's queued requests", async () => {

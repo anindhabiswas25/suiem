@@ -391,10 +391,11 @@ describe("flags and jurisdiction", () => {
     const ok = await c.request("GET", "/invest/stock-tokens");
     expect(ok.status).toBe(200);
     expect(ok.json.items).toHaveLength(5);
+    // Sprint 5: the faucet tokens were verified by tracing faucet mints (VERIFIED_FACTS T-05).
     expect(
       ok.json.items.every(
         (i: { status: string; network: string }) =>
-          i.status === "unverified" && i.network === "testnet",
+          i.status === "active" && i.network === "testnet",
       ),
     ).toBe(true);
   });
@@ -409,7 +410,7 @@ describe("API contract", () => {
     expect(r.raw.headers["x-request-id"]).toBe(r.json.error.requestId);
   });
 
-  test("OpenAPI lists every route and has no order/transfer endpoints", async () => {
+  test("OpenAPI lists every route; the only order routes are the reviewed testnet/simulated ones", async () => {
     const r = await new Client(h).request("GET", "/openapi.json");
     const paths = Object.keys(r.json.paths);
     for (const p of [
@@ -422,7 +423,16 @@ describe("API contract", () => {
     ]) {
       expect(paths).toContain(p);
     }
-    expect(paths.some((p) => /order|transfer|vote|swap/.test(p))).toBe(false);
+    // Sprint 5: orders exist only as preview → confirm → user-signed tx → server reconcile. No
+    // transfer, vote or swap endpoint exists, and no route places an order by itself.
+    expect(paths.filter((p) => /order/.test(p)).sort()).toEqual([
+      "/api/v1/orders",
+      "/api/v1/orders/preview",
+      "/api/v1/orders/{id}",
+      "/api/v1/orders/{id}/events",
+      "/api/v1/orders/{id}/transactions",
+    ]);
+    expect(paths.some((p) => /transfer|vote|swap|withdraw/.test(p))).toBe(false);
   });
 
   test("request logs carry no wallet addresses, cookies or tokens", async () => {

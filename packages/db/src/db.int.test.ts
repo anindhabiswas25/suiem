@@ -70,7 +70,7 @@ describe("migrations", () => {
 });
 
 describe("seed", () => {
-  test("loads ~40 entities with aliases and 5 unverified testnet Stock Token instruments", async () => {
+  test("loads 40 entities, 5 verified faucet tokens, 5 demo tokens (inactive until deployed) and simulated instruments", async () => {
     const e = await db.query("SELECT count(*)::int AS n FROM entities");
     expect(e.rows[0].n).toBe(40);
     const amb = await db.query("SELECT alias FROM entity_aliases WHERE ambiguous ORDER BY alias");
@@ -87,11 +87,31 @@ describe("seed", () => {
       "TEST:PLTR",
       "TEST:TSLA",
     ]);
+    // Verified 2026-11-11 by tracing faucet mints (VERIFIED_FACTS T-05): active, with addresses.
     expect(
       i.rows.every(
-        (r) => r.status === "unverified" && r.contract_address === null && r.chain_id === 46630,
+        (r) => r.status === "active" && r.contract_address?.length === 20 && r.chain_id === 46630,
       ),
     ).toBe(true);
+    const tsla = i.rows.find((r) => r.symbol === "TEST:TSLA")!;
+    expect(`0x${tsla.contract_address.toString("hex")}`).toBe(
+      "0xc9f9c86933092bbbfff3ccb4b105a4a94bf3bd4e",
+    );
+    // Demo tokens stay unverified (no address) until deployments/46630.json exists.
+    const demo = await db.query(
+      "SELECT symbol FROM instruments WHERE legal_type = 'demo_token' ORDER BY symbol",
+    );
+    expect(demo.rows.map((r) => r.symbol)).toEqual([
+      "DEMO:AMD",
+      "DEMO:AMZN",
+      "DEMO:NFLX",
+      "DEMO:PLTR",
+      "DEMO:TSLA",
+    ]);
+    const sim = await db.query(
+      "SELECT count(*)::int AS n FROM instruments WHERE legal_type = 'simulated' AND status = 'active' AND network = 'offchain'",
+    );
+    expect(sim.rows[0].n).toBe(35);
   });
 });
 
@@ -198,6 +218,10 @@ describe("append-only history rejects UPDATE, DELETE and TRUNCATE", () => {
     await db.query(
       "INSERT INTO thesis_versions (id, thesis_id, version, direction, horizon_days, title, rationale, counterarguments, risks, invalidation) VALUES ($1, $2, 1, 'bullish', 90, 'Test thesis', 'r', 'c', 'k', 'i')",
       [newId(), thesis],
+    );
+    await db.query(
+      "INSERT INTO thesis_reviews (id, thesis_id, user_id, outcome, note) VALUES ($1, $2, $3, 'too_early', 'n')",
+      [newId(), thesis, u],
     );
     const inst = (await db.query<{ id: string }>("SELECT id FROM instruments LIMIT 1")).rows[0]!.id;
     const order = newId();
