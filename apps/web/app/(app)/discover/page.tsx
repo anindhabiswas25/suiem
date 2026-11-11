@@ -1,14 +1,22 @@
-import { Placeholder } from "../../../components/Placeholder";
+"use client";
+import { Card } from "@suiem/ui";
+import Link from "next/link";
+import { PageHeader } from "../../../components/AppShell";
+import { EntitySearch } from "../../../components/research/ui";
 
-export const metadata = { title: "Discover · Suiem" };
-
-export default function Page() {
+export default function Discover() {
   return (
-    <Placeholder
-      title="Discover"
-      intro="Find companies and research shared by the community."
-      emptyTitle="Nothing to discover yet"
-      sprint={4}
-    />
+    <>
+      <PageHeader title="Discover">
+        Find companies to research. Community theses arrive with the social sprint.
+      </PageHeader>
+      <Card title="Search the registry">
+        <EntitySearch />
+        <span className="s-small s-muted">
+          Results open the research page for that company.{" "}
+          <Link href="/research/compare">Compare companies</Link>
+        </span>
+      </Card>
+    </>
   );
 }

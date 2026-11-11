@@ -1,5 +1,13 @@
 "use client";
+import type {
+  briefListResponse,
+  thesisListResponse,
+  watchlistsResponse,
+} from "@suiem/shared/schemas";
 import { Card, EmptyState, NetworkBadge, Status } from "@suiem/ui";
+import { useQuery } from "@tanstack/react-query";
+import type { z } from "zod";
+import { api } from "../../../lib/api";
 import Link from "next/link";
 import { PageHeader } from "../../../components/AppShell";
 import { useMe } from "../../../lib/session";
@@ -56,9 +64,75 @@ export default function Home() {
           </span>
         </Card>
       </div>
-      <EmptyState title="No research yet" action={<Link href="/research">Go to Research</Link>}>
-        Research briefs, watchlists and theses arrive in Sprint 4. Your saved items will show here.
-      </EmptyState>
+      <HomeResearch />
     </>
+  );
+}
+
+function HomeResearch() {
+  const briefs = useQuery<z.infer<typeof briefListResponse>>({
+    queryKey: ["briefs", "home"],
+    queryFn: () => api("GET", "/research/briefs?limit=5"),
+  });
+  const lists = useQuery<z.infer<typeof watchlistsResponse>>({
+    queryKey: ["watchlists"],
+    queryFn: () => api("GET", "/watchlists"),
+  });
+  const theses = useQuery<z.infer<typeof thesisListResponse>>({
+    queryKey: ["theses"],
+    queryFn: () => api("GET", "/theses"),
+  });
+  const empty =
+    briefs.data?.items.length === 0 &&
+    theses.data?.items.length === 0 &&
+    (lists.data?.items ?? []).every((l) => l.items.length === 0);
+  if (empty)
+    return (
+      <EmptyState title="No research yet" action={<Link href="/research">Go to Research</Link>}>
+        Search a company, request a cited AI brief, add it to a watchlist and write your own thesis.
+      </EmptyState>
+    );
+  return (
+    <div className="grid2">
+      <Card title="Latest briefs">
+        {briefs.data?.items.map((b) => (
+          <Link key={b.id} href={`/research/${encodeURIComponent(b.entityId)}`}>
+            {b.entityName}{" "}
+            <span className="s-small s-muted">
+              · {new Date(b.generatedAt).toLocaleDateString()}
+            </span>
+          </Link>
+        ))}
+        <Link href="/research" className="s-small">
+          All research
+        </Link>
+      </Card>
+      <Card title="Watchlists">
+        {lists.data?.items.map((l) => (
+          <span key={l.id}>
+            <strong>{l.name}</strong>{" "}
+            <span className="s-small s-muted">
+              · {l.items.map((i) => i.name).join(", ") || "empty"}
+            </span>
+          </span>
+        ))}
+        <Link href="/watchlist" className="s-small">
+          Manage watchlists
+        </Link>
+      </Card>
+      <Card title="Your theses">
+        {theses.data?.items.length === 0 ? (
+          <span className="s-muted s-small">None yet. Start one from a research page.</span>
+        ) : null}
+        {theses.data?.items.slice(0, 5).map((t) => (
+          <Link key={t.id} href={`/theses/${t.id}`}>
+            {t.title}{" "}
+            <span className="s-small s-muted">
+              · {t.entityName} · {t.direction} · {t.visibility}
+            </span>
+          </Link>
+        ))}
+      </Card>
+    </div>
   );
 }

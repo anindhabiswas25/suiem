@@ -26,6 +26,42 @@ export default function Help() {
           </p>
         </Card>
 
+        <Card title="AI research: providers and data">
+          <ul style={{ margin: 0, paddingLeft: 20 }}>
+            <li>
+              <strong>AI models (free tiers):</strong> Groq (<code>openai/gpt-oss-120b</code>)
+              writes briefs; Google Gemini (Flash) is the fallback when Groq is busy or a draft
+              fails our checks. Each brief says which model wrote it and when.
+            </li>
+            <li>
+              <strong>Google Gemini free tier:</strong> Google may use content sent on its free tier
+              to improve its products. Suiem therefore sends only public data (filings, market data,
+              news), plus text you highlighted <em>only if you ticked</em> "include selected text"
+              in the extension's preview.
+            </li>
+            <li>
+              <strong>Data:</strong> SEC EDGAR (company filings and XBRL financial facts) and{" "}
+              <strong>Finnhub (free tier)</strong> for quotes, company profile, peers, valuation
+              metrics and news. Finnhub's free plan is for non-commercial use.
+            </li>
+            <li>
+              <strong>What the AI does and doesn't do:</strong> financial figures are computed by
+              Suiem's code from filings, never by the AI. Every AI claim must cite a retrieved
+              source; claims with numbers not found in the sources are removed; certainty or
+              buy/sell language is rejected. Missing data is shown as missing.
+            </li>
+            <li>
+              Briefs from public data only may be shared between users for up to 12 hours to save
+              free-tier quota (labelled with their generation time). Briefs that used your
+              highlighted text are never shared or reused.
+            </li>
+            <li>
+              AI research can still be wrong. Check the cited sources. It is never investment
+              advice.
+            </li>
+          </ul>
+        </Card>
+
         <Card title="Networks and what's real">
           <ul style={{ margin: 0, paddingLeft: 20 }}>
             <li>
