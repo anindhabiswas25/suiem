@@ -439,6 +439,16 @@ describe("rings and sockpuppets are discounted", () => {
   });
 });
 
+describe("rater research must predate the vote", () => {
+  test("research published after the vote does not make a rater trusted", () => {
+    const e = worked();
+    e.raters = e.raters.map((r) => ({ ...r, researchSince: day(20) }));
+    const s = score(e, M);
+    expect(comp(s, "helpful_feedback").detail.discountedNoResearch).toBe(12); // every counted vote
+    expect(s.progress.raters.have).toBe(0);
+  });
+});
+
 describe("duplicates earn zero quality", () => {
   test("near-duplicate of someone else's earlier post", () => {
     const e = worked();

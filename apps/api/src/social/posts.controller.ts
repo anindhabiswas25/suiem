@@ -375,8 +375,19 @@ export class PostsController {
     } finally {
       client.release();
     }
-    if (created && kind === "helpful")
-      await this.social.notify({ userId: post.user_id, kind: "helpful", actorId: me, postId: id });
+    if (created && kind === "helpful") {
+      const already = await this.pool.query(
+        "SELECT 1 FROM notifications WHERE user_id = $1 AND kind = 'helpful' AND actor_id = $2 AND post_id = $3",
+        [post.user_id, me, id],
+      );
+      if (!already.rowCount)
+        await this.social.notify({
+          userId: post.user_id,
+          kind: "helpful",
+          actorId: me,
+          postId: id,
+        });
+    }
     await this.social.rescore(post.user_id);
     return { reaction: kind };
   }
@@ -588,7 +599,7 @@ export class PostsController {
       };
     }
 
-    // Discover: rank a bounded candidate set at a fixed asOf, then slice by offset.
+    // Discover: rank a bounded candidate set at a fixed asOf; the cursor holds the page index.
     const c = decodeCursor<{ asOf: string; o: number }>(q.cursor);
     const asOf = c?.asOf ? new Date(c.asOf) : this.clock.now();
     if (Number.isNaN(asOf.getTime())) throw new ApiError("VALIDATION_FAILED", "Invalid cursor");
@@ -660,15 +671,15 @@ export class PostsController {
       asOf,
     });
     const byId = new Map(candidates.map((p) => [p.id, p]));
-    const pageIds = order.slice(offset, offset + PAGE_SIZE);
+    const pageIds = order[offset] ?? [];
     return {
       items: await this.social.views(
         me,
         pageIds.map((i) => byId.get(i)!),
       ),
       nextCursor:
-        offset + PAGE_SIZE < order.length
-          ? encodeCursor({ asOf: asOf.toISOString(), o: offset + PAGE_SIZE })
+        offset + 1 < order.length
+          ? encodeCursor({ asOf: asOf.toISOString(), o: offset + 1 })
           : null,
       trending: trending.map(({ uuid: _u, ...t }) => t),
     };

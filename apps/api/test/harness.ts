@@ -10,6 +10,7 @@ import { createApp } from "../src/app";
 import { createLogger } from "../src/observability/logger";
 import type { InvestRuntime } from "../src/orders/runtime";
 import type { ResearchRuntime } from "../src/research/runtime";
+import type { ReputationRuntime } from "../src/social/reputation.runtime";
 import { systemClock, type Clock } from "../src/tokens";
 
 export const WEB_ORIGIN = "http://localhost:3000";
@@ -31,6 +32,8 @@ export async function startHarness(
     research?: (db: DbHandle) => ResearchRuntime;
     /** Invest runtime (anvil testnet client, deployment, prices). */
     invest?: InvestRuntime;
+    /** Reputation runtime (fixture quotes). Default: no market data. */
+    reputation?: (db: DbHandle) => ReputationRuntime;
   } = {},
 ): Promise<Harness> {
   const env = loadApiEnv({
@@ -64,6 +67,7 @@ export async function startHarness(
     clock: options.clock ?? systemClock,
     research: options.research?.(db),
     invest: options.invest,
+    reputation: options.reputation?.(db),
   });
   return {
     app,

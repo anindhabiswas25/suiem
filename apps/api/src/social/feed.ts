@@ -26,7 +26,8 @@ export interface RankInput {
   asOf: Date;
 }
 
-export function rank(input: RankInput): string[] {
+/** Ranked pages: each holds at most PAGE_SIZE posts and AUTHOR_CAP posts per author. */
+export function rank(input: RankInput): string[][] {
   const maxTrend = Math.max(1, ...input.trending.values());
   const scored = input.candidates.map((c) => {
     const ageHours = Math.max(0, (input.asOf.getTime() - c.createdAt.getTime()) / 3_600_000);
@@ -53,7 +54,7 @@ export function rank(input: RankInput): string[] {
   );
   // Diversity: fill each page with at most AUTHOR_CAP posts per author; overflow moves on.
   let rest = scored.map((x) => x.c);
-  const out: string[] = [];
+  const pages: string[][] = [];
   while (rest.length) {
     const page: Candidate[] = [];
     const perAuthor = new Map<string, number>();
@@ -65,15 +66,10 @@ export function rank(input: RankInput): string[] {
         perAuthor.set(c.authorId, n + 1);
       } else next.push(c);
     }
-    // If only capped authors remain, the page can't fill: emit them anyway (no starvation).
-    if (!page.length) {
-      out.push(...next.map((c) => c.id));
-      break;
-    }
-    out.push(...page.map((c) => c.id));
+    pages.push(page.map((c) => c.id));
     rest = next;
   }
-  return out;
+  return pages;
 }
 
 export function encodeCursor(c: Record<string, string | number>): string {

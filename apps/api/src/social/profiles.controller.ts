@@ -10,7 +10,6 @@ import {
 } from "@suiem/shared/social";
 import { uuidParam } from "@suiem/shared/schemas";
 import type { FastifyRequest } from "fastify";
-import { getAddress, type Hex, toHex } from "viem";
 import { AuditService } from "../audit/audit.service";
 import { ApiError } from "../http/errors";
 import { Route } from "../http/route";
@@ -57,7 +56,7 @@ export async function allocationSnapshot(db: DbHandle, userId: string, withHeldS
     }>(
       `SELECT p.book::text AS book, i.symbol, i.display_name, e.canonical_id AS entity_id, p.cost_basis::text,
               (SELECT min(f.filled_at) FROM fills f JOIN orders o ON o.id = f.order_id
-                WHERE o.user_id = p.user_id AND o.instrument_id = p.instrument_id AND o.book = p.book) AS held_since
+                WHERE o.user_id = p.user_id AND o.instrument_id = p.instrument_id AND o.book::text = p.book::text) AS held_since
          FROM positions p JOIN instruments i ON i.id = p.instrument_id LEFT JOIN entities e ON e.id = i.entity_id
         WHERE p.user_id = $1 AND p.quantity > 0 AND p.cost_basis > 0 AND p.book::text IN ('simulated', 'testnet')
         ORDER BY p.book, i.symbol`,
@@ -284,7 +283,7 @@ export class ProfilesController {
             "SELECT address, chain_id FROM wallet_accounts WHERE user_id = $1 AND unlinked_at IS NULL",
             [u.id],
           )
-        ).rows.map((w) => ({ address: getAddress(toHex(w.address) as Hex), chainId: w.chain_id }))
+        ).rows.map((w) => ({ address: `0x${w.address.toString("hex")}`, chainId: w.chain_id }))
       : null;
     const theses = allowed(p.theses_visibility, rel)
       ? (

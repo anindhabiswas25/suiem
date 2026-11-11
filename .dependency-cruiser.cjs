@@ -25,6 +25,16 @@ module.exports = {
       to: { path: "(^packages/chain|@suiem/chain|node_modules/viem|node_modules/wagmi)" },
     },
     {
+      name: "reputation-no-economy",
+      comment:
+        "The Suiem Score never depends on elections, $WIF, chain code or token balances (ADR-0005, PRD §10.4).",
+      severity: "error",
+      from: { path: "^(workers/reputation|apps/api/src/social)" },
+      to: {
+        path: "(^packages/chain|@suiem/chain|node_modules/(viem|wagmi)|^workers/indexer|^apps/api/src/(orders|elections|wallet)|elections|wif)",
+      },
+    },
+    {
       name: "shared-no-io",
       comment: "packages/shared is pure: no runtime I/O dependencies.",
       severity: "error",

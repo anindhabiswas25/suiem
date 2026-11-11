@@ -40,11 +40,9 @@ export class ThesesController {
     @Inject(REDIS) private readonly redis: Redis,
   ) {}
 
-  /** AI drafted from one of the cited briefs (set server-side; the user can't clear it). */
-  private async aiDrafted(userId: string, refs: Content["evidence"]): Promise<boolean> {
-    for (const briefId of new Set(refs.map((r) => r.briefId)))
-      if (await this.redis.exists(thesisDraftKey(userId, briefId))) return true;
-    return false;
+  /** AI drafted for this company in the last 30 days (set server-side; never cleared by the user). */
+  private async aiDrafted(userId: string, entityUuid: string): Promise<boolean> {
+    return (await this.redis.exists(thesisDraftKey(userId, entityUuid))) > 0;
   }
 
   /** Evidence must point at claims in the user's OWN briefs; text is copied from the brief. */
@@ -271,7 +269,7 @@ export class ThesesController {
     const evidence = await this.resolveEvidence(userId, body.evidence);
     const priceContext = await this.priceContext(entity.ticker);
     const id = newId();
-    const aiAssisted = await this.aiDrafted(userId, body.evidence);
+    const aiAssisted = await this.aiDrafted(userId, entity.id);
     await this.db.db.transaction(async (tx) => {
       await tx
         .insert(schema.theses)
@@ -330,7 +328,7 @@ export class ThesesController {
         .update(schema.theses)
         .set({
           currentVersion: next,
-          ...((await this.aiDrafted(userId, body.evidence)) ? { aiAssisted: true } : {}),
+          ...((await this.aiDrafted(userId, row.t.entityId)) ? { aiAssisted: true } : {}),
         })
         .where(eq(schema.theses.id, id));
     });
