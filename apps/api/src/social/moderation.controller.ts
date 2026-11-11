@@ -175,6 +175,18 @@ export class ModerationController {
     ).rows[0];
     if (!report) throw new ApiError("NOT_FOUND", "Unknown report");
     if (report.status !== "open") throw new ApiError("CONFLICT", "This report is already resolved");
+    // A moderator never resolves reports about their own content or account.
+    const targetAuthor =
+      report.target_type === "user"
+        ? report.target_id
+        : ((
+            await this.pool.query<{ user_id: string }>(
+              `SELECT user_id FROM ${report.target_type === "post" ? "posts" : "comments"} WHERE id = $1`,
+              [report.target_id],
+            )
+          ).rows[0]?.user_id ?? null);
+    if (targetAuthor === me)
+      throw new ApiError("FORBIDDEN", "You can't resolve a report about your own content");
     if (b.action === "hide" && report.target_type === "user")
       throw new ApiError(
         "VALIDATION_FAILED",

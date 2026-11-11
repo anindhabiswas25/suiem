@@ -885,6 +885,22 @@ describe("moderation, appeals and communities (P1)", () => {
     });
   });
 
+  test("a moderator can't resolve reports about their own content", async () => {
+    const mod = await user();
+    const r = await user();
+    await makeModerator(mod);
+    const p = await post(mod, { kind: "discussion", body: "mine", visibility: "public" });
+    await req(r, "POST", `/posts/${p.id}/report`, { reason: "spam" });
+    const item = (await req(mod, "GET", "/moderation/reports")).json.items.find(
+      (x: Json) => x.targetId === p.id,
+    );
+    const res = await req(mod, "POST", `/moderation/reports/${item.id}/resolve`, {
+      action: "dismiss",
+      reason: "other",
+    });
+    expect(res.status).toBe(403);
+  });
+
   test("comments can be reported and hidden", async () => {
     const a = await user();
     const b = await user();
