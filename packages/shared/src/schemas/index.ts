@@ -498,6 +498,8 @@ export const orderPreviewResponse = z.object({
     explorerUrl: z.string().nullable(),
     description: z.string(),
   }),
+  /** The linked wallet that must sign (testnet). */
+  trader: z.string().nullable(),
   approval: z
     .object({
       needed: z.boolean(),
@@ -622,4 +624,25 @@ export const faucetHoldingsResponse = z.object({
     }),
   ),
   note: z.string().nullable(),
+});
+
+export const investStatusResponse = z.object({
+  eligibility: z.object({
+    eligible: z.boolean(),
+    reason: z.string().nullable(),
+    message: z.string().nullable(),
+  }),
+  testnet: z.object({
+    available: z.boolean(),
+    reason: z.string().nullable(),
+    chainId: z.literal(46630),
+    venue: z.string().nullable(),
+    dusd: z.string().nullable(),
+    tokens: z.record(z.string(), z.string()),
+    explorer: z.string(),
+    faucetUrl: z.string(),
+    wallets: z.array(z.string()),
+  }),
+  simulated: z.object({ available: z.literal(true), feeBps: z.number(), slippageBps: z.number() }),
+  quoteTtlSeconds: z.number(),
 });

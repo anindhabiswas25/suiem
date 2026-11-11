@@ -338,6 +338,60 @@ describe("testnet demo venue: full flow against anvil (chain 46630)", () => {
     ).toBe("IDEMPOTENCY_KEY_REUSED");
   });
 
+  test("an unknown tx hash is not stored (no squatting); unexpired previews count toward the daily limit", async () => {
+    const p = await api(a, "POST", "/orders/preview", {
+      entityId: "ent:tesla",
+      book: "testnet",
+      side: "sell",
+      amount: "0.01",
+    });
+    await api(
+      a,
+      "POST",
+      "/orders",
+      { orderId: p.json.orderId, previewHash: p.json.previewHash, acknowledged: true },
+      key(),
+    );
+    const ghost = `0x${"ab".repeat(32)}`;
+    const r = await api(a, "POST", `/orders/${p.json.orderId}/transactions`, { txHash: ghost });
+    expect(r.status).toBe(409);
+    expect(r.json.error.message).toMatch(/not visible/);
+    expect(
+      (
+        await owner.query("SELECT count(*)::int AS n FROM orders WHERE tx_hash = $1", [
+          Buffer.from("ab".repeat(32), "hex"),
+        ])
+      ).rows[0].n,
+    ).toBe(0);
+    // Daily limit: previews alone (never confirmed) reserve budget until they expire.
+    const u = await user();
+    await claimDusd(u);
+    const old = rt.limits.perDayUsd;
+    rt.limits.perDayUsd = 25n;
+    try {
+      expect(
+        (
+          await api(u, "POST", "/orders/preview", {
+            entityId: "ent:tesla",
+            book: "testnet",
+            side: "buy",
+            amount: "20",
+          })
+        ).status,
+      ).toBe(200);
+      const second = await api(u, "POST", "/orders/preview", {
+        entityId: "ent:tesla",
+        book: "testnet",
+        side: "buy",
+        amount: "10",
+      });
+      expect(second.status).toBe(400);
+      expect(second.json.error.message).toMatch(/Daily limit/);
+    } finally {
+      rt.limits.perDayUsd = old;
+    }
+  });
+
   test("a confirmation without acknowledgement, or with a different preview hash, is rejected", async () => {
     const p = await api(a, "POST", "/orders/preview", {
       entityId: "ent:tesla",

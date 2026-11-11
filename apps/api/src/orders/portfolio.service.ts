@@ -45,7 +45,8 @@ export class PortfolioService {
       .innerJoin(schema.instruments, eq(schema.instruments.id, schema.orders.instrumentId))
       .leftJoin(schema.entities, eq(schema.entities.id, schema.instruments.entityId))
       .where(and(eq(schema.orders.userId, userId), bookIs(schema.orders.book, book)))
-      .orderBy(asc(schema.fills.filledAt));
+      // Block timestamps have one-second resolution: break ties by the (time-ordered UUIDv7) fill id.
+      .orderBy(asc(schema.fills.filledAt), asc(schema.fills.id));
     return rows.map((r) => ({
       instrumentId: r.inst.id,
       symbol: r.inst.symbol,

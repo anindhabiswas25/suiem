@@ -1,6 +1,7 @@
 import { Controller, Inject, Param, Req, Res } from "@nestjs/common";
 import {
   faucetHoldingsResponse,
+  investStatusResponse,
   orderConfirmRequest,
   orderEventsResponse,
   orderPreviewRequest,
@@ -137,6 +138,18 @@ export class OrdersController {
         createdAt: r.createdAt.toISOString(),
       })),
     };
+  }
+
+  @Route({
+    method: "GET",
+    path: "/invest/status",
+    summary: "Which books can trade for this user, and why not",
+    tags: ["invest"],
+    auth: "user",
+    response: investStatusResponse,
+  })
+  status(@Req() req: FastifyRequest) {
+    return this.orders.status(req.suiem.session!.userId);
   }
 
   @Route({

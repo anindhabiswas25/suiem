@@ -8837,6 +8837,10 @@
                       },
                       "required": ["venue", "explorerUrl", "description"]
                     },
+                    "trader": {
+                      "nullable": true,
+                      "type": "string"
+                    },
                     "approval": {
                       "nullable": true,
                       "type": "object",
@@ -8936,6 +8940,7 @@
                     "price",
                     "expiresAt",
                     "route",
+                    "trader",
                     "approval",
                     "tx",
                     "previewHash",
@@ -9800,6 +9805,187 @@
                     }
                   },
                   "required": ["items"]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "VALIDATION_FAILED",
+                            "UNAUTHENTICATED",
+                            "FORBIDDEN",
+                            "MFA_REQUIRED",
+                            "REASON_REQUIRED",
+                            "NOT_FOUND",
+                            "CONFLICT",
+                            "RATE_LIMITED",
+                            "CSRF_FAILED",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "IDEMPOTENCY_KEY_REUSED",
+                            "PASSKEY_FAILED",
+                            "SIWE_INVALID",
+                            "WALLET_ALREADY_LINKED",
+                            "CONSENT_REQUIRED",
+                            "CONSENT_INVALID_TRANSITION",
+                            "POLICY_DENIED",
+                            "FLAG_LOCKED",
+                            "PAIRING_INVALID",
+                            "DEVICE_SCOPE",
+                            "RESEARCH_LIMIT",
+                            "RESEARCH_FAILED",
+                            "PROVIDER_UNAVAILABLE",
+                            "INTERNAL"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "path": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["path", "message"]
+                          }
+                        }
+                      },
+                      "required": ["code", "message", "requestId"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/invest/status": {
+      "get": {
+        "summary": "Which books can trade for this user, and why not",
+        "tags": ["invest"],
+        "x-suiem-auth": "user",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "eligibility": {
+                      "type": "object",
+                      "properties": {
+                        "eligible": {
+                          "type": "boolean"
+                        },
+                        "reason": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "message": {
+                          "nullable": true,
+                          "type": "string"
+                        }
+                      },
+                      "required": ["eligible", "reason", "message"]
+                    },
+                    "testnet": {
+                      "type": "object",
+                      "properties": {
+                        "available": {
+                          "type": "boolean"
+                        },
+                        "reason": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "chainId": {
+                          "type": "number",
+                          "enum": [46630]
+                        },
+                        "venue": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "dusd": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "tokens": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "string"
+                          }
+                        },
+                        "explorer": {
+                          "type": "string"
+                        },
+                        "faucetUrl": {
+                          "type": "string"
+                        },
+                        "wallets": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "required": [
+                        "available",
+                        "reason",
+                        "chainId",
+                        "venue",
+                        "dusd",
+                        "tokens",
+                        "explorer",
+                        "faucetUrl",
+                        "wallets"
+                      ]
+                    },
+                    "simulated": {
+                      "type": "object",
+                      "properties": {
+                        "available": {
+                          "type": "boolean",
+                          "enum": [true]
+                        },
+                        "feeBps": {
+                          "type": "number"
+                        },
+                        "slippageBps": {
+                          "type": "number"
+                        }
+                      },
+                      "required": ["available", "feeBps", "slippageBps"]
+                    },
+                    "quoteTtlSeconds": {
+                      "type": "number"
+                    }
+                  },
+                  "required": ["eligibility", "testnet", "simulated", "quoteTtlSeconds"]
                 }
               }
             }

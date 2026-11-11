@@ -9,7 +9,7 @@ import type {
   orderResponse,
 } from "@suiem/shared/schemas";
 import { createHash } from "node:crypto";
-import { and, desc, eq, gte, inArray, isNull, sql } from "drizzle-orm";
+import { and, desc, eq, gt, gte, inArray, isNull, or, sql } from "drizzle-orm";
 import { type Address, getAddress, type Hex } from "viem";
 import type { z } from "zod";
 import { FlagsService } from "../flags/flags.service";
@@ -26,7 +26,7 @@ import {
   USD_DECIMALS,
 } from "./math";
 import { INVEST, type InvestRuntime } from "./runtime";
-import { SimulatedVenue, TestnetDemoVenue, type VenueQuote } from "./venues";
+import { QUOTE_TTL_MS, SimulatedVenue, TestnetDemoVenue, type VenueQuote } from "./venues";
 
 type Order = typeof schema.orders.$inferSelect;
 type Instrument = typeof schema.instruments.$inferSelect;
@@ -120,8 +120,13 @@ export class OrdersService {
   }
 
   /** Per-day notional (USD 6 dp) of the user's live orders in a book. */
+  /**
+   * Per-day notional (USD 6 dp) of the user's orders in a book. Unexpired PREVIEWS count too: a
+   * preview already carries a signed quote that could be sent onchain (security review).
+   */
   private async todayNotional(userId: string, book: Book): Promise<bigint> {
-    const since = new Date(this.clock.now().toISOString().slice(0, 10) + "T00:00:00Z");
+    const now = this.clock.now();
+    const since = new Date(now.toISOString().slice(0, 10) + "T00:00:00Z");
     const rows = await this.db.db
       .select({
         side: schema.orders.side,
@@ -134,7 +139,10 @@ export class OrdersService {
           eq(schema.orders.userId, userId),
           bookIs(schema.orders.book, book),
           gte(schema.orders.createdAt, since),
-          inArray(schema.orders.status, ["pending", "submitted", "filled"]),
+          or(
+            inArray(schema.orders.status, ["pending", "submitted", "filled"]),
+            and(eq(schema.orders.status, "previewed"), gt(schema.orders.quoteExpiresAt, now)),
+          ),
         ),
       );
     return rows.reduce((s, r) => s + BigInt(r.side === "buy" ? r.quoteAmount : r.est), 0n);
@@ -431,6 +439,7 @@ export class OrdersService {
               explorerUrl: null,
               description: "Suiem simulated book (offchain paper trade)",
             },
+      trader,
       approval,
       tx: p.tx,
       previewHash: p.previewHash,
@@ -536,16 +545,24 @@ export class OrdersService {
           ? "Confirm the order before submitting a transaction"
           : `Order is ${order.status}`,
       );
+    // Store nothing until the transaction is visible and matches this order's preview: otherwise
+    // another user could claim a pending hash first (tx-hash squatting, security review).
     const seen = await this.testnet.inspect(txHash);
-    if (seen.state !== "unknown") this.assertBinding(order, seen.from, seen.binding);
-    try {
-      await this.db.db
-        .update(schema.orders)
-        .set({ status: "submitted", txHash: buf(txHash) })
-        .where(eq(schema.orders.id, order.id));
-    } catch {
-      throw new ApiError("CONFLICT", "This transaction is already recorded for another order");
-    }
+    if (seen.state === "unknown")
+      throw new ApiError(
+        "CONFLICT",
+        "The transaction is not visible on testnet yet. Retry in a few seconds.",
+      );
+    this.assertBinding(order, seen.from, seen.binding);
+    const updated = await this.db.db
+      .update(schema.orders)
+      .set({ status: "submitted", txHash: buf(txHash) })
+      .where(and(eq(schema.orders.id, order.id), eq(schema.orders.status, "pending")))
+      .returning({ id: schema.orders.id })
+      .catch(() => {
+        throw new ApiError("CONFLICT", "This transaction is already recorded for another order");
+      });
+    if (updated.length === 0) throw new ApiError("CONFLICT", "Order is no longer pending");
     await this.event(order.id, "submitted", { txHash });
     return this.view(await this.reconcile(await this.own(userId, order.id)));
   }
@@ -872,6 +889,46 @@ export class OrdersService {
       failureReason: o.failureReason,
       createdAt: o.createdAt.toISOString(),
       updatedAt: o.updatedAt.toISOString(),
+    };
+  }
+
+  /** What the UI needs to decide which trading buttons to show, and why not. */
+  async status(userId: string) {
+    const e = await this.jurisdiction(userId);
+    const flag = await this.flags.isEnabled("trading.testnet");
+    const d = this.rt.deployment;
+    const reason = !e.eligible
+      ? e.reason === "restricted_jurisdiction"
+        ? "Stock Token features are not available in your declared country."
+        : "Declare your country in Settings to use Stock Token features."
+      : !flag
+        ? "Testnet trading is switched off right now."
+        : !d || !this.rt.testnet || !this.rt.quoteSignerKey
+          ? "The testnet demo venue is not deployed yet."
+          : null;
+    return {
+      eligibility: {
+        eligible: e.eligible,
+        reason: e.eligible ? null : e.reason,
+        message: e.eligible ? null : reason,
+      },
+      testnet: {
+        available: reason === null,
+        reason,
+        chainId: 46630 as const,
+        venue: d?.venue ?? null,
+        dusd: d?.dusd ?? null,
+        tokens: d?.tokens ?? {},
+        explorer: "https://explorer.testnet.chain.robinhood.com",
+        faucetUrl: "https://faucet.testnet.chain.robinhood.com",
+        wallets: await this.wallets(userId),
+      },
+      simulated: {
+        available: true as const,
+        feeBps: this.rt.limits.simFeeBps,
+        slippageBps: this.rt.limits.simSlippageBps,
+      },
+      quoteTtlSeconds: QUOTE_TTL_MS / 1000,
     };
   }
 
