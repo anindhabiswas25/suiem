@@ -1,0 +1,111 @@
+{
+  "chainId": 46630,
+  "venue": "0xfdc540781ee7ab03fd397201a21b87cf2321704f",
+  "dusd": "0xbb9795f4b4bddb993539ee44249d83e7625dd045",
+  "tokens": {
+    "TSLA": "0xb46d40bbfb8798c93b0def0eac6b5cc66fd02731",
+    "AMZN": "0xb7a347d53cbc404bc8b9612e0df4b04450b217a6",
+    "PLTR": "0xc7821521505d5cad7a094805953a788136458633",
+    "NFLX": "0xd0cb704d45cdf60f07512a4dca5e2791f97680a4",
+    "AMD": "0xc6d7f579208e2f62ae798a757ad87f3cec280a21"
+  },
+  "deployer": "0x8A11E80CAacFE2E9182D7A1Ce64A10E1678BD4C8",
+  "quoteSigner": "0x4553D60f534afc9547848036B273a50c48914182",
+  "block": 151705539,
+  "transactions": [
+    {
+      "contract": "SuiemDemoVenue",
+      "address": "0xfdc540781ee7ab03fd397201a21b87cf2321704f",
+      "hash": "0xcb05011578f5c9a30974ea7d4cd5dbd6ab69669cac54693b18c7bbc637bf956a",
+      "arguments": [
+        "0x8A11E80CAacFE2E9182D7A1Ce64A10E1678BD4C8",
+        "0x4553D60f534afc9547848036B273a50c48914182"
+      ]
+    },
+    {
+      "contract": "DemoUSD",
+      "address": "0xbb9795f4b4bddb993539ee44249d83e7625dd045",
+      "hash": "0x6ece065fcdfb3eaa4695c8838f9d6824c523c583f9860b467538794bd6150172",
+      "arguments": ["0xfdc540781EE7ab03fD397201A21B87Cf2321704F"]
+    },
+    {
+      "contract": "SuiemDemoVenue.setDemoUSD",
+      "address": "0xfdc540781ee7ab03fd397201a21b87cf2321704f",
+      "hash": "0x7569dcedba1da5fb06f594d74f47a6b4bcf41e2d07482057f714317ade9a96d2",
+      "arguments": ["0xbB9795F4b4Bddb993539Ee44249D83E7625DD045"]
+    },
+    {
+      "contract": "DemoStockToken",
+      "address": "0xb46d40bbfb8798c93b0def0eac6b5cc66fd02731",
+      "hash": "0x437029f9703721224934e688b5e6d5149dbd486439529d3726f2cc88d2a31339",
+      "arguments": ["TSLA", "0xfdc540781EE7ab03fD397201A21B87Cf2321704F"]
+    },
+    {
+      "contract": "SuiemDemoVenue.setListed",
+      "address": "0xfdc540781ee7ab03fd397201a21b87cf2321704f",
+      "hash": "0x2045b1a41af0cffd00b23862989b11ccbb949ee19c840f59d354df45c65c0ead",
+      "arguments": ["0xB46d40BBFb8798C93b0DEf0EAc6B5Cc66Fd02731", "true"]
+    },
+    {
+      "contract": "DemoStockToken",
+      "address": "0xb7a347d53cbc404bc8b9612e0df4b04450b217a6",
+      "hash": "0x8d3cb71f2e18dbd356648cdcd587d8e64f7741d7cfef2e047b51174eb1459946",
+      "arguments": ["AMZN", "0xfdc540781EE7ab03fD397201A21B87Cf2321704F"]
+    },
+    {
+      "contract": "SuiemDemoVenue.setListed",
+      "address": "0xfdc540781ee7ab03fd397201a21b87cf2321704f",
+      "hash": "0x3d6e0a2b977e05234b54c24f2c20b8c254a4be115a73d382ef6b1636ad3a9588",
+      "arguments": ["0xb7a347D53CbC404BC8b9612e0df4B04450b217A6", "true"]
+    },
+    {
+      "contract": "DemoStockToken",
+      "address": "0xc7821521505d5cad7a094805953a788136458633",
+      "hash": "0x3418eea0f3db1b4d0c2ae2a24e391977147b14e1c69ec316f9046f7adec1a985",
+      "arguments": ["PLTR", "0xfdc540781EE7ab03fD397201A21B87Cf2321704F"]
+    },
+    {
+      "contract": "SuiemDemoVenue.setListed",
+      "address": "0xfdc540781ee7ab03fd397201a21b87cf2321704f",
+      "hash": "0xfcc3891c3c59581e73f99a21e94fb6e678ef04d1e0c9baddbc1378ce3eca5a94",
+      "arguments": ["0xc7821521505D5cad7A094805953a788136458633", "true"]
+    },
+    {
+      "contract": "DemoStockToken",
+      "address": "0xd0cb704d45cdf60f07512a4dca5e2791f97680a4",
+      "hash": "0x6cba1224bf25a37fa724e1081f4d5b7f6c184d37376236e4a869345adf347b85",
+      "arguments": ["NFLX", "0xfdc540781EE7ab03fD397201A21B87Cf2321704F"]
+    },
+    {
+      "contract": "SuiemDemoVenue.setListed",
+      "address": "0xfdc540781ee7ab03fd397201a21b87cf2321704f",
+      "hash": "0x6b27aecf4d459f2eb97a8f64b2bdab1f00f16996a2a308d32bbea535fed7dbae",
+      "arguments": ["0xd0cb704D45cdf60f07512a4DCa5e2791F97680A4", "true"]
+    },
+    {
+      "contract": "DemoStockToken",
+      "address": "0xc6d7f579208e2f62ae798a757ad87f3cec280a21",
+      "hash": "0x77dbd998d151f6b9d5148187b90e4a0f633042be2a48bd35ccbe89094ef27274",
+      "arguments": ["AMD", "0xfdc540781EE7ab03fD397201A21B87Cf2321704F"]
+    },
+    {
+      "contract": "SuiemDemoVenue.setListed",
+      "address": "0xfdc540781ee7ab03fd397201a21b87cf2321704f",
+      "hash": "0x78f11380b7200cdea26f712b9b850cfe2aad7985d297ab781dc4f1f237a88e0f",
+      "arguments": ["0xC6D7F579208e2f62Ae798a757ad87F3ceC280a21", "true"]
+    }
+  ],
+  "gitSha": "bc722bb1a94f794d2df297e80845efc1ff1fb059",
+  "compiler": "solc 0.8.30 (optimizer 200 runs)",
+  "deployedAt": "2026-11-11T07:26:41.205Z",
+  "explorer": "https://explorer.testnet.chain.robinhood.com",
+  "verified": {
+    "SuiemDemoVenue": true,
+    "DemoUSD": true,
+    "dTSLA": true,
+    "dAMZN": true,
+    "dPLTR": true,
+    "dNFLX": true,
+    "dAMD": true
+  }
+}

@@ -99,7 +99,10 @@ const manifest = {
   quoteSigner,
   block: Math.min(...run.receipts.map((r) => Number(r.blockNumber))),
   transactions: run.transactions.map((t) => ({
-    contract: t.contractName ?? t.function ?? "call",
+    contract:
+      t.transactionType === "CREATE"
+        ? (t.contractName ?? "create")
+        : `${t.contractName ?? "call"}.${(t.function ?? "call").split("(")[0]}`,
     address: t.contractAddress,
     hash: t.hash,
     arguments: t.arguments,
