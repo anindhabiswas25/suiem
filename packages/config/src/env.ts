@@ -18,7 +18,7 @@ export const ENV_VARS = {
   WEBAUTHN_RP_ID: "WebAuthn relying-party ID (hostname of WEB_ORIGIN, e.g. localhost).",
   WEBAUTHN_RP_NAME: "WebAuthn relying-party display name.",
   MAINNET_RPC_URL:
-    "Optional RPC override for Robinhood Chain mainnet 4663 (default: verified public RPC).",
+    "SECRET (server-side only, never NEXT_PUBLIC_). Mainnet 4663 RPC for the API, indexer and scripts, e.g. the PO's QuickNode URL (contains its token). Default: verified public RPC.",
   TESTNET_RPC_URL:
     "Optional RPC override for Robinhood Chain testnet 46630 (default: verified public RPC).",
   ALCHEMY_API_KEY:
@@ -52,6 +52,13 @@ export const ENV_VARS = {
     "inline (default): the API process also runs the research queue worker. off: run workers/research separately.",
   REPUTATION_JOBS:
     "inline (default): the API process runs the reputation jobs (SPY marks, thesis evaluation, score snapshots) every 15 minutes. off: disabled.",
+  INDEXER:
+    "inline (default): the API process runs the SuiemElections indexer (mainnet 4663) when deployments/4663.json exists. off: run workers/indexer separately.",
+  INDEXER_LOG_RANGE:
+    "Blocks per eth_getLogs request (default 5000; QuickNode allows 10,000). Halved automatically on a range error.",
+  INDEXER_POLL_MS: "Indexer poll interval in ms (default 12000).",
+  RPC_MAX_RPS:
+    "Max JSON-RPC requests per second per endpoint from the API/indexer (default 15). Plan-limit guard.",
   EXTENSION_ID:
     "Optional Chrome extension ID. If set, extension requests must come from chrome-extension://<id> and the web app offers one-click pairing.",
   NEXT_PUBLIC_EXTENSION_ID:
@@ -105,6 +112,10 @@ export const apiEnvSchema = z
     RESEARCH_CACHE_TTL_HOURS: z.coerce.number().int().min(0).max(168).default(12),
     RESEARCH_WORKER: z.enum(["inline", "off"]).default("inline"),
     REPUTATION_JOBS: z.enum(["inline", "off"]).default("inline"),
+    INDEXER: z.enum(["inline", "off"]).default("inline"),
+    INDEXER_LOG_RANGE: z.coerce.number().int().min(1).max(10_000).default(5000),
+    INDEXER_POLL_MS: z.coerce.number().int().min(1000).max(600_000).default(12_000),
+    RPC_MAX_RPS: z.coerce.number().int().min(0).max(1000).default(15),
     QUOTE_SIGNER_PRIVATE_KEY: z
       .string()
       .regex(/^0x[0-9a-fA-F]{64}$/)

@@ -1,4 +1,12 @@
-import { createSuiemPublicClient, assertSuiemChain } from "@suiem/chain";
+import {
+  createSuiemPublicClient,
+  assertSuiemChain,
+  registerSecretRpcUrl,
+  rpcLabel,
+} from "@suiem/chain";
+import { assertWifIdentity } from "@suiem/chain/elections";
+import { ElectionsIndexer, startIndexerLoop } from "@suiem/indexer";
+import { electionsRuntimeFromEnv } from "./elections/runtime";
 import { robinhoodMainnet, robinhoodTestnet } from "@suiem/config/chains";
 import { loadApiEnv } from "@suiem/config/env";
 import { connect } from "@suiem/db";
@@ -17,6 +25,9 @@ import { systemClock } from "./tokens";
 export async function bootstrap(source: Record<string, string | undefined> = process.env) {
   const env = loadApiEnv(source);
   const logger = createLogger({ level: env.LOG_LEVEL, service: "suiem-api", env: env.NODE_ENV });
+  // Secret RPC URLs (QuickNode) are scrubbed from every error that leaves a transport.
+  registerSecretRpcUrl(env.MAINNET_RPC_URL);
+  registerSecretRpcUrl(env.TESTNET_RPC_URL);
   for (const [chain, rpcUrl] of [
     [robinhoodMainnet.id, env.MAINNET_RPC_URL],
     [robinhoodTestnet.id, env.TESTNET_RPC_URL],
@@ -62,7 +73,43 @@ export async function bootstrap(source: Record<string, string | undefined> = pro
     startReputationJobs(reputation.deps);
     logger.info({ component: "reputation" }, "reputation jobs running inline (every 15 minutes)");
   }
-  const app = await createApp({ env, db, redis, logger, clock: systemClock, research, reputation });
+  // $WIF elections (mainnet 4663): lookalike defence + inline indexer once SuiemElections is deployed.
+  const elections = electionsRuntimeFromEnv(env);
+  if (elections.deployment) {
+    await assertWifIdentity(elections.client);
+    logger.info(
+      { component: "elections", chainId: 4663, kind: rpcLabel(env.MAINNET_RPC_URL) },
+      "$WIF identity check passed",
+    );
+    if (env.INDEXER === "inline") {
+      const log = (
+        level: "info" | "warn" | "error",
+        event: string,
+        f: Record<string, unknown> = {},
+      ) => logger[level]({ component: "indexer", ...f }, event);
+      const indexer = new ElectionsIndexer({
+        pool: db.pool,
+        client: elections.client,
+        chainId: 4663,
+        contract: elections.deployment.elections,
+        deployBlock: BigInt(elections.deployment.block),
+        logRange: env.INDEXER_LOG_RANGE,
+        log,
+      });
+      startIndexerLoop(indexer, env.INDEXER_POLL_MS, log);
+      logger.info({ component: "indexer" }, "elections indexer running inline");
+    }
+  }
+  const app = await createApp({
+    env,
+    db,
+    redis,
+    logger,
+    clock: systemClock,
+    research,
+    reputation,
+    elections,
+  });
   await app.listen({ port: env.API_PORT, host: "0.0.0.0" });
   logger.info({ port: env.API_PORT, component: "boot" }, "api listening");
   return app;

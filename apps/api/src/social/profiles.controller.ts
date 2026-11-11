@@ -11,6 +11,7 @@ import {
 import { uuidParam } from "@suiem/shared/schemas";
 import type { FastifyRequest } from "fastify";
 import { AuditService } from "../audit/audit.service";
+import { ACHIEVEMENTS, type AchievementsProvider } from "./achievements";
 import { ApiError } from "../http/errors";
 import { Route } from "../http/route";
 import { DB } from "../tokens";
@@ -99,6 +100,7 @@ export class ProfilesController {
     @Inject(SocialService) private readonly social: SocialService,
     @Inject(ReputationView) private readonly rep: ReputationView,
     @Inject(AuditService) private readonly audit: AuditService,
+    @Inject(ACHIEVEMENTS) private readonly achievements: AchievementsProvider,
   ) {}
 
   private async profileRow(userId: string): Promise<ProfileRow> {
@@ -321,6 +323,8 @@ export class ProfilesController {
     const reputation = rel.self || p.appear_in_leaderboards ? await this.rep.forUser(u.id) : null;
     return {
       ...base,
+      // Winner badges for finalized elections. An achievement, never a reputation input.
+      achievements: await this.achievements.forUser(u.id),
       bio: p.bio,
       followers,
       wallets,

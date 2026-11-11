@@ -34,6 +34,10 @@ import {
 } from "./social/reputation.runtime";
 import { ReputationView } from "./social/reputation.view";
 import { SocialService } from "./social/social.service";
+import { ACHIEVEMENTS } from "./social/achievements";
+import { ElectionsController } from "./elections/elections.controller";
+import { ElectionsService } from "./elections/elections.service";
+import { ELECTIONS, type ElectionsRuntime, electionsRuntimeFromEnv } from "./elections/runtime";
 import { FlagsService } from "./flags/flags.service";
 import { ErrorEnvelopeFilter } from "./http/errors";
 import { SecurityGuard } from "./http/security.guard";
@@ -56,6 +60,8 @@ export interface AppDeps {
   invest?: InvestRuntime;
   /** Reputation jobs (quotes for SPY and thesis evaluation). Defaults to Finnhub via research. */
   reputation?: ReputationRuntime;
+  /** Mainnet 4663 client + SuiemElections deployment. Defaults to env + deployments/4663.json. */
+  elections?: ElectionsRuntime;
 }
 
 @Module({})
@@ -78,6 +84,7 @@ export class AppModule {
         PostsController,
         ReputationController,
         ModerationController,
+        ElectionsController,
       ],
       providers: [
         { provide: ENV, useValue: deps.env },
@@ -91,6 +98,13 @@ export class AppModule {
           provide: REPUTATION,
           useValue:
             deps.reputation ?? reputationRuntime(deps.db, finnhubQuotes(research), deps.clock),
+        },
+        { provide: ELECTIONS, useValue: deps.elections ?? electionsRuntimeFromEnv(deps.env) },
+        ElectionsService,
+        {
+          provide: ACHIEVEMENTS,
+          inject: [ElectionsService],
+          useFactory: (e: ElectionsService) => ({ forUser: (id: string) => e.achievements(id) }),
         },
         SocialService,
         ReputationView,

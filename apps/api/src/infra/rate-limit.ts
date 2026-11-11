@@ -19,6 +19,8 @@ export const LIMITS = {
   postsPerUser: { bucket: "posts-user", limit: 10, windowSeconds: 3600 },
   commentsPerUser: { bucket: "comments-user", limit: 30, windowSeconds: 3600 },
   helpfulPerUser: { bucket: "helpful-user", limit: 50, windowSeconds: 86_400 },
+  // Sprint 7: each vote preview costs several mainnet RPC calls (QuickNode plan limits).
+  votePreviewsPerUser: { bucket: "vote-preview-user", limit: 30, windowSeconds: 600 },
 } satisfies Record<string, LimitRule>;
 
 /** Fixed-window counters in Redis. Subjects are hashed, so no IP is stored in clear. */

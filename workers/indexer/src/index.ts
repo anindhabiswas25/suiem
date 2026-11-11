@@ -1,2 +1,11 @@
-/** Placeholder: implemented in Sprint 7 (docs/HACKATHON_PLAN.md). */
-export const SPRINT = 7;
+export {
+  ElectionsIndexer,
+  finalityOf,
+  isRangeError,
+  startIndexerLoop,
+  type Finality,
+  type Heads,
+  type IndexerDeps,
+  type IndexerLog,
+  type TickResult,
+} from "./indexer";

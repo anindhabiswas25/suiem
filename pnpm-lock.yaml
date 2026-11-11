@@ -104,6 +104,9 @@ importers:
       '@suiem/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@suiem/indexer':
+        specifier: workspace:*
+        version: link:../../workers/indexer
       '@suiem/reputation':
         specifier: workspace:*
         version: link:../../workers/reputation
@@ -344,13 +347,32 @@ importers:
         version: 19.3.1
 
   workers/indexer:
-    devDependencies:
+    dependencies:
+      '@suiem/chain':
+        specifier: workspace:*
+        version: link:../../packages/chain
       '@suiem/config':
         specifier: workspace:*
         version: link:../../packages/config
+      '@suiem/db':
+        specifier: workspace:*
+        version: link:../../packages/db
+      '@suiem/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
+      pg:
+        specifier: 8.23.1
+        version: 8.23.1
+      viem:
+        specifier: 2.57.17
+        version: 2.57.17(typescript@6.0.3)(zod@4.6.7)
+    devDependencies:
       '@types/node':
         specifier: 24.10.1
         version: 24.10.1
+      '@types/pg':
+        specifier: 8.23.1
+        version: 8.23.1
 
   workers/reputation:
     dependencies:

@@ -35,6 +35,16 @@ module.exports = {
       },
     },
     {
+      name: "elections-no-reputation-writes",
+      comment:
+        "Election code may READ leaderboards (social/leaderboard.ts) but never imports the reputation engine, jobs or score writers: votes and winners never write reputation_* (ADR-0005, Sprint 7). SQL writes are also scanned by elections/separation.test.ts.",
+      severity: "error",
+      from: { path: "^(apps/api/src/elections|workers/indexer)" },
+      to: {
+        path: "(^workers/reputation|@suiem/reputation|^apps/api/src/social/(reputation\\.|social\\.service|moderation))",
+      },
+    },
+    {
       name: "shared-no-io",
       comment: "packages/shared is pure: no runtime I/O dependencies.",
       severity: "error",

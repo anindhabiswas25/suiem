@@ -18,6 +18,7 @@
     "@suiem/chain": "workspace:*",
     "@suiem/config": "workspace:*",
     "@suiem/db": "workspace:*",
+    "@suiem/indexer": "workspace:*",
     "@suiem/reputation": "workspace:*",
     "@suiem/research": "workspace:*",
     "@suiem/shared": "workspace:*",

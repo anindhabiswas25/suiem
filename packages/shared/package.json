@@ -16,7 +16,8 @@
     "./extension": "./src/extension/messages.ts",
     "./entities": "./src/entities/index.ts",
     "./invest": "./src/invest/registry.ts",
-    "./social": "./src/social/index.ts"
+    "./social": "./src/social/index.ts",
+    "./elections": "./src/elections/index.ts"
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json"

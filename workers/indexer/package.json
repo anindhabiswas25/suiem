@@ -4,10 +4,22 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "typecheck": "tsc -p tsconfig.json"
+    "typecheck": "tsc -p tsconfig.json",
+    "start": "tsx --env-file-if-exists=../../.env src/main.ts"
   },
   "devDependencies": {
+    "@types/node": "24.10.1",
+    "@types/pg": "8.23.1"
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@suiem/chain": "workspace:*",
     "@suiem/config": "workspace:*",
-    "@types/node": "24.10.1"
+    "@suiem/db": "workspace:*",
+    "@suiem/shared": "workspace:*",
+    "pg": "8.23.1",
+    "viem": "2.57.17"
   }
 }

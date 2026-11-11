@@ -4,7 +4,16 @@
  * or sends: callers hold their own keys. Approvals are always for the exact amount.
  */
 import { WIF } from "@suiem/config/chains";
-import { type Address, decodeFunctionData, encodeFunctionData, erc20Abi, type Hex } from "viem";
+import {
+  type Address,
+  decodeFunctionData,
+  encodeAbiParameters,
+  encodeFunctionData,
+  erc20Abi,
+  type Hex,
+  keccak256,
+  parseAbiParameters,
+} from "viem";
 import { suiemElectionsAbi } from "../abi/elections";
 
 export const ELECTIONS_CHAIN = 4663 as const;
@@ -70,3 +79,20 @@ export const encodeCancelElection = (id: bigint) =>
   encodeFunctionData({ abi: suiemElectionsAbi, functionName: "cancel", args: [id] });
 export const encodeFinalize = (id: bigint) =>
   encodeFunctionData({ abi: suiemElectionsAbi, functionName: "finalize", args: [id] });
+
+/** Binds a vote preview to exactly the two calls the wallet will send (approve, then vote). */
+export function votePreviewHash(
+  chainId: number,
+  approve: { to: Address; data: Hex },
+  vote: { to: Address; data: Hex },
+): Hex {
+  return keccak256(
+    encodeAbiParameters(parseAbiParameters("uint256, address, bytes, address, bytes"), [
+      BigInt(chainId),
+      approve.to,
+      approve.data,
+      vote.to,
+      vote.data,
+    ]),
+  );
+}
