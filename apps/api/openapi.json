@@ -7172,6 +7172,22 @@
                               },
                               "sourceUrl": {
                                 "type": "string"
+                              },
+                              "benchmark": {
+                                "nullable": true,
+                                "type": "object",
+                                "properties": {
+                                  "symbol": {
+                                    "type": "string"
+                                  },
+                                  "price": {
+                                    "type": "string"
+                                  },
+                                  "asOf": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": ["symbol", "price", "asOf"]
                               }
                             },
                             "required": [
@@ -7465,6 +7481,22 @@
                               },
                               "sourceUrl": {
                                 "type": "string"
+                              },
+                              "benchmark": {
+                                "nullable": true,
+                                "type": "object",
+                                "properties": {
+                                  "symbol": {
+                                    "type": "string"
+                                  },
+                                  "price": {
+                                    "type": "string"
+                                  },
+                                  "asOf": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": ["symbol", "price", "asOf"]
                               }
                             },
                             "required": [
@@ -7841,6 +7873,22 @@
                               },
                               "sourceUrl": {
                                 "type": "string"
+                              },
+                              "benchmark": {
+                                "nullable": true,
+                                "type": "object",
+                                "properties": {
+                                  "symbol": {
+                                    "type": "string"
+                                  },
+                                  "price": {
+                                    "type": "string"
+                                  },
+                                  "asOf": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": ["symbol", "price", "asOf"]
                               }
                             },
                             "required": [
@@ -8160,6 +8208,22 @@
                               },
                               "sourceUrl": {
                                 "type": "string"
+                              },
+                              "benchmark": {
+                                "nullable": true,
+                                "type": "object",
+                                "properties": {
+                                  "symbol": {
+                                    "type": "string"
+                                  },
+                                  "price": {
+                                    "type": "string"
+                                  },
+                                  "asOf": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": ["symbol", "price", "asOf"]
                               }
                             },
                             "required": [
@@ -8484,6 +8548,22 @@
                               },
                               "sourceUrl": {
                                 "type": "string"
+                              },
+                              "benchmark": {
+                                "nullable": true,
+                                "type": "object",
+                                "properties": {
+                                  "symbol": {
+                                    "type": "string"
+                                  },
+                                  "price": {
+                                    "type": "string"
+                                  },
+                                  "asOf": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": ["symbol", "price", "asOf"]
                               }
                             },
                             "required": [
