@@ -9,11 +9,11 @@ export const SEED_ENTITIES = ENTITY_DICTIONARY;
  * addresses are UNVERIFIED (T-05), so they stay `unverified` with no address until Sprint 5.
  */
 export const TESTNET_STOCK_TOKENS = [
-  { entity: "tesla", symbol: "TEST:TSLA", name: "Tesla test token" },
-  { entity: "amazon", symbol: "TEST:AMZN", name: "Amazon test token" },
-  { entity: "palantir", symbol: "TEST:PLTR", name: "Palantir test token" },
-  { entity: "netflix", symbol: "TEST:NFLX", name: "Netflix test token" },
-  { entity: "amd", symbol: "TEST:AMD", name: "AMD test token" },
+  { entity: "tesla", ticker: "TSLA", symbol: "TEST:TSLA", name: "Tesla test token" },
+  { entity: "amazon", ticker: "AMZN", symbol: "TEST:AMZN", name: "Amazon test token" },
+  { entity: "palantir", ticker: "PLTR", symbol: "TEST:PLTR", name: "Palantir test token" },
+  { entity: "netflix", ticker: "NFLX", symbol: "TEST:NFLX", name: "Netflix test token" },
+  { entity: "amd", ticker: "AMD", symbol: "TEST:AMD", name: "AMD test token" },
 ] as const;
 
 export const DEMO_USERS = [

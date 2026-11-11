@@ -287,6 +287,20 @@ export const orders = pgTable("orders", {
   previewHash: bytea("preview_hash").notNull(),
   createdAt: ts("created_at").notNull().defaultNow(),
   updatedAt: ts("updated_at").notNull().defaultNow(),
+  // 0005_invest
+  trader: bytea("trader"),
+  venue: bytea("venue"),
+  quoteNonce: numeric("quote_nonce", { precision: 78, scale: 0 }),
+  quotePrice: units("quote_price"),
+  priceDecimals: dec("price_decimals"),
+  minOut: units("min_out"),
+  feeBps: integer("fee_bps"),
+  calldata: bytea("calldata"),
+  quoteSource: jsonb("quote_source"),
+  failureReason: text("failure_reason"),
+  confirmedAt: ts("confirmed_at"),
+  filledQuantity: units("filled_quantity"),
+  filledAmount: units("filled_amount"),
 });
 
 export const orderEvents = pgTable("order_events", {

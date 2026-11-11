@@ -5,6 +5,13 @@ import { newId } from "@suiem/shared/ids";
 import pg from "pg";
 import { DEMO_USERS, SEED_ENTITIES, TESTNET_STOCK_TOKENS } from "./seed-data";
 import { CIK_MAP } from "@suiem/shared/entities";
+import {
+  explorerTx,
+  FAUCET_TRACE_TX,
+  TESTNET_FAUCET_CONTRACT,
+  TESTNET_FAUCET_TOKENS,
+} from "@suiem/shared/invest";
+import { loadDemoDeployment } from "@suiem/chain/deployment";
 
 const POLICY_DIR = join(import.meta.dirname, "..", "..", "..", "docs", "policies");
 export const INITIAL_POLICY_VERSION = "2026-11-10.1";
@@ -75,17 +82,62 @@ export async function seed(url: string): Promise<{ entities: number; instruments
         );
       }
     }
+    // Testnet faucet Stock Tokens: VERIFIED by tracing faucet mints (VERIFIED_FACTS T-05/T-06).
     for (const t of TESTNET_STOCK_TOKENS) {
+      const f = TESTNET_FAUCET_TOKENS[t.ticker];
       await client.query(
-        `INSERT INTO instruments (id, entity_id, symbol, display_name, network, chain_id, legal_type, decimals, status, source_url, notes)
-         VALUES ($1, $2, $3, $4, 'testnet', 46630, 'testnet_test_token', 18, 'unverified', 'https://faucet.testnet.chain.robinhood.com', $5)
-         ON CONFLICT (symbol) DO NOTHING`,
+        `INSERT INTO instruments (id, entity_id, symbol, display_name, network, chain_id, legal_type, contract_address, decimals, status, source_url, last_verified_at, notes)
+         VALUES ($1, $2, $3, $4, 'testnet', 46630, 'testnet_test_token', $5, 18, 'active', $6, '2026-11-11T07:00:00Z', $7)
+         ON CONFLICT (symbol) DO UPDATE SET contract_address = EXCLUDED.contract_address, status = 'active', source_url = EXCLUDED.source_url,
+           last_verified_at = EXCLUDED.last_verified_at, notes = EXCLUDED.notes`,
         [
           newId(),
           entityIds.get(t.entity),
           t.symbol,
           t.name,
-          "UNVERIFIED address (VERIFIED_FACTS T-05). Testnet token: no value, not a security, not a share. Decimals to be read onchain in Sprint 5.",
+          Buffer.from(f.address.slice(2), "hex"),
+          explorerTx(FAUCET_TRACE_TX),
+          `Verified 2026-11-11: minted by the testnet faucet contract ${TESTNET_FAUCET_CONTRACT} (VERIFIED_FACTS T-05). Testnet token: no value, not a security, not a share. Read-only in Suiem.`,
+        ],
+      );
+    }
+    // Suiem demo tokens (dTSLA…): active only once the venue is deployed (deployments/46630.json).
+    const deployment = loadDemoDeployment(process.env.DEMO_DEPLOYMENT_FILE);
+    for (const t of TESTNET_STOCK_TOKENS) {
+      const address = deployment?.tokens[t.ticker];
+      await client.query(
+        `INSERT INTO instruments (id, entity_id, symbol, display_name, network, chain_id, legal_type, contract_address, decimals, status, source_url, last_verified_at, notes)
+         VALUES ($1, $2, $3, $4, 'testnet', 46630, 'demo_token', $5, 18, $6, $7, $8, $9)
+         ON CONFLICT (symbol) DO UPDATE SET contract_address = EXCLUDED.contract_address, status = EXCLUDED.status,
+           source_url = EXCLUDED.source_url, last_verified_at = EXCLUDED.last_verified_at`,
+        [
+          newId(),
+          entityIds.get(t.entity),
+          `DEMO:${t.ticker}`,
+          `Suiem Demo ${t.ticker} (testnet, no value)`,
+          address ? Buffer.from(address.slice(2), "hex") : null,
+          address ? "active" : "unverified",
+          address ? `${deployment!.explorer}/address/${address}` : null,
+          address ? deployment!.deployedAt : null,
+          "Suiem demo token d" +
+            t.ticker +
+            " traded for dUSD on SuiemDemoVenue (testnet 46630). No value, not a share, not a security.",
+        ],
+      );
+    }
+    // Simulated (paper) instruments for every listed company in the registry.
+    for (const [canonicalId, m] of Object.entries(CIK_MAP)) {
+      const ent = SEED_ENTITIES.find((e) => e.canonicalId === canonicalId);
+      if (!ent) continue;
+      await client.query(
+        `INSERT INTO instruments (id, entity_id, symbol, display_name, network, chain_id, legal_type, decimals, status, notes)
+         VALUES ($1, $2, $3, $4, 'offchain', NULL, 'simulated', 18, 'active', 'Paper trading at Finnhub quotes. Nothing is bought.')
+         ON CONFLICT (symbol) DO NOTHING`,
+        [
+          newId(),
+          entityIds.get(ent.slug),
+          `SIM:${m.ticker.replace(/[^A-Z0-9.]/g, "")}`,
+          `${ent.name} (simulated)`,
         ],
       );
     }
@@ -107,7 +159,8 @@ export async function seed(url: string): Promise<{ entities: number; instruments
       );
     }
     await client.query("COMMIT");
-    return { entities: SEED_ENTITIES.length, instruments: TESTNET_STOCK_TOKENS.length };
+    const n = await client.query<{ n: number }>("SELECT count(*)::int AS n FROM instruments");
+    return { entities: SEED_ENTITIES.length, instruments: n.rows[0]!.n };
   } catch (error) {
     await client.query("ROLLBACK");
     throw error;

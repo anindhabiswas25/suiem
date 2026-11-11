@@ -85,9 +85,26 @@ export default tseslint.config(
       ],
     },
   },
+  // Order and portfolio code: amounts are bigint/strings; no float parsing or formatting (PRD §19.5).
+  {
+    files: ["apps/api/src/orders/**/*.ts", "packages/chain/src/write/**/*.ts"],
+    ignores: ["**/*.test.ts"],
+    rules: {
+      "no-restricted-globals": [
+        "error",
+        { name: "parseFloat", message: "No floats in order code." },
+        { name: "parseInt", message: "No parseInt for amounts; use bigint." },
+      ],
+      "no-restricted-properties": [
+        "error",
+        { property: "toFixed", message: "No float formatting in order code." },
+        { property: "toPrecision", message: "No float formatting in order code." },
+      ],
+    },
+  },
   // Money modules: no floating point, ever (PRD §14, §19.5).
   {
-    files: ["packages/shared/src/money/**/*.ts"],
+    files: ["packages/shared/src/money/**/*.ts", "apps/api/src/orders/math.ts"],
     ignores: ["**/*.test.ts"],
     rules: {
       "no-restricted-globals": [

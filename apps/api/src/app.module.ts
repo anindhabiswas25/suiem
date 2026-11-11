@@ -16,6 +16,11 @@ import { EntitiesController } from "./research/entities.controller";
 import { ResearchController } from "./research/research.controller";
 import { RESEARCH, type ResearchRuntime, researchRuntimeFromEnv } from "./research/runtime";
 import { ThesesController } from "./research/theses.controller";
+import { investRuntimeFromEnv } from "./orders/invest.runtime";
+import { OrdersController } from "./orders/orders.controller";
+import { OrdersService } from "./orders/orders.service";
+import { PortfolioService } from "./orders/portfolio.service";
+import { INVEST, type InvestRuntime } from "./orders/runtime";
 import { WatchlistsController } from "./research/watchlists.controller";
 import { FlagsService } from "./flags/flags.service";
 import { ErrorEnvelopeFilter } from "./http/errors";
@@ -35,11 +40,14 @@ export interface AppDeps {
   clock: Clock;
   /** Research providers, models, quota and queue. Defaults to env-built providers with no queue. */
   research?: ResearchRuntime;
+  /** Testnet client, venue deployment, quote signer and prices. Defaults to env. */
+  invest?: InvestRuntime;
 }
 
 @Module({})
 export class AppModule {
   static forRoot(deps: AppDeps): DynamicModule {
+    const research = deps.research ?? researchRuntimeFromEnv(deps.env, deps.db, deps.redis);
     return {
       module: AppModule,
       controllers: [
@@ -51,6 +59,7 @@ export class AppModule {
         ResearchController,
         WatchlistsController,
         ThesesController,
+        OrdersController,
       ],
       providers: [
         { provide: ENV, useValue: deps.env },
@@ -58,10 +67,10 @@ export class AppModule {
         { provide: REDIS, useValue: deps.redis },
         { provide: LOGGER, useValue: deps.logger },
         { provide: CLOCK, useValue: deps.clock },
-        {
-          provide: RESEARCH,
-          useValue: deps.research ?? researchRuntimeFromEnv(deps.env, deps.db, deps.redis),
-        },
+        { provide: RESEARCH, useValue: research },
+        { provide: INVEST, useValue: deps.invest ?? investRuntimeFromEnv(deps.env, research) },
+        OrdersService,
+        PortfolioService,
         AuditService,
         RateLimiter,
         SessionService,

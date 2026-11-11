@@ -450,3 +450,176 @@ export const watchlistItemMutationResponse = z.object({
   item: watchlistFullItem,
   created: z.boolean(),
 });
+
+// ---- Sprint 5: orders and portfolio ----------------------------------------------------
+const decimalString = z
+  .string()
+  .regex(/^(0|[1-9][0-9]{0,15})(\.[0-9]{1,18})?$/, "a plain decimal amount");
+/** `book` never accepts "live" (trading.live is hard-off, ADR-0004). */
+export const orderBook = z.enum(["simulated", "testnet"]);
+export const orderPreviewRequest = z
+  .object({
+    entityId: entityIdParam,
+    book: orderBook,
+    side: z.enum(["buy", "sell"]),
+    amount: decimalString,
+  })
+  .strict();
+const check = z.object({ name: z.string(), ok: z.boolean(), detail: z.string() });
+export const orderPreviewResponse = z.object({
+  orderId: z.uuid(),
+  book: orderBook,
+  bookLabel: z.string(),
+  side: z.enum(["buy", "sell"]),
+  instrument: z.object({
+    symbol: z.string(),
+    displayName: z.string(),
+    legalTypeLabel: z.string(),
+    network: z.enum(["testnet", "offchain"]),
+    chainId: z.number().nullable(),
+    address: z.string().nullable(),
+  }),
+  amountIn: z.object({ value: z.string(), asset: z.string() }),
+  estimatedOut: z.object({ value: z.string(), asset: z.string() }),
+  minOut: z.object({ value: z.string(), asset: z.string() }),
+  fee: z.object({ value: z.string(), asset: z.string(), bps: z.number() }),
+  slippageBps: z.number(),
+  price: z.object({
+    value: z.string(),
+    executionPrice: z.string(),
+    currency: z.string(),
+    at: z.string(),
+    source: z.string(),
+    sourceUrl: z.string(),
+  }),
+  expiresAt: z.string(),
+  route: z.object({
+    venue: z.string().nullable(),
+    explorerUrl: z.string().nullable(),
+    description: z.string(),
+  }),
+  approval: z
+    .object({
+      needed: z.boolean(),
+      token: z.string(),
+      spender: z.string(),
+      amount: z.string(),
+      data: z.string(),
+    })
+    .nullable(),
+  tx: z
+    .object({ chainId: z.number(), to: z.string(), data: z.string(), value: z.literal("0") })
+    .nullable(),
+  previewHash: z.string(),
+  simulation: z.object({ ran: z.boolean(), ok: z.boolean(), detail: z.string() }),
+  checks: z.array(check),
+  risks: z.array(z.string()),
+});
+export const orderConfirmRequest = z
+  .object({
+    orderId: z.uuid(),
+    previewHash: z.string().regex(/^0x[0-9a-f]{64}$/),
+    acknowledged: z.literal(true),
+  })
+  .strict();
+export const orderTxRequest = z
+  .object({ txHash: z.string().regex(/^0x[0-9a-fA-F]{64}$/) })
+  .strict();
+export const orderStatus = z.enum([
+  "previewed",
+  "pending",
+  "submitted",
+  "filled",
+  "failed",
+  "expired",
+  "cancelled",
+  "partially_filled",
+]);
+export const orderResponse = z.object({
+  id: z.uuid(),
+  book: orderBook,
+  bookLabel: z.string(),
+  side: z.enum(["buy", "sell"]),
+  status: orderStatus,
+  symbol: z.string(),
+  displayName: z.string(),
+  entityId: z.string().nullable(),
+  amountIn: z.object({ value: z.string(), asset: z.string() }),
+  estimatedOut: z.object({ value: z.string(), asset: z.string() }),
+  filledOut: z.object({ value: z.string(), asset: z.string() }).nullable(),
+  fee: z.string(),
+  price: z.string(),
+  quoteAt: z.string(),
+  expiresAt: z.string(),
+  txHash: z.string().nullable(),
+  explorerUrl: z.string().nullable(),
+  failureReason: z.string().nullable(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+export const orderEventsResponse = z.object({
+  items: z.array(
+    z.object({
+      status: z.string(),
+      details: z.record(z.string(), z.unknown()),
+      createdAt: z.string(),
+    }),
+  ),
+});
+const money = z.object({ value: z.string(), currency: z.string() });
+export const portfolioPosition = z.object({
+  instrumentSymbol: z.string(),
+  displayName: z.string(),
+  entityId: z.string().nullable(),
+  quantity: z.string(),
+  averageCost: money.nullable(),
+  costBasis: money,
+  price: z.object({ value: z.string(), at: z.string(), source: z.string() }).nullable(),
+  marketValue: money.nullable(),
+  unrealizedPnl: money.nullable(),
+  realizedPnl: money,
+});
+export const portfolioBook = z.object({
+  book: z.enum(["simulated", "testnet", "faucet"]),
+  label: z.string(),
+  currency: z.string(),
+  positions: z.array(portfolioPosition),
+  totals: z
+    .object({
+      costBasis: money,
+      marketValue: money.nullable(),
+      unrealizedPnl: money.nullable(),
+      realizedPnl: money,
+    })
+    .nullable(),
+  note: z.string().nullable(),
+});
+/** Three books, never summed together (PRD §8.4): there is deliberately no combined total. */
+export const portfolioResponse = z
+  .object({
+    books: z.object({ simulated: portfolioBook, testnet: portfolioBook, faucet: portfolioBook }),
+    methodology: z.string(),
+  })
+  .strict();
+export const portfolioTransactionsResponse = z.object({ items: z.array(orderResponse) });
+export const portfolioHistoryResponse = z.object({
+  books: z.object({
+    simulated: z.array(z.object({ at: z.string(), value: z.string() })),
+    testnet: z.array(z.object({ at: z.string(), value: z.string() })),
+  }),
+  note: z.string(),
+});
+export const faucetHoldingsResponse = z.object({
+  label: z.string(),
+  items: z.array(
+    z.object({
+      wallet: z.string(),
+      symbol: z.string(),
+      name: z.string(),
+      address: z.string(),
+      balance: z.string(),
+      status: z.enum(["active", "unverified"]),
+    }),
+  ),
+  note: z.string().nullable(),
+});

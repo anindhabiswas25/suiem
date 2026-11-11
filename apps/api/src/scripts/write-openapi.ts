@@ -8,6 +8,7 @@ import "../research/entities.controller";
 import "../research/research.controller";
 import "../research/watchlists.controller";
 import "../research/theses.controller";
+import "../orders/orders.controller";
 import { buildOpenApiDocument } from "../http/openapi";
 
 const out = join(import.meta.dirname, "..", "..", "openapi.json");

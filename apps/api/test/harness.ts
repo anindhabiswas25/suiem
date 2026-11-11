@@ -8,6 +8,7 @@ import { generatePrivateKey, privateKeyToAccount, type PrivateKeyAccount } from 
 import { inject } from "vitest";
 import { createApp } from "../src/app";
 import { createLogger } from "../src/observability/logger";
+import type { InvestRuntime } from "../src/orders/runtime";
 import type { ResearchRuntime } from "../src/research/runtime";
 import { systemClock, type Clock } from "../src/tokens";
 
@@ -28,6 +29,8 @@ export async function startHarness(
     envOverrides?: Record<string, string>;
     /** Research runtime factory (fixture providers + mock models). Default: none configured. */
     research?: (db: DbHandle) => ResearchRuntime;
+    /** Invest runtime (anvil testnet client, deployment, prices). */
+    invest?: InvestRuntime;
   } = {},
 ): Promise<Harness> {
   const env = loadApiEnv({
@@ -60,6 +63,7 @@ export async function startHarness(
     logger,
     clock: options.clock ?? systemClock,
     research: options.research?.(db),
+    invest: options.invest,
   });
   return {
     app,
