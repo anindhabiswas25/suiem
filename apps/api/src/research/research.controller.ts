@@ -402,10 +402,10 @@ export class ResearchController {
     const slot = await this.takeSlot(userId, "draft", this.rt.dailyLimit);
     try {
       const d = await draftThesis(this.deps(), b.id, b.brief as ResearchBriefV1, body.direction);
-      // Remember that AI drafted for this company: the user's theses on it are labelled
-      // AI-assisted for 30 days, whatever evidence they cite (the user can't clear it).
-      if (b.entityId)
-        await this.redis.set(thesisDraftKey(userId, b.entityId), "1", "EX", 30 * 86_400);
+      // Remember that AI drafted for this company AND from this brief: the user's theses on the
+      // company, or citing the brief, are labelled AI-assisted for 30 days (never user-cleared).
+      for (const key of [b.entityId, `brief:${b.id}`])
+        if (key) await this.redis.set(thesisDraftKey(userId, key), "1", "EX", 30 * 86_400);
       return { ...d, saved: false as const };
     } catch (e) {
       if (e instanceof ResearchFailure && !e.tokensSpent) await this.rt.quota.refund(slot);
@@ -429,9 +429,10 @@ export class ResearchController {
   }
 }
 
+/** Redis marker for an AI thesis draft, keyed by company id or `brief:<id>`. */
+export const thesisDraftKey = (userId: string, key: string) => `thesis-draft:${userId}:${key}`;
+
 /** Quote → decimal strings with timestamp and source. Throws NOT_FOUND / PROVIDER_UNAVAILABLE. */
-export const thesisDraftKey = (userId: string, entityId: string) =>
-  `thesis-draft:${userId}:${entityId}`;
 
 export async function quoteFor(
   rt: ResearchRuntime,
