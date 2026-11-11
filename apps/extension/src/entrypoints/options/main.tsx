@@ -38,13 +38,19 @@ function Options() {
 
   useEffect(() => {
     void reload().catch((e) => setMsg({ tone: "negative", text: errorText(e) }));
-    void chrome.storage.session.get("incomingPairCode").then(async (r) => {
+    // A pairing code handed over by the Suiem web app (externally_connectable), now or while open.
+    const takeIncoming = async () => {
+      const r = await chrome.storage.session.get("incomingPairCode");
       if (typeof r.incomingPairCode === "string") {
         setCode(r.incomingPairCode);
         await chrome.storage.session.remove("incomingPairCode");
       }
-    });
-    const onChange = () => void reload();
+    };
+    void takeIncoming();
+    const onChange = (changes: Record<string, chrome.storage.StorageChange>, area: string) => {
+      if (area === "session" && changes.incomingPairCode?.newValue) void takeIncoming();
+      void reload();
+    };
     chrome.storage.onChanged.addListener(onChange);
     return () => chrome.storage.onChanged.removeListener(onChange);
   }, [reload]);
@@ -93,9 +99,7 @@ function Options() {
     <main className="ext" style={{ maxWidth: 760, margin: "0 auto" }}>
       <Wordmark href="#" />
       <h1>Suiem Intelligence settings</h1>
-      <StatusPill tone={status.description.tone}>
-        <span aria-hidden="true">{status.description.icon}</span> {status.description.label}
-      </StatusPill>
+      <StatusPill tone={status.description.tone}>{status.description.label}</StatusPill>
       {msg ? (
         <StatusPill tone={msg.tone === "positive" ? "positive" : "negative"}>{msg.text}</StatusPill>
       ) : null}

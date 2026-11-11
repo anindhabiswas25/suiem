@@ -29,9 +29,7 @@ function Popup() {
   return (
     <main className="ext" aria-label="Suiem controls">
       <Wordmark href="#" />
-      <StatusPill tone={description.tone}>
-        <span aria-hidden="true">{description.icon}</span> {description.label}
-      </StatusPill>
+      <StatusPill tone={description.tone}>{description.label}</StatusPill>
       <Button
         variant="primary"
         className="s-btn big-toggle"

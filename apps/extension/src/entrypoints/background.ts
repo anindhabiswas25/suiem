@@ -419,10 +419,15 @@ export default defineBackground(() => {
     (msg: { type?: string; code?: string }, sender, send) => {
       if (sender.origin !== WEB_ORIGIN || msg.type !== "suiem.pair" || typeof msg.code !== "string")
         return false;
-      void chrome.runtime.openOptionsPage();
-      void chrome.storage.session.set({ incomingPairCode: msg.code.slice(0, 9) });
-      send({ ok: true });
-      return false;
+      // Store the code BEFORE opening the page so the page always finds it. The user still confirms.
+      void chrome.storage.session
+        .set({ incomingPairCode: msg.code.slice(0, 9) })
+        .then(() => chrome.runtime.openOptionsPage())
+        .then(
+          () => send({ ok: true }),
+          () => send({ ok: false }),
+        );
+      return true;
     },
   );
 
