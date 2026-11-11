@@ -142,7 +142,7 @@ Elections and later transactions are still pending (candidates, PO approval):
 | # | What | Tx | Block |
 | --- | --- | --- | --- |
 | 1 | Deploy `SuiemElections` at [`0xDB6CC943E480b4E003d458705B7B35e55F69009D`](https://robinhoodchain.blockscout.com/address/0xDB6CC943E480b4E003d458705B7B35e55F69009D) | [`0x851a241f…11e2`](https://robinhoodchain.blockscout.com/tx/0x851a241f55fc0f1ce54aef618d42afd5141adbed864b89d6ba52badfde1711e2) | 111,713,485 |
-| 2 | createElection "Demo round" | — | — |
+| 2 | createElection `demo-round-1` "Demo round · Research Contributor (Demo election)" (onchain id 1; candidates @demo_ada, @demo_alan, @demo_grace; opens 13:05:48, closes 15:05:48 UTC; cap 25). PO approved in chat | [`0x53ea45d5…aeb7`](https://robinhoodchain.blockscout.com/tx/0x53ea45d5baea21d0c9007cfc6b02dbd1c1cb6b89bd865ae6a12999a0e73caeb7) | 111,715,292 |
 | 3 | createElection "Hackathon Week 1 · Research Contributor" | — | — |
 | 4 | createElection "Hackathon Week 1 · Investor" | — | — |
 | 5 | PO vote(s): approve + vote | — | — |
