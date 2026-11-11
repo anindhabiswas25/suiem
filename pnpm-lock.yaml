@@ -92,9 +92,15 @@ importers:
       '@suiem/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@suiem/research':
+        specifier: workspace:*
+        version: link:../../workers/research
       '@suiem/shared':
         specifier: workspace:*
         version: link:../../packages/shared
+      bullmq:
+        specifier: 6.7.2
+        version: 6.7.2(ioredis@6.0.0(supports-color@7.2.0))(pg@8.23.1)
       drizzle-orm:
         specifier: 0.45.4
         version: 0.45.4(@opentelemetry/api@1.10.0)(@types/pg@8.23.1)(pg@8.23.1)
