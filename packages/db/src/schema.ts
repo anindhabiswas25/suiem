@@ -415,6 +415,7 @@ export const posts = pgTable("posts", {
   deletedAt: ts("deleted_at"),
   hiddenAt: ts("hidden_at"),
   hiddenReason: text("hidden_reason"),
+  communityId: uuid("community_id"),
 });
 
 export const comments = pgTable("comments", {
@@ -785,6 +786,25 @@ export const notifications = pgTable("notifications", {
   readAt: ts("read_at"),
   createdAt: ts("created_at").notNull().defaultNow(),
 });
+
+export const communities = pgTable("communities", {
+  id: uuid("id").primaryKey(),
+  slug: text("slug").notNull(),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  sectors: text("sectors").array().notNull(),
+  createdAt: ts("created_at").notNull().defaultNow(),
+});
+
+export const communityMembers = pgTable(
+  "community_members",
+  {
+    communityId: uuid("community_id").notNull(),
+    userId: uuid("user_id").notNull(),
+    joinedAt: ts("joined_at").notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.communityId, t.userId] })],
+);
 
 /** Tables protected by append-only triggers (must match the migration). */
 export const APPEND_ONLY_TABLES = [

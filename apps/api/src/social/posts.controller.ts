@@ -168,10 +168,24 @@ export class PostsController {
       );
     }
 
+    let communityId: string | null = null;
+    if (b.community) {
+      const c = (
+        await this.pool.query<{ id: string; member: boolean }>(
+          `SELECT c.id, EXISTS (SELECT 1 FROM community_members m WHERE m.community_id = c.id AND m.user_id = $2) AS member
+             FROM communities c WHERE c.slug = $1`,
+          [b.community, me],
+        )
+      ).rows[0];
+      if (!c) throw new ApiError("NOT_FOUND", "Unknown community");
+      if (!c.member) throw new ApiError("FORBIDDEN", "Join the community to post in it");
+      communityId = c.id;
+    }
+
     const id = newId();
     await this.pool.query(
-      `INSERT INTO posts (id, user_id, kind, body, entity_id, thesis_id, brief_id, visibility, ai_assisted, sponsored, sourced, attachment)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, false, $10, $11)`,
+      `INSERT INTO posts (id, user_id, kind, body, entity_id, thesis_id, brief_id, visibility, ai_assisted, sponsored, sourced, attachment, community_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, false, $10, $11, $12)`,
       [
         id,
         me,
@@ -184,6 +198,7 @@ export class PostsController {
         aiAssisted,
         sourced,
         attachment ? JSON.stringify(attachment) : null,
+        communityId,
       ],
     );
     await this.social.rescore(me);
@@ -573,6 +588,20 @@ export class PostsController {
     const me = uid(req);
     const q = req.query as z.infer<typeof feedQuery>;
     const entity = q.entityId ? await this.entityUuid(q.entityId) : null;
+    let community: string | null = null;
+    if (q.community) {
+      const c = await this.pool.query<{ id: string }>(
+        "SELECT id FROM communities WHERE slug = $1",
+        [q.community],
+      );
+      if (!c.rows[0]) throw new ApiError("NOT_FOUND", "Unknown community");
+      community = c.rows[0].id;
+    }
+    // Community filter: posted in the community, or about a company in one of its sectors.
+    const inCommunity = (n: number) =>
+      `($${n}::uuid IS NULL OR p.community_id = $${n}::uuid OR EXISTS (
+         SELECT 1 FROM communities c JOIN entities e ON e.sector = ANY(c.sectors)
+          WHERE c.id = $${n}::uuid AND e.id = p.entity_id))`;
 
     if (q.tab === "following") {
       const c = decodeCursor<{ t: string; id: string }>(q.cursor);
@@ -582,9 +611,10 @@ export class PostsController {
             WHERE ${VISIBLE_POST_SQL} AND ${NOT_MUTED_SQL}
               AND (p.user_id = $1::uuid OR EXISTS (SELECT 1 FROM follows f WHERE f.follower_id = $1::uuid AND f.followee_id = p.user_id))
               AND ($2::uuid IS NULL OR p.entity_id = $2)
+              AND ${inCommunity(5)}
               AND ($3::timestamptz IS NULL OR (p.created_at, p.id) < ($3::timestamptz, $4::uuid))
             ORDER BY p.created_at DESC, p.id DESC LIMIT ${PAGE_SIZE + 1}`,
-          [me, entity, c?.t ?? null, c?.id ?? null],
+          [me, entity, c?.t ?? null, c?.id ?? null, community],
         )
       ).rows;
       const page = rows.slice(0, PAGE_SIZE);
@@ -610,8 +640,9 @@ export class PostsController {
           WHERE ${VISIBLE_POST_SQL} AND ${NOT_MUTED_SQL}
             AND p.created_at <= $2 AND p.created_at > $2::timestamptz - interval '14 days'
             AND ($3::uuid IS NULL OR p.entity_id = $3)
+            AND ${inCommunity(4)}
           ORDER BY p.created_at DESC LIMIT 500`,
-        [me, asOf, entity],
+        [me, asOf, entity, community],
       )
     ).rows;
     const ids = candidates.map((p) => p.id);

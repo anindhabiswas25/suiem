@@ -87,6 +87,8 @@ export const patchProfileRequest = privacySettings
   .strict();
 export type PatchProfileRequest = z.infer<typeof patchProfileRequest>;
 
+export const communitySlug = z.string().regex(/^[a-z0-9-]{3,40}$/);
+
 export const POST_KINDS = [
   "research_brief",
   "thesis",
@@ -109,6 +111,8 @@ export const createPostRequest = z
       .optional(),
     thesisId: z.uuid().optional(),
     briefId: z.uuid().optional(),
+    /** Optional community (you must be a member). */
+    community: communitySlug.optional(),
   })
   .strict();
 export type CreatePostRequest = z.infer<typeof createPostRequest>;
@@ -142,6 +146,7 @@ export const feedQuery = z
       .string()
       .regex(/^ent:[a-z0-9-]+$/)
       .optional(),
+    community: communitySlug.optional(),
   })
   .strict();
 

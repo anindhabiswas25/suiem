@@ -49,6 +49,12 @@ export const ALLOWED_LOG_KEYS = new Set([
   "jurisdiction",
   "pid",
   "hostname",
+  // Sprint 6 audit details (ids and codes only, never content).
+  "fields",
+  "reports",
+  "snapshotBefore",
+  "snapshotAfter",
+  "changed",
 ]);
 
 const EMAIL_RE = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi;

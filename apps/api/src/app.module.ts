@@ -22,6 +22,7 @@ import { OrdersService } from "./orders/orders.service";
 import { PortfolioService } from "./orders/portfolio.service";
 import { INVEST, type InvestRuntime } from "./orders/runtime";
 import { WatchlistsController } from "./research/watchlists.controller";
+import { ModerationController } from "./social/moderation.controller";
 import { PostsController } from "./social/posts.controller";
 import { ProfilesController } from "./social/profiles.controller";
 import { ReputationController } from "./social/reputation.controller";
@@ -76,6 +77,7 @@ export class AppModule {
         ProfilesController,
         PostsController,
         ReputationController,
+        ModerationController,
       ],
       providers: [
         { provide: ENV, useValue: deps.env },

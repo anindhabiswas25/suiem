@@ -520,7 +520,16 @@ describe("no copy trading", () => {
   test("route scan: no social route reaches the order module", () => {
     const social = ROUTE_REGISTRY.filter((r) =>
       r.tags.some((t) =>
-        ["profiles", "graph", "posts", "feed", "notifications", "reputation"].includes(t),
+        [
+          "profiles",
+          "graph",
+          "posts",
+          "feed",
+          "notifications",
+          "reputation",
+          "moderation",
+          "communities",
+        ].includes(t),
       ),
     );
     expect(social.length).toBeGreaterThan(20);
@@ -568,7 +577,16 @@ describe("device tokens get 403 on every Sprint 6 route", () => {
     const token = (pair.json() as Json).token as string;
     const routes = ROUTE_REGISTRY.filter((r) =>
       r.tags.some((t) =>
-        ["profiles", "graph", "posts", "feed", "notifications", "reputation"].includes(t),
+        [
+          "profiles",
+          "graph",
+          "posts",
+          "feed",
+          "notifications",
+          "reputation",
+          "moderation",
+          "communities",
+        ].includes(t),
       ),
     );
     for (const r of routes) {
@@ -576,7 +594,8 @@ describe("device tokens get 403 on every Sprint 6 route", () => {
         .replace(":handle", u.handle)
         .replace(/:id/g, newId())
         .replace(":kind", "helpful")
-        .replace(":board", "suiem");
+        .replace(":board", "suiem")
+        .replace(":slug", "technology");
       const res = await h.app.inject({
         method: r.method,
         url: `/api/v1${path}`,
@@ -788,5 +807,186 @@ describe("thesis evaluation", () => {
     expect((await req(a, "GET", "/notifications")).json.items.map((n: Json) => n.kind)).toContain(
       "thesis_evaluated",
     );
+  });
+});
+
+// ---------------------------------------------------------------------------------------------
+describe("moderation, appeals and communities (P1)", () => {
+  const makeModerator = (u: U) =>
+    owner.query("UPDATE users SET role = 'moderator' WHERE id = $1", [u.id]);
+
+  test("the API role can't grant itself moderator (column privilege)", async () => {
+    const app = new pg.Client({ connectionString: inject("pgAppUrl") });
+    await app.connect();
+    try {
+      await expect(app.query("UPDATE users SET role = 'moderator' WHERE false")).rejects.toThrow(
+        /permission denied/,
+      );
+      await expect(app.query("UPDATE users SET is_demo = true WHERE false")).rejects.toThrow(
+        /permission denied/,
+      );
+    } finally {
+      await app.end();
+    }
+  });
+
+  test("reports → moderator hides with a reason → hidden everywhere, audited, reporters notified", async () => {
+    const author = await user();
+    const r1 = await user();
+    const r2 = await user();
+    const mod = await user();
+    const p = await post(author, {
+      kind: "discussion",
+      body: "Guaranteed 10x, buy now!!!",
+      visibility: "public",
+    });
+    for (const r of [r1, r2])
+      expect(
+        (await req(r, "POST", `/posts/${p.id}/report`, { reason: "scam", note: "pump" })).status,
+      ).toBe(201);
+    expect((await req(r1, "GET", "/moderation/reports")).status).toBe(403);
+    await makeModerator(mod);
+    const queue = (await req(mod, "GET", "/moderation/reports")).json.items.filter(
+      (x: Json) => x.targetId === p.id,
+    );
+    expect(queue).toHaveLength(2);
+    expect(queue[0]).toMatchObject({
+      reportsOnTarget: 2,
+      target: { author: author.handle, hidden: false },
+    });
+    const res = await req(mod, "POST", `/moderation/reports/${queue[0].id}/resolve`, {
+      action: "hide",
+      reason: "scam",
+    });
+    expect(res.json).toEqual({ status: "actioned", reportsResolved: 2 });
+    expect((await req(r1, "GET", `/posts/${p.id}`)).status).toBe(404);
+    expect((await req(author, "GET", `/posts/${p.id}`)).status).toBe(404);
+    expect(
+      (
+        await req(mod, "POST", `/moderation/reports/${queue[1].id}/resolve`, {
+          action: "dismiss",
+          reason: "other",
+        })
+      ).status,
+    ).toBe(409);
+    for (const r of [r1, r2])
+      expect((await req(r, "GET", "/notifications")).json.items[0]).toMatchObject({
+        kind: "report_outcome",
+        actor: null,
+        details: { outcome: "actioned", reason: "scam" },
+      });
+    const audit = await owner.query(
+      "SELECT actor_user_id, details FROM audit_logs WHERE action = 'moderation.content_hidden' AND target_id = $1",
+      [p.id],
+    );
+    expect(audit.rows[0]).toMatchObject({
+      actor_user_id: mod.id,
+      details: { reasonCode: "scam", reports: 2 },
+    });
+  });
+
+  test("comments can be reported and hidden", async () => {
+    const a = await user();
+    const b = await user();
+    const mod = await user();
+    await makeModerator(mod);
+    const p = await post(a, { kind: "question", body: "Q?", visibility: "public" });
+    const c = (await req(b, "POST", `/posts/${p.id}/comments`, { body: "abusive" })).json;
+    expect(
+      (await req(a, "POST", `/comments/${c.id}/report`, { reason: "harassment" })).status,
+    ).toBe(201);
+    const item = (await req(mod, "GET", "/moderation/reports")).json.items.find(
+      (x: Json) => x.targetId === c.id,
+    );
+    await req(mod, "POST", `/moderation/reports/${item.id}/resolve`, {
+      action: "hide",
+      reason: "harassment",
+    });
+    expect((await req(a, "GET", `/posts/${p.id}`)).json.comments).toEqual([]);
+  });
+
+  test("appeals: reviewed, or recalculated by the deterministic engine (audited); never your own", async () => {
+    const a = await user();
+    const mod = await user();
+    await makeModerator(mod);
+    const before = (await req(a, "GET", `/profiles/${a.handle}/reputation`)).json.snapshotId;
+    await req(a, "POST", "/reputation/appeals", { reason: "My thesis evaluation looks wrong" });
+    const ap = (await req(mod, "GET", "/moderation/appeals")).json.items.find(
+      (x: Json) => x.handle === a.handle,
+    );
+    const r = await req(mod, "POST", `/moderation/appeals/${ap.id}/resolve`, {
+      action: "recalculate",
+      note: "Re-ran v1-hackathon",
+    });
+    expect(r.status).toBe(200);
+    expect(r.json.status).toBe("recalculated");
+    // Same evidence → the deterministic engine reproduces the same snapshot.
+    expect(r.json.recalculation).toEqual({ before, after: before, changed: false });
+    expect(
+      (
+        await owner.query(
+          "SELECT 1 FROM audit_logs WHERE action = 'reputation.appeal_recalculated' AND target_id = $1",
+          [ap.id],
+        )
+      ).rowCount,
+    ).toBe(1);
+    expect((await req(a, "GET", "/notifications")).json.items[0].kind).toBe("appeal_outcome");
+    await req(mod, "POST", "/reputation/appeals", { reason: "Appealing my own score here" });
+    const own = (await req(mod, "GET", "/moderation/appeals")).json.items.find(
+      (x: Json) => x.handle === mod.handle,
+    );
+    expect(
+      (
+        await req(mod, "POST", `/moderation/appeals/${own.id}/resolve`, {
+          action: "reviewed",
+          note: "x",
+        })
+      ).status,
+    ).toBe(403);
+  });
+
+  test("communities: seeded per sector, join/leave, members-only posting, feed filter", async () => {
+    const a = await user();
+    const list = (await req(a, "GET", "/communities")).json.items.map((c: Json) => c.slug).sort();
+    expect(list).toEqual([
+      "consumer",
+      "crypto",
+      "energy",
+      "finance",
+      "semiconductors",
+      "technology",
+    ]);
+    expect(
+      (
+        await req(a, "POST", "/posts", {
+          kind: "discussion",
+          body: "x",
+          visibility: "public",
+          community: "crypto",
+        })
+      ).status,
+    ).toBe(403);
+    await req(a, "POST", "/communities/crypto/membership");
+    expect(
+      (await req(a, "GET", "/communities")).json.items.find((c: Json) => c.slug === "crypto"),
+    ).toMatchObject({ joined: true, members: 1 });
+    const inC = await post(a, {
+      kind: "discussion",
+      body: "on-topic",
+      visibility: "public",
+      community: "crypto",
+    });
+    const out = await post(a, { kind: "discussion", body: "off-topic", visibility: "public" });
+    const ids = (await req(a, "GET", "/feed?tab=discover&community=crypto")).json.items.map(
+      (x: Json) => x.id,
+    );
+    expect(ids).toContain(inC.id);
+    expect(ids).not.toContain(out.id);
+    await req(a, "DELETE", "/communities/crypto/membership");
+    expect(
+      (await req(a, "GET", "/communities")).json.items.find((c: Json) => c.slug === "crypto")
+        .joined,
+    ).toBe(false);
+    expect((await req(a, "GET", "/feed?community=nope")).status).toBe(404);
   });
 });
