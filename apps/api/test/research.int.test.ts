@@ -433,6 +433,21 @@ describe("follow-ups, feedback, compare, quote, drafts", () => {
     expect(r.json).toMatchObject({ aiDraft: true, saved: false, direction: "bullish" });
     expect(r.json.evidence.map((e: Json) => e.claimId)).toEqual(["c1"]); // unknown claim ids dropped
     expect((await owner.query("SELECT count(*)::int AS n FROM theses")).rows[0].n).toBe(before);
+    // Saving a thesis on that company is labelled AI-assisted, even with no evidence cited.
+    const t = await req(c, "POST", "/theses", {
+      entityId: r.json.entityId ?? "ent:nvidia",
+      direction: "bullish",
+      horizonDays: 30,
+      title: "Drafted with AI help",
+      rationale: "r",
+      evidence: [],
+      counterarguments: "c",
+      risks: "k",
+      invalidation: "i",
+    });
+    expect(t.status).toBe(201);
+    const row = await owner.query("SELECT ai_assisted FROM theses WHERE id = $1", [t.json.id]);
+    expect(row.rows[0].ai_assisted).toBe(true);
   });
 });
 
