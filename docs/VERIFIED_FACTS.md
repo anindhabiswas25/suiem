@@ -177,6 +177,29 @@ Method: read-only JSON-RPC against `https://rpc.testnet.chain.robinhood.com` (no
 | --- | --- | --- | --- | --- |
 | B-01 | Banchor chain | Monad Testnet, chain 10143 | `reference-banchor/web/lib/config.ts`, `extension/background.js:9` | VERIFIED from code. **Irrelevant to Suiem. No Banchor address is reusable** |
 
+## 8. AI research providers and data (Sprint 4, checked 2026-11-11)
+
+Keys live only in the git-ignored `.env`. These were probed live with those keys; no key values are recorded anywhere.
+
+| ID | Fact | Value | Source / method | Status |
+| --- | --- | --- | --- | --- |
+| R-01 | Primary LLM | Groq `openai/gpt-oss-120b` via `https://api.groq.com/openai/v1/chat/completions`, Structured Outputs `response_format: {type: "json_schema", json_schema: {strict: true}}`, `reasoning_effort: "low"` | `GET /openai/v1/models` lists `openai/gpt-oss-120b`; strict-schema call returned `{"ok":true}` | VERIFIED (live probe) |
+| R-02 | Fallback LLM | Gemini **`gemini-3.5-flash`** via `POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent` (header `x-goog-api-key`), `responseMimeType: application/json` + `responseSchema`, `thinkingConfig.thinkingLevel: "low"` | `GET /v1beta/models` (Flash models with `generateContent`); test calls: `gemini-3.8-flash`, `gemini-3.5-flash`, `gemini-3.5-flash-lite`, `gemini-flash-latest` → 200; `gemini-2.5-flash` → 404 "no longer available to new users". Chose 3.5 Flash (current, stable name, not preview) | VERIFIED (live probe) |
+| R-03 | Gemini thinking budget | Thinking tokens count against `maxOutputTokens`: with the default level a brief hit `MAX_TOKENS` after 3,693 thought tokens. With `thinkingLevel: "low"` and 8,192 max tokens: `STOP`, 1,430 thought tokens | live probe | VERIFIED |
+| R-04 | Gemini free-tier data use | Google may use free-tier content to improve its products | PO brief (Sprint 4) | PO-provided. Disclosed in Help and the extension preview |
+| R-05 | Groq free-plan limits | ~30 RPM, 1K RPD, 8K TPM, 200K TPD for gpt-oss-120b | PO brief (Sprint 4) | PO-provided. A 429 was observed live when two briefs ran within a minute (fallback worked) |
+| R-06 | SEC EDGAR endpoints | `https://data.sec.gov/api/xbrl/companyfacts/CIK##########.json`, `https://data.sec.gov/submissions/CIK##########.json`, ticker map `https://www.sec.gov/files/company_tickers.json` | live calls with `User-Agent` from `SEC_USER_AGENT` → 200 | VERIFIED |
+| R-07 | SEC fair access | `User-Agent` required; ≤ 10 req/s (Suiem throttles to ~5) | PO brief + SEC policy | PO-provided; adapter refuses to run without `SEC_USER_AGENT` |
+| R-08 | Foreign filer XBRL | TSMC (CIK 0001046179, files 20-F/6-K) has **no `us-gaap` facts** in companyfacts → highlights unavailable, brief `partial` | live call (recorded in `workers/research/fixtures/edgar-facts-0001046179.json`) | VERIFIED |
+| R-09 | Finnhub endpoints | `https://finnhub.io/api/v1/` `quote`, `stock/profile2`, `stock/peers`, `stock/metric?metric=all`, `company-news`; key in header `X-Finnhub-Token` (40 chars) | live calls → 200 | VERIFIED |
+| R-10 | Finnhub news URLs | `company-news` returns `https://finnhub.io/api/news?id=…` redirect links (not the publisher URL); for NVDA the 30-day feed also includes general market stories | recorded fixtures | VERIFIED. Shown as returned; publisher name kept |
+| R-11 | Finnhub free plan | Non-commercial; ~60 calls/min (Suiem throttles to ~30/min). Labelled "Data: Finnhub (free tier)" | PO brief | PO-provided |
+| R-12 | CIK map | 35/35 dictionary companies mapped (e.g. NVIDIA 0001045810, Apple 0000320193, TSMC 0001046179) → `packages/shared/src/entities/cik-map.ts` | `scripts/gen-cik-map.ts` on 2026-11-11 | VERIFIED |
+
+## 9. Testnet Stock Token candidates (OQ-P-03, found 2026-11-11, NOT verified)
+
+Explorer search shows one source-verified ERC-20 per symbol: TSLA `0xC9f9c86933092BbbfFF3CCb4b105A4A94bf3Bd4E`, AMZN `0x5884aD2f920c162CFBbACc88C9C51AA75eC09E02`, PLTR `0x1FBE1a0e43594b3455993B5dE5Fd0A7A266298d0`, NFLX `0x3b8262A63d25f0477c4DDE23F83cfe22Cb768C93`, AMD `0x71178BAc73cBeb415514eB542a8995b82669778d`. Look-alikes exist under the same symbols. **Status: CANDIDATE / UNVERIFIED** until a faucet transfer is traced (Sprint 5 task S5-02). Registry rows are unchanged.
+
 ## Re-verification
 
 Run this checklist again before Phase 4 (instrument registry) and Phase 7 (contract deploy), and record the new date:

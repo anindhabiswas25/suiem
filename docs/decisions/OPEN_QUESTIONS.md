@@ -38,8 +38,8 @@ Date opened: 2026-11-10. **Scope changed to the hackathon on 2026-11-10 (ADR-001
 
 | ID | Question | Blocks | Workaround |
 | --- | --- | --- | --- |
-| OQ-PR-01 | Financial data/news provider: licence for display, caching, AI summarization; coverage; cost | ▶ P3 E3.7 (real data) | Fixture data in dev only, never shown to beta users |
-| OQ-PR-02 | **RESOLVED 2026-11-10 — Claude API, model ID via env, `ResearchModel` interface.** LLM providers: data retention, training use, region, cost, SLAs (≥ 2 for failover) | ▶ P3 E3.7 | — |
+| OQ-PR-01 | **HACKATHON 2026-11-11: SEC EDGAR + Finnhub free tier (non-commercial; licence for a commercial launch still open).** Financial data/news provider: licence for display, caching, AI summarization; coverage; cost | ▶ P3 E3.7 (real data) | Fixture data in dev only, never shown to beta users |
+| OQ-PR-02 | **RESOLVED 2026-11-10 — Claude API, model ID via env, `ResearchModel` interface. SUPERSEDED 2026-11-11 (PO, Sprint 4): free tiers only — Groq `openai/gpt-oss-120b` primary, Gemini `gemini-3.5-flash` fallback (VERIFIED_FACTS R-01/R-02).** LLM providers: data retention, training use, region, cost, SLAs (≥ 2 for failover) | ▶ P3 E3.7 | — |
 | OQ-PR-03 | **RESOLVED 2026-11-10 — public testnet RPC for dev. Alchemy optional via `ALCHEMY_API_KEY`.** RPC plan for 46630 (Alchemy tier, rate limits, archive and `finalized` tag support) | P2 exit | Public RPC for development |
 | OQ-PR-04 | Robinhood: does any testnet trading venue (AMM/RFQ) exist for test Stock Tokens? | P4 E4.8 TestnetVenue | SimulatedVenue |
 | OQ-PR-05 | **RESOLVED 2026-11-10 — no smart accounts for the hackathon. External wallets via wagmi.** AA on testnet: EntryPoint deployed? Bundler and paymaster from Alchemy/ZeroDev for 46630? P-256 passkey validator support? | P2 E2.7 | External wallets only |
@@ -68,6 +68,8 @@ Date opened: 2026-11-10. **Scope changed to the hackathon on 2026-11-10 (ADR-001
 
 | OQ-H-07 | Extension distribution for judges: unpacked zip (default) or an unlisted Chrome Web Store listing (needs a developer account and review time) | PO | Sprint 8 | Unpacked zip + README |
 | OQ-H-08 | x.com markup may change; detector falls back to `article`/`p` text if `[data-testid="tweetText"]` disappears | Eng | Demo day | Re-check live before recording |
+| OQ-H-09 | Finnhub free plan is non-commercial. Fine for the hackathon demo; a commercial launch needs a paid licence or another provider (display, caching, AI summarisation rights) | PO | Post-hackathon | Labelled "Finnhub (free tier)" |
+| OQ-H-10 | Groq free TPM (8K) means two briefs within a minute push the second to Gemini. For the demo video, space requests ~1 min apart or accept Gemini output | PO | Sprint 8 | Fallback is automatic and labelled |
 
 ## Conflicts recorded (PRD §0.2 rule 12)
 
