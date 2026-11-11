@@ -103,8 +103,8 @@ Source: organiser API `GET https://worldisflat.fun/build/api/vote-window`, read 
 | T-02 | Faucet dispenses | "testnet ETH (used for transaction fees) and test versions of Stock Tokens, including Tesla, Amazon, Palantir, Netflix, and AMD, with more to come" | ARB-BLOG | VERIFIED (Arbitrum official blog; not repeated in docs.robinhood.com) |
 | T-03 | Faucet amounts / cooldown | Third-party guides disagree (0.01 ETH + 5 tokens per 24h, etc.) | — | UNVERIFIED |
 | T-04 | Testnet asset value | "Testnet tokens have no real-world value and are only for development use." | RH-SUPPORT, ARB-BLOG | VERIFIED |
-| T-05 | Testnet Stock Token **contract addresses** (TSLA, AMZN, PLTR, NFLX, AMD) | Not published in fetched content. The `/chain/contracts` token table renders client-side and was not readable | — | **UNVERIFIED. Blocks Phase 4 registry seeding** |
-| T-06 | Testnet Stock Token decimals | Mainnet Stock Tokens are ERC-20 with 18 decimals (RC-STOCK). Testnet not stated | RC-STOCK | UNVERIFIED for testnet. Read `decimals()` onchain at registration time |
+| T-05 | Testnet Stock Token **contract addresses** | TSLA `0xC9f9c86933092BbbfFF3CCb4b105A4A94bf3Bd4E`, AMZN `0x5884aD2f920c162CFBbACc88C9C51AA75eC09E02`, PLTR `0x1FBE1a0e43594b3455993B5dE5Fd0A7A266298d0`, NFLX `0x3b8262A63d25f0477c4DDE23F83cfe22Cb768C93`, AMD `0x71178BAc73cBeb415514eB542a8995b82669778d`. Names "Tesla", "Amazon", "Palantir Technologies", "Netflix", "AMD"; all share one code hash (`0x2f367e6a…`); supply ≈ 6.61M each | Onchain trace 2026-11-11: the testnet contract labelled **"Faucet"** `0x8762F93772c663c6a88Ba50900bd5381df2717Be` (`sendTokensAndEther`, called by operator `0xF691446e9386DEDF7364340fE35B09E8fE884d81`) mints 5 of each of exactly these five tokens to each claimant in one transaction (e.g. tx `0x7701ca2b…4732`; 26 distinct recipients on the latest page). Look-alikes ("TSLA Test Stock", "TESLA", Edel/Aave wrappers) never appear in faucet transactions | **VERIFIED (onchain trace).** Resolves OQ-P-03. Registry `TEST:*` set `active` |
+| T-06 | Testnet Stock Token decimals | `18` for all five (`decimals()` read onchain 2026-11-11) | onchain read | **VERIFIED (onchain read)** |
 | T-07 | Testnet L2 WETH | `0x7943e237c7F95DA44E0301572D358911207852Fa` | RC-PROTO | VERIFIED |
 | T-08 | Testnet L2 Multicall (Arbitrum `Multicall2`-style, **not** canonical Multicall3) | `0xa432504b6F04Cafe775b09D8AA92e8dbe41Ec7a8` | RC-PROTO | VERIFIED |
 | T-09 | Canonical Multicall3 `0xcA11bde05977b3631167028862bE2a173976CA11` on testnet | Not listed | — | UNVERIFIED. Check `eth_getCode` before use |
@@ -196,9 +196,11 @@ Keys live only in the git-ignored `.env`. These were probed live with those keys
 | R-11 | Finnhub free plan | Non-commercial; ~60 calls/min (Suiem throttles to ~30/min). Labelled "Data: Finnhub (free tier)" | PO brief | PO-provided |
 | R-12 | CIK map | 35/35 dictionary companies mapped (e.g. NVIDIA 0001045810, Apple 0000320193, TSMC 0001046179) → `packages/shared/src/entities/cik-map.ts` | `scripts/gen-cik-map.ts` on 2026-11-11 | VERIFIED |
 
-## 9. Testnet Stock Token candidates (OQ-P-03, found 2026-11-11, NOT verified)
+## 9. Testnet Stock Tokens and the Suiem demo venue (Sprint 5)
 
-Explorer search shows one source-verified ERC-20 per symbol: TSLA `0xC9f9c86933092BbbfFF3CCb4b105A4A94bf3Bd4E`, AMZN `0x5884aD2f920c162CFBbACc88C9C51AA75eC09E02`, PLTR `0x1FBE1a0e43594b3455993B5dE5Fd0A7A266298d0`, NFLX `0x3b8262A63d25f0477c4DDE23F83cfe22Cb768C93`, AMD `0x71178BAc73cBeb415514eB542a8995b82669778d`. Look-alikes exist under the same symbols. **Status: CANDIDATE / UNVERIFIED** until a faucet transfer is traced (Sprint 5 task S5-02). Registry rows are unchanged.
+The Sprint 4 candidates were **confirmed** on 2026-11-11 (see T-05/T-06). J-01 was re-read the same day (S5-01): the RHJ page lists the U.S., Canada, the United Kingdom and Switzerland, plus Prohibited Investors in Cuba, Belarus, Iran, North Korea, Russia, Syria, Ukraine, South Sudan, Sudan, Myanmar and Venezuela. **Unchanged**; `jurisdictions.ts` needs no edit.
+
+Suiem demo venue (SuiemDemoVenue, dUSD, dTSLA/dAMZN/dPLTR/dNFLX/dAMD) on testnet 46630: addresses are in `packages/contracts/deployments/46630.json` once deployed (see SPRINT_5.md).
 
 ## Re-verification
 
