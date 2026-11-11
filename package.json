@@ -37,7 +37,8 @@
     "contracts:deploy:testnet": "tsx --env-file=.env scripts/deploy-testnet.ts --verify",
     "contracts:abis": "tsx scripts/gen-abis.ts",
     "invest:smoke": "tsx --env-file=.env scripts/invest-smoke.ts",
-    "user:role": "node scripts/ensure-env.mjs && pnpm --filter @suiem/db user:role"
+    "user:role": "node scripts/ensure-env.mjs && pnpm --filter @suiem/db user:role",
+    "contracts:test:fork": "pnpm contracts:deps && cd packages/contracts && bash -c \"set -a && . ../../.env && set +a && forge test --match-path 'test/fork/*' -vv\""
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
