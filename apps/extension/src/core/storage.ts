@@ -92,12 +92,9 @@ export const saveSettings = (s: Settings) => setLocal("settings", s);
 
 /** The device token is kept out of chrome.storage (content scripts can read storage.local). */
 export async function loadAuth(): Promise<Auth | null> {
-  // One-time migration: pre-release builds kept the token in storage.local. Move it, then delete it.
-  const legacy = (await chrome.storage.local.get("auth")).auth as Auth | undefined;
-  if (legacy) {
-    await setSecret("auth", legacy);
-    await chrome.storage.local.remove("auth");
-  }
+  // Pre-release builds kept the token in storage.local, which content scripts can write. Never
+  // import it (that would let untrusted storage fixate a token); just delete it. Users pair again.
+  await chrome.storage.local.remove("auth");
   return (await getSecret<Auth>("auth")) ?? null;
 }
 export async function saveAuth(a: Auth | null): Promise<void> {
