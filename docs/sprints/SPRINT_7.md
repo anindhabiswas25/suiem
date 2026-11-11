@@ -71,9 +71,9 @@ $ pnpm format:check             All matched files use Prettier code style!
 $ pnpm depcruise                ✔ no dependency violations found (281 modules)
 $ pnpm test (unit)              Test Files 23 passed · Tests 255 passed
 $ pnpm test:integration         Test Files 9 passed · Tests 155 passed (14 new elections tests)
-$ pnpm contracts:test           SuiemElections: 19 unit/fuzz + 3 invariants (128,000 calls, 0 reverts); venue suite unchanged; fork suite SKIPPED (no MAINNET_RPC_URL in CI)
+$ pnpm contracts:test           43 passed, 1 skipped (fork suite: no MAINNET_RPC_URL in CI); incl. SuiemElections 19 unit/fuzz + 3 invariants (128,000 calls, 0 reverts)
 $ pnpm contracts:test:fork      4 passed (real $WIF, block 111,685,000)
-$ pnpm test:e2e:extension       (see final run below)
+$ pnpm test:e2e:extension       10 passed (49.2s)
 ```
 
 Fork test output (local, `pnpm contracts:test:fork`):
