@@ -70,6 +70,7 @@ Date opened: 2026-11-10. **Scope changed to the hackathon on 2026-11-10 (ADR-001
 | OQ-H-08 | x.com markup may change; detector falls back to `article`/`p` text if `[data-testid="tweetText"]` disappears | Eng | Demo day | Re-check live before recording |
 | OQ-H-09 | Finnhub free plan is non-commercial. Fine for the hackathon demo; a commercial launch needs a paid licence or another provider (display, caching, AI summarisation rights) | PO | Post-hackathon | Labelled "Finnhub (free tier)" |
 | OQ-H-10 | Groq free TPM (8K) means two briefs within a minute push the second to Gemini. For the demo video, space requests ~1 min apart or accept Gemini output | PO | Sprint 8 | Fallback is automatic and labelled |
+| OQ-H-11 | Should the demo venue also accept the official faucet test Stock Tokens (e.g. sell `TEST:TSLA` for dUSD)? Today they are read-only by design | PO | Sprint 8 | Read-only |
 
 ## Conflicts recorded (PRD §0.2 rule 12)
 

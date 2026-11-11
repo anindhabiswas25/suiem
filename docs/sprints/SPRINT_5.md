@@ -1,7 +1,7 @@
 # Sprint 5: Invest on testnet
 
 - Date: 2026-11-11 · Branch: `hackathon/main` · Brief: `prompts/PHASE_5_PROMPT.md`
-- Status: **built and tested on a local anvil (chain 46630). The real testnet deploy is waiting for faucet ETH on the deployer** (see "Deploy"). Nothing pushed. No chain 4663 transactions.
+- Status: **complete, awaiting PO approval before Sprint 6.** Deployed to Robinhood Chain testnet 46630 (Blockscout-verified); live smoke test passed with real, user-signed testnet transactions. Nothing pushed. No chain 4663 transactions.
 
 ## What works and how to see it
 
@@ -86,9 +86,35 @@ Found by tests: fills in the same block second could replay out of order ("sell 
 | `reentrancy-events` in `buy` and `sell` (event after external calls) | External calls go only to our own demo tokens (OZ ERC20, no hooks). The nonce is marked used before any call. No state is read after the calls |
 | `timestamp` in `DemoUSD.claim` and `SuiemDemoVenue._check` | Required by design: `block.number` is unreliable on Arbitrum chains (C-18); quote windows are 60 s |
 
-## Deploy
+## Deploy (Robinhood Chain testnet 46630, 2026-11-11)
 
-**Pending:** the testnet deployer `0x8A11E80CAacFE2E9182D7A1Ce64A10E1678BD4C8` has 0 testnet ETH. The quote signer is `0x4553D60f534afc9547848036B273a50c48914182`. After funding: `pnpm contracts:deploy:testnet`, then `pnpm db:seed`, then `pnpm invest:smoke` with the throwaway smoke wallet `0x53bE736A177127dc9BC564539f1BF9a44900F32a` (also funded from the faucet).
+From `packages/contracts/deployments/46630.json` (block 151705539, git `bc722bb1`, solc 0.8.30 with 200 optimizer runs). The PO pre-approved testnet deploys for this sprint. Gas price was 0.01 gwei; the deploy cost the deployer ~0.00006 ETH.
+
+| Contract | Address | Blockscout |
+| --- | --- | --- |
+| SuiemDemoVenue | `0xfdc540781EE7ab03fD397201A21B87Cf2321704F` | verified |
+| DemoUSD (dUSD) | `0xbB9795F4b4Bddb993539Ee44249D83E7625DD045` | verified |
+| dTSLA | `0xb46d40bbfb8798c93b0def0eac6b5cc66fd02731` | verified |
+| dAMZN | `0xb7a347D53CbC404BC8b9612e0df4B04450b217A6` | verified |
+| dPLTR | `0xc7821521505D5cad7A094805953a788136458633` | verified |
+| dNFLX | `0xd0cb704D45cdf60f07512a4DCa5e2791F97680A4` | verified |
+| dAMD | `0xC6D7F579208e2f62Ae798a757ad87F3ceC280a21` | verified |
+
+- **Accounts:** deployer/owner `0x8A11E80CAacFE2E9182D7A1Ce64A10E1678BD4C8`; quote signer `0x4553D60f534afc9547848036B273a50c48914182`.
+- **Checked onchain after the deploy:** `dusd()` is set, `quoteSigner()` is correct, `owner()` is the deployer, `paused()` is false, every token is `listed`, and the names read "Suiem Demo … (testnet, no value)". The manifest lists all 13 deploy transactions (7 creates, `setDemoUSD`, 5× `setListed`).
+
+## Live testnet smoke (`pnpm invest:smoke`, 2026-11-11): our first real onchain transactions
+
+Run against the dev stack with a throwaway test wallet `0x53bE736A177127dc9BC564539f1BF9a44900F32a`, funded by the PO from the official faucet (not the deployer):
+
+| Step | Tx | Result |
+| --- | --- | --- |
+| Claim 1,000 dUSD (`DemoUSD.claim`) | [`0x0da5430b…17db`](https://explorer.testnet.chain.robinhood.com/tx/0x0da5430b40f5c7f390eca40fd1c942cfc7c3ec679fd7a282992a4a11eb4517db) | success, block 151706884 |
+| Exact approve 25 dUSD to the venue | [`0x85e3e0e2…6601`](https://explorer.testnet.chain.robinhood.com/tx/0x85e3e0e2faf2efc29f5f2e5826fcb4ae174500396968b04a362b63f0890d6601) | success, block 151706922 |
+| Buy dTSLA for 25 dUSD at USD 379.78 (Finnhub) | [`0xa32957e0…bcba6`](https://explorer.testnet.chain.robinhood.com/tx/0xa32957e0c62575d26a42886cd537a349d30d9c247543c3c221669115a14bcba6) | success, block 151706944; **reconciled → filled**, 0.065761756806572226 dTSLA |
+| Sell 0.032881 dTSLA | [`0x81837575…2432`](https://explorer.testnet.chain.robinhood.com/tx/0x81837575db3c3d20d53735c88228de340862e33e15fd4fa0e8e87932e4e52432) | success, block 151706995; **reconciled → filled**, 12.475058 dUSD |
+
+Portfolio after: `DEMO:TSLA` qty 0.032880756806572226, average cost 380.160167 dUSD, realized −0.024988 dUSD (fees). The faucet holdings book (read-only) showed `TEST:TSLA/AMZN/PLTR/NFLX/AMD = 5` each in the smoke wallet, confirming T-05 from the other side. In the DB, each testnet order has exactly one fill (venue `Trade` log index 3) and three ledger entries.
 
 ## Deviations and decisions
 
@@ -101,9 +127,10 @@ Found by tests: fills in the same block second could replay out of order ("sell 
 | Valuation of testnet book | dUSD positions are valued at the real Finnhub quote to make the demo meaningful, and labelled "no value". |
 | Chain writes allowed | Only in `packages/chain/src/write/**`, `apps/web/components/invest/**`, `scripts/deploy-testnet.ts` and `scripts/invest-smoke.ts` (scanner test + ESLint). |
 | Two keys printed by mistake | While generating the testnet keys, `cast wallet new` wrote to stderr and two freshly generated keys appeared in the session log. Both were **discarded** (never funded, never used, never written to `.env`); new keys were generated silently. Addresses of the discarded keys: `0x3675BE3643e337988CF9af7FE44BD4FAA5411158`, `0x80246beFeC5Ffc84B61104Ae91362CD42294b828`. |
+| Testnet RPC | The API always builds a testnet-only client, using `TESTNET_RPC_URL`, Alchemy, or the public testnet RPC (C-07) when neither is set. |
 | API boot check | The API still checks `eth_chainId` on both configured RPCs at boot (Sprint 2). That is a read, not a transaction; nothing in this sprint sends anything to 4663. |
 
 ## Open questions
 
 - **OQ-H-11:** should the demo venue also accept the official faucet test Stock Tokens (e.g. sell `TEST:TSLA` for dUSD)? Today they are read-only by design.
-- **OQ-H-12:** Blockscout source verification for the venue. The deploy script tries it; record the result after the deploy.
+- Blockscout verification succeeded for all 7 contracts (OQ-H-12 closed).

@@ -200,7 +200,14 @@ Keys live only in the git-ignored `.env`. These were probed live with those keys
 
 The Sprint 4 candidates were **confirmed** on 2026-11-11 (see T-05/T-06). J-01 was re-read the same day (S5-01): the RHJ page lists the U.S., Canada, the United Kingdom and Switzerland, plus Prohibited Investors in Cuba, Belarus, Iran, North Korea, Russia, Syria, Ukraine, South Sudan, Sudan, Myanmar and Venezuela. **Unchanged**; `jurisdictions.ts` needs no edit.
 
-Suiem demo venue (SuiemDemoVenue, dUSD, dTSLA/dAMZN/dPLTR/dNFLX/dAMD) on testnet 46630: addresses are in `packages/contracts/deployments/46630.json` once deployed (see SPRINT_5.md).
+| ID | Fact | Value | Status |
+| --- | --- | --- | --- |
+| D-01 | SuiemDemoVenue (testnet 46630) | `0xfdc540781EE7ab03fD397201A21B87Cf2321704F` (owner `0x8A11…D4C8`, quote signer `0x4553…4182`) | VERIFIED (our deployment, block 151705539, Blockscout-verified) |
+| D-02 | DemoUSD (dUSD, 6 dp) | `0xbB9795F4b4Bddb993539Ee44249D83E7625DD045` | VERIFIED (ours) |
+| D-03 | Demo tokens (18 dp) | dTSLA `0xb46d40bbfb8798c93b0def0eac6b5cc66fd02731`, dAMZN `0xb7a347D53CbC404BC8b9612e0df4B04450b217A6`, dPLTR `0xc7821521505D5cad7A094805953a788136458633`, dNFLX `0xd0cb704D45cdf60f07512a4DCa5e2791F97680A4`, dAMD `0xC6D7F579208e2f62Ae798a757ad87F3ceC280a21` | VERIFIED (ours) |
+| D-04 | Testnet gas price | 0.01 gwei (base fee 10,000,000 wei) on 2026-11-11 | Observed |
+
+Source of truth: `packages/contracts/deployments/46630.json`.
 
 ## Re-verification
 

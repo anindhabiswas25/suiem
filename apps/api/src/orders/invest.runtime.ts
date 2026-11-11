@@ -9,15 +9,13 @@ import type { InvestRuntime } from "./runtime";
 /** Builds the invest runtime from env: testnet client (46630 only), deployment manifest, signer, Finnhub prices. */
 export function investRuntimeFromEnv(env: ApiEnv, research: ResearchRuntime): InvestRuntime {
   assertTestnet(46630);
-  const testnet =
-    env.TESTNET_RPC_URL || env.ALCHEMY_API_KEY
-      ? createSuiemPublicClient({
-          chainId: 46630,
-          rpcUrl: env.TESTNET_RPC_URL,
-          alchemyApiKey: env.ALCHEMY_API_KEY,
-          timeoutMs: 10_000,
-        })
-      : null;
+  // Testnet only (46630). Falls back to the public testnet RPC (VERIFIED_FACTS C-07).
+  const testnet = createSuiemPublicClient({
+    chainId: 46630,
+    rpcUrl: env.TESTNET_RPC_URL,
+    alchemyApiKey: env.ALCHEMY_API_KEY,
+    timeoutMs: 10_000,
+  });
   return {
     testnet,
     deployment: loadDemoDeployment(env.DEMO_DEPLOYMENT_FILE),
