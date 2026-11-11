@@ -137,7 +137,25 @@ The manifest is `packages/contracts/deployments/4663.json` and contains no RPC U
 - contract `src/SuiemElections.sol:SuiemElections`
 - ABI-encoded constructor args `0x0000000000000000000000007f84f0710f5d7d44ded117800198f970066c0b9e0000000000000000000000005173b8ea6923c2d40267890d45c46a3480954773`
 
-Elections and later transactions are still pending (candidates, PO approval):
+Elections and later transactions are listed below.
+
+**Real votes (2026-11-11 13:06 UTC, PO approved: "I will not vote, I can fund you and you check everything").** A fresh agent-held wallet was used, never the PO's key. Both votes went through the full product path against the local API and live mainnet:
+1. SIWE sign-in (user `user_51ce75e6`).
+2. `POST /elections/demo-round-1/vote/preview`:
+   - `ready`, `chainId` 4663
+   - exact approve (3e18, then 1e18)
+   - decoded calls
+   - `eth_simulateV1` OK
+   - the burn notice text
+3. Wallet sends the exact approve, then the vote.
+4. `POST /elections/demo-round-1/votes` with an Idempotency-Key returned 201.
+
+Checked afterwards:
+- `totalSupply` fell by exactly 3.0 WIF and 1.0 WIF at the vote blocks
+- contract `tallies(1)` = [3, 1, 0], `totalVotes` 4
+- the contract's $WIF balance is 0 and the leftover allowance is 0
+- the indexer recorded 2 `VoteCast` + 2 `VoteAssetBurned` events, tallies 3/1/0 matching the contract, no mismatch logged
+- `GET /elections/demo-round-1/votes` shows `0xDB96…0908` with the "Suiem member" marker only after the voter set `wallet_visibility` to public (the API requires `acknowledgeOnchainPublicity`)
 
 | # | What | Tx | Block |
 | --- | --- | --- | --- |
@@ -145,7 +163,11 @@ Elections and later transactions are still pending (candidates, PO approval):
 | 2 | createElection `demo-round-1` "Demo round · Research Contributor (Demo election)" (onchain id 1; candidates @demo_ada, @demo_alan, @demo_grace; opens 13:05:48, closes 15:05:48 UTC; cap 25). PO approved in chat | [`0x53ea45d5…aeb7`](https://robinhoodchain.blockscout.com/tx/0x53ea45d5baea21d0c9007cfc6b02dbd1c1cb6b89bd865ae6a12999a0e73caeb7) | 111,715,292 |
 | 3 | createElection "Hackathon Week 1 · Research Contributor" | — | — |
 | 4 | createElection "Hackathon Week 1 · Investor" | — | — |
-| 5 | PO vote(s): approve + vote | — | — |
+| 5a | Gas for the agent-held voting wallet `0xDB96…0908` (0.00003 ETH from the deployer, as the PO asked; the PO sent it 5 WIF) | [`0x517711c0…5c25`](https://robinhoodchain.blockscout.com/tx/0x517711c07695378cf0c9d0681be443671180aeb1e52ccc211ce9a94faf095c25) | 111,719,637 |
+| 5b | Vote 1: exact approve 3 WIF | [`0x5c129e0d…28f0`](https://robinhoodchain.blockscout.com/tx/0x5c129e0d27b895e7633087d595c057624994685e0c9a2061ecbd9f02206328f0) | 111,721,418 |
+| 5c | Vote 1: `vote(1, 1, 3)`, **3 $WIF burned** for @demo_ada (supply −3.0 WIF) | [`0x73820307…b3d2`](https://robinhoodchain.blockscout.com/tx/0x738203074f5184f605329e1d87f377e5c447ee401a7634c7304e91a7ffd7b3d2) | 111,721,427 |
+| 5d | Vote 2: exact approve 1 WIF | [`0x5cc0a04f…a7a3`](https://robinhoodchain.blockscout.com/tx/0x5cc0a04fc4ae76ed861581d098a865c25aab03ed0d2002d024c3616aa8faa7a3) | 111,721,454 |
+| 5e | Vote 2: `vote(1, 2, 1)`, **1 $WIF burned** for @demo_alan (supply −1.0 WIF) | [`0x890e3dac…510c`](https://robinhoodchain.blockscout.com/tx/0x890e3dac00eb7a0dd974d2cebd7874f992c456096348ede305f1c9d5af8c510c) | 111,721,466 |
 | 6 | finalize "Demo round" | — | — |
 
 ## What was cut
