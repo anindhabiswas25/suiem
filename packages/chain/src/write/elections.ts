@@ -13,6 +13,7 @@ import {
   type Hex,
   keccak256,
   parseAbiParameters,
+  type PublicClient,
 } from "viem";
 import { suiemElectionsAbi } from "../abi/elections";
 
@@ -95,4 +96,84 @@ export function votePreviewHash(
       vote.data,
     ]),
   );
+}
+
+export interface VotePreviewCore {
+  amount: bigint;
+  balance: bigint;
+  allowance: bigint;
+  remaining: bigint;
+  approve: { to: Address; data: Hex };
+  vote: { to: Address; data: Hex };
+  problems: string[];
+  simulation: { ok: boolean; approve: string; vote: string; error?: string };
+  previewHash: Hex;
+}
+
+/**
+ * The single vote-preview routine (API `POST /elections/:slug/vote/preview` and `pnpm wif:vote`):
+ * reads balance, allowance and remaining cap, builds the exact approve + vote calls and simulates
+ * both in order from the voter's wallet (eth_simulateV1). Sends nothing.
+ */
+export async function buildVotePreview(
+  client: Pick<PublicClient, "readContract" | "simulateCalls">,
+  p: { contract: Address; wallet: Address; electionId: bigint; candidateId: bigint; votes: bigint },
+): Promise<VotePreviewCore> {
+  const amount = burnAmount(p.votes);
+  const [balance, allowance, remaining] = await Promise.all([
+    client.readContract({
+      address: WIF.address,
+      abi: erc20Abi,
+      functionName: "balanceOf",
+      args: [p.wallet],
+    }),
+    client.readContract({
+      address: WIF.address,
+      abi: erc20Abi,
+      functionName: "allowance",
+      args: [p.wallet, p.contract],
+    }),
+    client.readContract({
+      address: p.contract,
+      abi: suiemElectionsAbi,
+      functionName: "remainingCap",
+      args: [p.electionId, p.wallet],
+    }),
+  ]);
+  const approve = encodeWifApprove(p.contract, amount);
+  const vote = { to: p.contract, data: encodeVote(p.electionId, p.candidateId, p.votes) };
+  const problems: string[] = [];
+  if (p.votes > remaining)
+    problems.push(`Over the per-wallet cap: this wallet can cast ${remaining} more vote(s) here`);
+  if (balance < amount) problems.push(`Not enough $WIF: wallet holds ${balance / ONE} whole $WIF`);
+  let simulation: VotePreviewCore["simulation"];
+  try {
+    const sim = await client.simulateCalls({ account: p.wallet, calls: [approve, vote] });
+    const [a, v] = sim.results;
+    simulation = {
+      ok: a?.status === "success" && v?.status === "success",
+      approve: a?.status ?? "unknown",
+      vote: v?.status ?? "unknown",
+      ...(v?.status === "failure" ? { error: v.error?.name ?? "reverted" } : {}),
+    };
+  } catch (error) {
+    simulation = {
+      ok: false,
+      approve: "unknown",
+      vote: "unknown",
+      error: error instanceof Error ? error.name : "simulation unavailable",
+    };
+  }
+  if (!simulation.ok && problems.length === 0) problems.push("The vote simulation failed");
+  return {
+    amount,
+    balance,
+    allowance,
+    remaining,
+    approve,
+    vote,
+    problems,
+    simulation,
+    previewHash: votePreviewHash(ELECTIONS_CHAIN, approve, vote),
+  };
 }

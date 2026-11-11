@@ -5,6 +5,8 @@
 import { ACTIVE_METHODOLOGY } from "@suiem/reputation";
 import type { Pool } from "pg";
 
+export { ACTIVE_METHODOLOGY };
+
 export const BOARDS = {
   suiem: { column: "suiem_score", title: "Suiem Score", label: "50/50 investor + contribution" },
   research: {

@@ -39,7 +39,9 @@
     "invest:smoke": "tsx --env-file=.env scripts/invest-smoke.ts",
     "user:role": "node scripts/ensure-env.mjs && pnpm --filter @suiem/db user:role",
     "contracts:test:fork": "pnpm contracts:deps && cd packages/contracts && bash -c \"set -a && . ../../.env && set +a && forge test --match-path 'test/fork/*' -vv\"",
-    "contracts:deploy:mainnet": "tsx --env-file=.env scripts/deploy-mainnet.ts"
+    "contracts:deploy:mainnet": "tsx --env-file=.env scripts/deploy-mainnet.ts",
+    "elections:create": "tsx --env-file=.env scripts/elections-create.ts",
+    "wif:vote": "tsx --env-file-if-exists=.env scripts/wif-vote.ts"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
@@ -47,6 +49,7 @@
     "@suiem/chain": "workspace:*",
     "@suiem/config": "workspace:*",
     "@suiem/db": "workspace:*",
+    "@suiem/shared": "workspace:*",
     "@testcontainers/postgresql": "12.2.1",
     "@testcontainers/redis": "12.2.1",
     "@types/node": "24.10.1",

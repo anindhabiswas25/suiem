@@ -23,6 +23,9 @@ importers:
       '@suiem/db':
         specifier: workspace:*
         version: link:packages/db
+      '@suiem/shared':
+        specifier: workspace:*
+        version: link:packages/shared
       '@testcontainers/postgresql':
         specifier: 12.2.1
         version: 12.2.1(bare-buffer@3.7.1)(supports-color@7.2.0)

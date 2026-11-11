@@ -13,14 +13,7 @@ import {
   shortAddress,
   suiemElectionsAbi,
 } from "@suiem/chain/elections";
-import {
-  burnAmount,
-  decodeVote,
-  decodeWifApprove,
-  encodeVote,
-  encodeWifApprove,
-  votePreviewHash,
-} from "@suiem/chain/write";
+import { buildVotePreview, decodeVote, decodeWifApprove, encodeVote } from "@suiem/chain/write";
 import type { DbHandle } from "@suiem/db";
 import {
   burnNotice,
@@ -30,7 +23,7 @@ import {
   IRREVERSIBILITY_NOTICE,
 } from "@suiem/shared/elections";
 import { newId } from "@suiem/shared/ids";
-import { type Address, decodeEventLog, erc20Abi, getAddress, type Hex } from "viem";
+import { type Address, decodeEventLog, getAddress, type Hex } from "viem";
 import { ApiError } from "../http/errors";
 import { CLOCK, type Clock, DB } from "../tokens";
 import { ELECTIONS, type ElectionsRuntime } from "./runtime";
@@ -269,63 +262,16 @@ export class ElectionsService {
     if (!cand) throw new ApiError("NOT_FOUND", "Unknown candidate");
     const wallet = await this.linkedWallet(userId);
     const onchainId = BigInt(e.onchain_election_id!);
-    const votes = BigInt(body.votes);
-    const amount = burnAmount(votes);
-    const client = this.rt.client;
-    const [balance, allowance, remaining] = await Promise.all([
-      client.readContract({
-        address: WIF.address,
-        abi: erc20Abi,
-        functionName: "balanceOf",
-        args: [wallet],
-      }),
-      client.readContract({
-        address: WIF.address,
-        abi: erc20Abi,
-        functionName: "allowance",
-        args: [wallet, contract],
-      }),
-      client.readContract({
-        address: contract,
-        abi: suiemElectionsAbi,
-        functionName: "remainingCap",
-        args: [onchainId, wallet],
-      }),
-    ]);
-    const approve = encodeWifApprove(contract, amount);
-    const vote = { to: contract, data: encodeVote(onchainId, BigInt(body.candidateId), votes) };
-    const problems: string[] = [];
-    if (votes > remaining)
-      problems.push(`Over the per-wallet cap: you can cast ${remaining} more vote(s) here`);
-    if (balance < amount)
-      problems.push(`Not enough $WIF: wallet holds ${balance / 10n ** 18n} whole $WIF`);
-
-    // Simulate approve → vote from the voter's wallet against the latest state (eth_simulateV1).
-    let simulation: { ok: boolean; approve: string; vote: string; error?: string };
-    try {
-      const sim = await client.simulateCalls({
-        account: wallet,
-        calls: [approve, vote],
-      });
-      const [a, v] = sim.results;
-      simulation = {
-        ok: a?.status === "success" && v?.status === "success",
-        approve: a?.status ?? "unknown",
-        vote: v?.status ?? "unknown",
-        ...(v?.status === "failure" ? { error: v.error?.name ?? "reverted" } : {}),
-      };
-    } catch (error) {
-      simulation = {
-        ok: false,
-        approve: "unknown",
-        vote: "unknown",
-        error: error instanceof Error ? error.name : "simulation unavailable",
-      };
-    }
-    if (!simulation.ok && problems.length === 0) problems.push("The vote simulation failed");
-
+    const core = await buildVotePreview(this.rt.client, {
+      contract,
+      wallet,
+      electionId: onchainId,
+      candidateId: BigInt(body.candidateId),
+      votes: BigInt(body.votes),
+    });
+    const { amount, balance, allowance, remaining, approve, vote, problems, simulation } = core;
     const ready = problems.length === 0;
-    const hash = votePreviewHash(4663, approve, vote);
+    const hash = core.previewHash;
     if (ready)
       await this.db.pool.query(
         `INSERT INTO election_vote_previews (id, user_id, election_id, candidate_id, votes, wallet, preview_hash, expires_at)
