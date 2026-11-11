@@ -131,7 +131,7 @@ Total for the deploy, 3 creates and 3 finalizes is about 1.52M gas, **≈ 0.0000
 
 The manifest is `packages/contracts/deployments/4663.json` and contains no RPC URL.
 
-**Blockscout verification:** the automatic attempt was blocked by Cloudflare's bot challenge, so the contract is not verified yet. Manual verification in a browser on the contract page uses "Verify & publish" → "Solidity (Standard JSON input)":
+**Blockscout verification:** the automatic attempt was blocked by Cloudflare's bot challenge, so the PO verified the contract manually in a browser on 2026-11-11 ("Verify & publish" → "Solidity (Standard JSON input)"), as reported by the PO in chat:
 - upload `packages/contracts/deployments/SuiemElections.standard-input.json`
 - compiler `v0.8.30`
 - contract `src/SuiemElections.sol:SuiemElections`

@@ -22,5 +22,5 @@
   "compiler": "solc 0.8.30 (optimizer 200 runs)",
   "deployedAt": "2026-11-11T12:52:36.662Z",
   "explorer": "https://robinhoodchain.blockscout.com",
-  "verified": false
+  "verified": true
 }
