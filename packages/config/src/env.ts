@@ -35,6 +35,8 @@ export const ENV_VARS = {
   RESEARCH_DAILY_LIMIT_PER_USER: "Research briefs per user per UTC day (default 10).",
   RESEARCH_CACHE_TTL_HOURS:
     "Hours a public-data-only brief and provider responses may be reused (default 12).",
+  RESEARCH_WORKER:
+    "inline (default): the API process also runs the research queue worker. off: run workers/research separately.",
   EXTENSION_ID:
     "Optional Chrome extension ID. If set, extension requests must come from chrome-extension://<id> and the web app offers one-click pairing.",
   NEXT_PUBLIC_EXTENSION_ID:
@@ -86,6 +88,7 @@ export const apiEnvSchema = z
     SEC_USER_AGENT: z.string().min(5).optional(),
     RESEARCH_DAILY_LIMIT_PER_USER: z.coerce.number().int().min(1).max(1000).default(10),
     RESEARCH_CACHE_TTL_HOURS: z.coerce.number().int().min(0).max(168).default(12),
+    RESEARCH_WORKER: z.enum(["inline", "off"]).default("inline"),
   })
   .superRefine((env, ctx) => {
     if (env.NODE_ENV === "production" && !env.EXTENSION_ID) {

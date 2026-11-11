@@ -2,10 +2,13 @@ import type { Redis } from "ioredis";
 
 /** Daily per-user research limit and per-provider token budgets (free-tier protection). */
 export interface Quota {
-  /** Counts one brief generation for the user today; returns false when over the limit. */
-  takeBrief(userId: string, limit: number, now: Date): Promise<boolean>;
-  /** Refund when a brief was not generated (e.g. both providers failed). */
-  refundBrief(userId: string, now: Date): Promise<void>;
+  /**
+   * Takes one slot for the user today. Returns the slot (the day it was counted on) or null when
+   * over the limit. `scope` separates briefs, follow-up questions and thesis drafts.
+   */
+  take(userId: string, limit: number, now: Date, scope?: QuotaScope): Promise<QuotaSlot | null>;
+  /** Gives a slot back ONLY when no model tokens were spent. Never goes below zero. */
+  refund(slot: QuotaSlot): Promise<void>;
   tokensUsed(provider: string, now: Date): Promise<number>;
   addTokens(provider: string, tokens: number, now: Date): Promise<void>;
 }
@@ -18,21 +21,28 @@ export const TOKEN_BUDGET: Record<string, number> = {
 };
 
 const day = (d: Date) => d.toISOString().slice(0, 10);
+export type QuotaScope = "brief" | "question" | "draft";
+export interface QuotaSlot {
+  key: string;
+}
+const slotKey = (userId: string, now: Date, scope: QuotaScope) => `research:quota:${scope}:${userId}:${day(now)}`;
+/** DECR only while the counter is positive (atomic). */
+const DECR_POSITIVE = "local v = tonumber(redis.call('get', KEYS[1]) or '0') if v > 0 then return redis.call('decr', KEYS[1]) end return 0";
 
 export class RedisQuota implements Quota {
   constructor(private readonly redis: Redis) {}
-  async takeBrief(userId: string, limit: number, now: Date) {
-    const key = `research:quota:${userId}:${day(now)}`;
+  async take(userId: string, limit: number, now: Date, scope: QuotaScope = "brief") {
+    const key = slotKey(userId, now, scope);
     const n = await this.redis.incr(key);
     if (n === 1) await this.redis.expire(key, 2 * 86_400);
     if (n > limit) {
-      await this.redis.decr(key);
-      return false;
+      await this.redis.eval(DECR_POSITIVE, 1, key);
+      return null;
     }
-    return true;
+    return { key };
   }
-  async refundBrief(userId: string, now: Date) {
-    await this.redis.decr(`research:quota:${userId}:${day(now)}`);
+  async refund(slot: QuotaSlot) {
+    await this.redis.eval(DECR_POSITIVE, 1, slot.key);
   }
   async tokensUsed(provider: string, now: Date) {
     return Number((await this.redis.get(`research:tokens:${provider}:${day(now)}`)) ?? 0);
@@ -47,16 +57,15 @@ export class RedisQuota implements Quota {
 export class MemoryQuota implements Quota {
   readonly briefs = new Map<string, number>();
   readonly tokens = new Map<string, number>();
-  async takeBrief(userId: string, limit: number, now: Date) {
-    const k = `${userId}:${day(now)}`;
-    const n = (this.briefs.get(k) ?? 0) + 1;
-    if (n > limit) return false;
-    this.briefs.set(k, n);
-    return true;
+  async take(userId: string, limit: number, now: Date, scope: QuotaScope = "brief") {
+    const key = slotKey(userId, now, scope);
+    const n = (this.briefs.get(key) ?? 0) + 1;
+    if (n > limit) return null;
+    this.briefs.set(key, n);
+    return { key };
   }
-  async refundBrief(userId: string, now: Date) {
-    const k = `${userId}:${day(now)}`;
-    this.briefs.set(k, Math.max(0, (this.briefs.get(k) ?? 0) - 1));
+  async refund(slot: QuotaSlot) {
+    this.briefs.set(slot.key, Math.max(0, (this.briefs.get(slot.key) ?? 0) - 1));
   }
   async tokensUsed(provider: string, now: Date) {
     return this.tokens.get(`${provider}:${day(now)}`) ?? 0;

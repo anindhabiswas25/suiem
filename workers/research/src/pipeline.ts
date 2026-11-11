@@ -46,6 +46,8 @@ export class ResearchFailure extends Error {
   constructor(
     readonly reason: string,
     readonly detail: string[] = [],
+    /** True once any model call returned (tokens were spent): the user's quota slot is kept. */
+    readonly tokensSpent = false,
   ) {
     super(reason);
     this.name = "ResearchFailure";
@@ -167,6 +169,7 @@ export async function runModels<T>(
 ): Promise<{ value: T; model: ResearchModel; attempts: string[] }> {
   const attempts: string[] = [];
   let sawValidation = false;
+  let spent = false;
   for (const model of deps.models) {
     if (
       (await deps.quota.tokensUsed(model.provider, deps.now())) >=
@@ -180,6 +183,7 @@ export async function runModels<T>(
     for (let attempt = 0; attempt < 2 && !next; attempt++) {
       try {
         const out = await model.generate(build(errors));
+        spent = true;
         await deps.quota.addTokens(model.provider, out.tokens, deps.now());
         const res = check(out.json, model);
         if ("ok" in res) {
@@ -210,6 +214,7 @@ export async function runModels<T>(
       ? "The AI output did not pass Suiem's citation and safety checks, so nothing was saved. Please try again."
       : "The AI providers are busy or at their free-tier limits right now. Please try again later.",
     attempts,
+    spent,
   );
 }
 
@@ -488,7 +493,8 @@ export async function processRequest(
     }
   }
 
-  if (!(await deps.quota.takeBrief(req.userId, deps.dailyLimit, deps.now()))) {
+  const slot = await deps.quota.take(req.userId, deps.dailyLimit, deps.now(), "brief");
+  if (!slot) {
     log("research.limit_reached", {});
     return fail(deps, requestId, LIMIT_REACHED(deps.dailyLimit));
   }
@@ -516,7 +522,9 @@ export async function processRequest(
     });
     return { status: "completed", briefId, provider: g.model.provider, model: g.model.model };
   } catch (e) {
-    await deps.quota.refundBrief(req.userId, deps.now());
+    // Refund only when no model call returned (e.g. no data, providers down before answering).
+    // Validation failures spent tokens and keep the slot, so failing requests cannot bypass the cap.
+    if (e instanceof ResearchFailure && !e.tokensSpent) await deps.quota.refund(slot);
     if (e instanceof ResearchFailure) {
       log("research.request_failed", { detail: e.detail });
       return fail(deps, requestId, e.reason);
