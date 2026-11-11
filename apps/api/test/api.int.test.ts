@@ -432,7 +432,14 @@ describe("API contract", () => {
       "/api/v1/orders/{id}/events",
       "/api/v1/orders/{id}/transactions",
     ]);
-    expect(paths.some((p) => /transfer|vote|swap|withdraw/.test(p))).toBe(false);
+    expect(paths.some((p) => /transfer|swap|withdraw/.test(p))).toBe(false);
+    // Sprint 7: the only vote routes are the reviewed $WIF election ones. None sends anything: the
+    // preview builds calldata for the user's own wallet and the bind route verifies a receipt.
+    expect(paths.filter((p) => /vote/.test(p)).sort()).toEqual([
+      "/api/v1/elections/{slug}/vote/preview",
+      "/api/v1/elections/{slug}/votes",
+      "/api/v1/me/votes",
+    ]);
   });
 
   test("request logs carry no wallet addresses, cookies or tokens", async () => {

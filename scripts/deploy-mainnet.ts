@@ -81,7 +81,15 @@ if (balance < 2n * cost) {
 
 const forge = spawnSync(
   "forge",
-  ["script", "script/DeployMainnet.s.sol:DeployMainnet", "--broadcast", "--slow"],
+  [
+    "script",
+    "script/DeployMainnet.s.sol:DeployMainnet",
+    "--broadcast",
+    "--slow",
+    // --legacy: plain gasPrice (fine on Arbitrum chains); needed for local fork rehearsals whose
+    // fee-history lookups reach past the fork point.
+    ...(process.argv.includes("--legacy") ? ["--legacy"] : []),
+  ],
   {
     cwd: CONTRACTS,
     encoding: "utf8",

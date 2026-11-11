@@ -502,6 +502,14 @@ export const elections = pgTable("elections", {
   createdBy: uuid("created_by"),
   createdAt: ts("created_at").notNull().defaultNow(),
   finalizedAt: ts("finalized_at"),
+  // 0008 (Sprint 7)
+  capPerWallet: integer("cap_per_wallet"),
+  resultStatus: text("result_status")
+    .$type<"none" | "provisional" | "final">()
+    .notNull()
+    .default("none"),
+  createTxHash: bytea("create_tx_hash"),
+  isDemo: boolean("is_demo").notNull().default(false),
 });
 
 export const electionCandidates = pgTable("election_candidates", {
@@ -510,6 +518,45 @@ export const electionCandidates = pgTable("election_candidates", {
   userId: uuid("user_id").notNull(),
   onchainCandidateId: units("onchain_candidate_id"),
   nominationPostId: uuid("nomination_post_id"),
+  createdAt: ts("created_at").notNull().defaultNow(),
+  // 0008 (Sprint 7): frozen snapshot details
+  board: text("board").$type<"research" | "investors">(),
+  rank: integer("rank"),
+  score: numeric("score", { precision: 12, scale: 4 }),
+  label: text("label").$type<"ranked" | "building_track_record">().notNull().default("ranked"),
+});
+
+// 0008 (Sprint 7): indexer cursor per (chain, contract).
+export const indexerCursors = pgTable(
+  "indexer_cursors",
+  {
+    chainId: integer("chain_id").notNull(),
+    contractAddress: bytea("contract_address").notNull(),
+    nextBlock: bigint("next_block", { mode: "bigint" }).notNull(),
+    updatedAt: ts("updated_at").notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.chainId, t.contractAddress] })],
+);
+
+export const electionVotePreviews = pgTable("election_vote_previews", {
+  id: uuid("id").primaryKey(),
+  userId: uuid("user_id").notNull(),
+  electionId: uuid("election_id").notNull(),
+  candidateId: uuid("candidate_id").notNull(),
+  votes: integer("votes").notNull(),
+  wallet: bytea("wallet").notNull(),
+  previewHash: bytea("preview_hash").notNull(),
+  createdAt: ts("created_at").notNull().defaultNow(),
+  expiresAt: ts("expires_at").notNull(),
+});
+
+export const electionVoteClaims = pgTable("election_vote_claims", {
+  id: uuid("id").primaryKey(),
+  electionId: uuid("election_id").notNull(),
+  userId: uuid("user_id").notNull(),
+  previewId: uuid("preview_id").notNull(),
+  wallet: bytea("wallet").notNull(),
+  txHash: bytea("tx_hash").notNull(),
   createdAt: ts("created_at").notNull().defaultNow(),
 });
 
@@ -785,6 +832,7 @@ export const notifications = pgTable("notifications", {
   details: jsonb("details").notNull().default({}),
   readAt: ts("read_at"),
   createdAt: ts("created_at").notNull().defaultNow(),
+  electionId: uuid("election_id"),
 });
 
 export const communities = pgTable("communities", {

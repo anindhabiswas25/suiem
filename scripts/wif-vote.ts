@@ -7,6 +7,7 @@
 // simulation), prints the burn notice and the decoded calls, and continues only after you type
 // `BURN <k> WIF`. Then it sends approve (exact amount) and vote, and prints both tx links.
 // The indexer picks the vote up from the chain. The RPC URL and key are never printed.
+import { join } from "node:path";
 import { createInterface } from "node:readline/promises";
 import {
   createSuiemPublicClient,
@@ -43,7 +44,11 @@ if (!key || !/^0x[0-9a-fA-F]{64}$/.test(key))
 const voter = privateKeyToAccount(key!);
 const rpc = arg("--rpc") ?? process.env.MAINNET_RPC_URL ?? robinhoodMainnet.rpcUrls.default.http[0];
 registerSecretRpcUrl(rpc);
-const deployment = loadElectionsDeployment() ?? fail("no deployments/4663.json");
+const manifest = arg("--manifest"); // local fork rehearsal only
+const deployment =
+  loadElectionsDeployment(
+    manifest ? join(import.meta.dirname, "..", "packages", "contracts", manifest) : undefined,
+  ) ?? fail("no deployments/4663.json");
 const contract = deployment.elections;
 const client = createSuiemPublicClient({ chainId: 4663, rpcUrl: rpc, maxRps: 10 });
 if ((await client.getChainId()) !== 4663) fail("RPC is not Robinhood Chain mainnet 4663");
