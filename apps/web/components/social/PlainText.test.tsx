@@ -16,7 +16,11 @@ describe("XSS: user content renders inert", () => {
     expect(html).toContain("&lt;img");
   });
   test("javascript:, data: and vbscript: URLs are never links", () => {
-    for (const p of ["javascript:alert(1)", "data:text/html,<script>alert(1)</script>", "vbscript:msgbox(1)"]) {
+    for (const p of [
+      "javascript:alert(1)",
+      "data:text/html,<script>alert(1)</script>",
+      "vbscript:msgbox(1)",
+    ]) {
       const html = render(`click ${p}`);
       expect(html).not.toContain("<a");
       expect(html).not.toMatch(/href=/i);

@@ -46,7 +46,10 @@ export function linkify(text: string): ReactNode[] {
 
 export function PlainText({ text, className }: { text: string; className?: string }) {
   return (
-    <p className={className} style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere", margin: 0 }}>
+    <p
+      className={className}
+      style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere", margin: 0 }}
+    >
       {linkify(text).map((n, i) => (
         <Fragment key={i}>{n}</Fragment>
       ))}
