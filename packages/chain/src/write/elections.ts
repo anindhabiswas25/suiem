@@ -81,15 +81,17 @@ export const encodeCancelElection = (id: bigint) =>
 export const encodeFinalize = (id: bigint) =>
   encodeFunctionData({ abi: suiemElectionsAbi, functionName: "finalize", args: [id] });
 
-/** Binds a vote preview to exactly the two calls the wallet will send (approve, then vote). */
+/** Binds a vote preview to the voter and exactly the two calls their wallet will send. */
 export function votePreviewHash(
   chainId: number,
+  voter: Address,
   approve: { to: Address; data: Hex },
   vote: { to: Address; data: Hex },
 ): Hex {
   return keccak256(
-    encodeAbiParameters(parseAbiParameters("uint256, address, bytes, address, bytes"), [
+    encodeAbiParameters(parseAbiParameters("uint256, address, address, bytes, address, bytes"), [
       BigInt(chainId),
+      voter,
       approve.to,
       approve.data,
       vote.to,
@@ -174,6 +176,6 @@ export async function buildVotePreview(
     vote,
     problems,
     simulation,
-    previewHash: votePreviewHash(ELECTIONS_CHAIN, approve, vote),
+    previewHash: votePreviewHash(ELECTIONS_CHAIN, p.wallet, approve, vote),
   };
 }

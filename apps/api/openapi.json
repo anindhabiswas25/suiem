@@ -11393,6 +11393,4966 @@
           }
         }
       }
+    },
+    "/api/v1/me/profile": {
+      "get": {
+        "summary": "Your profile and per-field privacy settings",
+        "tags": ["profiles"],
+        "x-suiem-auth": "user",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "default": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "VALIDATION_FAILED",
+                            "UNAUTHENTICATED",
+                            "FORBIDDEN",
+                            "MFA_REQUIRED",
+                            "REASON_REQUIRED",
+                            "NOT_FOUND",
+                            "CONFLICT",
+                            "RATE_LIMITED",
+                            "CSRF_FAILED",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "IDEMPOTENCY_KEY_REUSED",
+                            "PASSKEY_FAILED",
+                            "SIWE_INVALID",
+                            "WALLET_ALREADY_LINKED",
+                            "CONSENT_REQUIRED",
+                            "CONSENT_INVALID_TRANSITION",
+                            "POLICY_DENIED",
+                            "FLAG_LOCKED",
+                            "PAIRING_INVALID",
+                            "DEVICE_SCOPE",
+                            "RESEARCH_LIMIT",
+                            "RESEARCH_FAILED",
+                            "PROVIDER_UNAVAILABLE",
+                            "INTERNAL"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "path": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["path", "message"]
+                          }
+                        }
+                      },
+                      "required": ["code", "message", "requestId"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update display name, bio, handle (once) and privacy settings",
+        "tags": ["profiles"],
+        "x-suiem-auth": "user",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "portfolioVisibility": {
+                    "type": "string",
+                    "enum": ["private", "followers", "public"]
+                  },
+                  "positionsVisibility": {
+                    "type": "string",
+                    "enum": ["private", "followers", "public"]
+                  },
+                  "transactionsVisibility": {
+                    "type": "string",
+                    "enum": ["private", "followers", "public"]
+                  },
+                  "thesesVisibility": {
+                    "type": "string",
+                    "enum": ["private", "followers", "public"]
+                  },
+                  "researchActivityVisibility": {
+                    "type": "string",
+                    "enum": ["private", "followers", "public"]
+                  },
+                  "followersVisibility": {
+                    "type": "string",
+                    "enum": ["private", "followers", "public"]
+                  },
+                  "walletVisibility": {
+                    "type": "string",
+                    "enum": ["private", "followers", "public"]
+                  },
+                  "appearInLeaderboards": {
+                    "type": "boolean"
+                  },
+                  "handle": {
+                    "type": "string",
+                    "pattern": "^[a-z0-9_]{3,24}$"
+                  },
+                  "displayName": {
+                    "nullable": true,
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 60
+                  },
+                  "bio": {
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 500
+                  },
+                  "acknowledgeOnchainPublicity": {
+                    "type": "boolean",
+                    "enum": [true]
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "default": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "VALIDATION_FAILED",
+                            "UNAUTHENTICATED",
+                            "FORBIDDEN",
+                            "MFA_REQUIRED",
+                            "REASON_REQUIRED",
+                            "NOT_FOUND",
+                            "CONFLICT",
+                            "RATE_LIMITED",
+                            "CSRF_FAILED",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "IDEMPOTENCY_KEY_REUSED",
+                            "PASSKEY_FAILED",
+                            "SIWE_INVALID",
+                            "WALLET_ALREADY_LINKED",
+                            "CONSENT_REQUIRED",
+                            "CONSENT_INVALID_TRANSITION",
+                            "POLICY_DENIED",
+                            "FLAG_LOCKED",
+                            "PAIRING_INVALID",
+                            "DEVICE_SCOPE",
+                            "RESEARCH_LIMIT",
+                            "RESEARCH_FAILED",
+                            "PROVIDER_UNAVAILABLE",
+                            "INTERNAL"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "path": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["path", "message"]
+                          }
+                        }
+                      },
+                      "required": ["code", "message", "requestId"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/profiles/{handle}": {
+      "get": {
+        "summary": "Public profile (each field per its privacy setting)",
+        "tags": ["profiles"],
+        "x-suiem-auth": "optional",
+        "parameters": [
+          {
+            "name": "handle",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "default": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "VALIDATION_FAILED",
+                            "UNAUTHENTICATED",
+                            "FORBIDDEN",
+                            "MFA_REQUIRED",
+                            "REASON_REQUIRED",
+                            "NOT_FOUND",
+                            "CONFLICT",
+                            "RATE_LIMITED",
+                            "CSRF_FAILED",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "IDEMPOTENCY_KEY_REUSED",
+                            "PASSKEY_FAILED",
+                            "SIWE_INVALID",
+                            "WALLET_ALREADY_LINKED",
+                            "CONSENT_REQUIRED",
+                            "CONSENT_INVALID_TRANSITION",
+                            "POLICY_DENIED",
+                            "FLAG_LOCKED",
+                            "PAIRING_INVALID",
+                            "DEVICE_SCOPE",
+                            "RESEARCH_LIMIT",
+                            "RESEARCH_FAILED",
+                            "PROVIDER_UNAVAILABLE",
+                            "INTERNAL"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "path": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["path", "message"]
+                          }
+                        }
+                      },
+                      "required": ["code", "message", "requestId"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/profiles/{handle}/research": {
+      "get": {
+        "summary": "Published research posts (per post visibility) and research activity (if allowed)",
+        "tags": ["profiles"],
+        "x-suiem-auth": "optional",
+        "parameters": [
+          {
+            "name": "handle",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "default": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "VALIDATION_FAILED",
+                            "UNAUTHENTICATED",
+                            "FORBIDDEN",
+                            "MFA_REQUIRED",
+                            "REASON_REQUIRED",
+                            "NOT_FOUND",
+                            "CONFLICT",
+                            "RATE_LIMITED",
+                            "CSRF_FAILED",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "IDEMPOTENCY_KEY_REUSED",
+                            "PASSKEY_FAILED",
+                            "SIWE_INVALID",
+                            "WALLET_ALREADY_LINKED",
+                            "CONSENT_REQUIRED",
+                            "CONSENT_INVALID_TRANSITION",
+                            "POLICY_DENIED",
+                            "FLAG_LOCKED",
+                            "PAIRING_INVALID",
+                            "DEVICE_SCOPE",
+                            "RESEARCH_LIMIT",
+                            "RESEARCH_FAILED",
+                            "PROVIDER_UNAVAILABLE",
+                            "INTERNAL"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "path": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["path", "message"]
+                          }
+                        }
+                      },
+                      "required": ["code", "message", "requestId"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/profiles/{handle}/portfolio": {
+      "get": {
+        "summary": "Read-only allocation snapshot (percentages only), if the owner allows it",
+        "tags": ["profiles"],
+        "x-suiem-auth": "optional",
+        "parameters": [
+          {
+            "name": "handle",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "default": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "VALIDATION_FAILED",
+                            "UNAUTHENTICATED",
+                            "FORBIDDEN",
+                            "MFA_REQUIRED",
+                            "REASON_REQUIRED",
+                            "NOT_FOUND",
+                            "CONFLICT",
+                            "RATE_LIMITED",
+                            "CSRF_FAILED",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "IDEMPOTENCY_KEY_REUSED",
+                            "PASSKEY_FAILED",
+                            "SIWE_INVALID",
+                            "WALLET_ALREADY_LINKED",
+                            "CONSENT_REQUIRED",
+                            "CONSENT_INVALID_TRANSITION",
+                            "POLICY_DENIED",
+                            "FLAG_LOCKED",
+                            "PAIRING_INVALID",
+                            "DEVICE_SCOPE",
+                            "RESEARCH_LIMIT",
+                            "RESEARCH_FAILED",
+                            "PROVIDER_UNAVAILABLE",
+                            "INTERNAL"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "path": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["path", "message"]
+                          }
+                        }
+                      },
+                      "required": ["code", "message", "requestId"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/profiles/{handle}/portfolio/watchlist": {
+      "post": {
+        "summary": "Save portfolio: creates a watchlist from the snapshot's companies. Never an order (no copy trading)",
+        "tags": ["profiles"],
+        "x-suiem-auth": "user",
+        "parameters": [
+          {
+            "name": "handle",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "OK"
+          },
+          "default": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "VALIDATION_FAILED",
+                            "UNAUTHENTICATED",
+                            "FORBIDDEN",
+                            "MFA_REQUIRED",
+                            "REASON_REQUIRED",
+                            "NOT_FOUND",
+                            "CONFLICT",
+                            "RATE_LIMITED",
+                            "CSRF_FAILED",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "IDEMPOTENCY_KEY_REUSED",
+                            "PASSKEY_FAILED",
+                            "SIWE_INVALID",
+                            "WALLET_ALREADY_LINKED",
+                            "CONSENT_REQUIRED",
+                            "CONSENT_INVALID_TRANSITION",
+                            "POLICY_DENIED",
+                            "FLAG_LOCKED",
+                            "PAIRING_INVALID",
+                            "DEVICE_SCOPE",
+                            "RESEARCH_LIMIT",
+                            "RESEARCH_FAILED",
+                            "PROVIDER_UNAVAILABLE",
+                            "INTERNAL"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "path": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["path", "message"]
+                          }
+                        }
+                      },
+                      "required": ["code", "message", "requestId"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/users/{id}/follow": {
+      "post": {
+        "summary": "Follow a user",
+        "tags": ["graph"],
+        "x-suiem-auth": "user",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "default": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "VALIDATION_FAILED",
+                            "UNAUTHENTICATED",
+                            "FORBIDDEN",
+                            "MFA_REQUIRED",
+                            "REASON_REQUIRED",
+                            "NOT_FOUND",
+                            "CONFLICT",
+                            "RATE_LIMITED",
+                            "CSRF_FAILED",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "IDEMPOTENCY_KEY_REUSED",
+                            "PASSKEY_FAILED",
+                            "SIWE_INVALID",
+                            "WALLET_ALREADY_LINKED",
+                            "CONSENT_REQUIRED",
+                            "CONSENT_INVALID_TRANSITION",
+                            "POLICY_DENIED",
+                            "FLAG_LOCKED",
+                            "PAIRING_INVALID",
+                            "DEVICE_SCOPE",
+                            "RESEARCH_LIMIT",
+                            "RESEARCH_FAILED",
+                            "PROVIDER_UNAVAILABLE",
+                            "INTERNAL"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "path": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["path", "message"]
+                          }
+                        }
+                      },
+                      "required": ["code", "message", "requestId"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Unfollow",
+        "tags": ["graph"],
+        "x-suiem-auth": "user",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "default": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "VALIDATION_FAILED",
+                            "UNAUTHENTICATED",
+                            "FORBIDDEN",
+                            "MFA_REQUIRED",
+                            "REASON_REQUIRED",
+                            "NOT_FOUND",
+                            "CONFLICT",
+                            "RATE_LIMITED",
+                            "CSRF_FAILED",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "IDEMPOTENCY_KEY_REUSED",
+                            "PASSKEY_FAILED",
+                            "SIWE_INVALID",
+                            "WALLET_ALREADY_LINKED",
+                            "CONSENT_REQUIRED",
+                            "CONSENT_INVALID_TRANSITION",
+                            "POLICY_DENIED",
+                            "FLAG_LOCKED",
+                            "PAIRING_INVALID",
+                            "DEVICE_SCOPE",
+                            "RESEARCH_LIMIT",
+                            "RESEARCH_FAILED",
+                            "PROVIDER_UNAVAILABLE",
+                            "INTERNAL"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "path": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["path", "message"]
+                          }
+                        }
+                      },
+                      "required": ["code", "message", "requestId"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/users/{id}/mute": {
+      "post": {
+        "summary": "Mute: their posts leave your feed",
+        "tags": ["graph"],
+        "x-suiem-auth": "user",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "default": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "VALIDATION_FAILED",
+                            "UNAUTHENTICATED",
+                            "FORBIDDEN",
+                            "MFA_REQUIRED",
+                            "REASON_REQUIRED",
+                            "NOT_FOUND",
+                            "CONFLICT",
+                            "RATE_LIMITED",
+                            "CSRF_FAILED",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "IDEMPOTENCY_KEY_REUSED",
+                            "PASSKEY_FAILED",
+                            "SIWE_INVALID",
+                            "WALLET_ALREADY_LINKED",
+                            "CONSENT_REQUIRED",
+                            "CONSENT_INVALID_TRANSITION",
+                            "POLICY_DENIED",
+                            "FLAG_LOCKED",
+                            "PAIRING_INVALID",
+                            "DEVICE_SCOPE",
+                            "RESEARCH_LIMIT",
+                            "RESEARCH_FAILED",
+                            "PROVIDER_UNAVAILABLE",
+                            "INTERNAL"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "path": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["path", "message"]
+                          }
+                        }
+                      },
+                      "required": ["code", "message", "requestId"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Unmute",
+        "tags": ["graph"],
+        "x-suiem-auth": "user",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "default": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "VALIDATION_FAILED",
+                            "UNAUTHENTICATED",
+                            "FORBIDDEN",
+                            "MFA_REQUIRED",
+                            "REASON_REQUIRED",
+                            "NOT_FOUND",
+                            "CONFLICT",
+                            "RATE_LIMITED",
+                            "CSRF_FAILED",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "IDEMPOTENCY_KEY_REUSED",
+                            "PASSKEY_FAILED",
+                            "SIWE_INVALID",
+                            "WALLET_ALREADY_LINKED",
+                            "CONSENT_REQUIRED",
+                            "CONSENT_INVALID_TRANSITION",
+                            "POLICY_DENIED",
+                            "FLAG_LOCKED",
+                            "PAIRING_INVALID",
+                            "DEVICE_SCOPE",
+                            "RESEARCH_LIMIT",
+                            "RESEARCH_FAILED",
+                            "PROVIDER_UNAVAILABLE",
+                            "INTERNAL"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "path": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["path", "message"]
+                          }
+                        }
+                      },
+                      "required": ["code", "message", "requestId"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/users/{id}/block": {
+      "post": {
+        "summary": "Block: they can't follow, comment on or react to you; follows both ways are removed",
+        "tags": ["graph"],
+        "x-suiem-auth": "user",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "default": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "VALIDATION_FAILED",
+                            "UNAUTHENTICATED",
+                            "FORBIDDEN",
+                            "MFA_REQUIRED",
+                            "REASON_REQUIRED",
+                            "NOT_FOUND",
+                            "CONFLICT",
+                            "RATE_LIMITED",
+                            "CSRF_FAILED",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "IDEMPOTENCY_KEY_REUSED",
+                            "PASSKEY_FAILED",
+                            "SIWE_INVALID",
+                            "WALLET_ALREADY_LINKED",
+                            "CONSENT_REQUIRED",
+                            "CONSENT_INVALID_TRANSITION",
+                            "POLICY_DENIED",
+                            "FLAG_LOCKED",
+                            "PAIRING_INVALID",
+                            "DEVICE_SCOPE",
+                            "RESEARCH_LIMIT",
+                            "RESEARCH_FAILED",
+                            "PROVIDER_UNAVAILABLE",
+                            "INTERNAL"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "path": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["path", "message"]
+                          }
+                        }
+                      },
+                      "required": ["code", "message", "requestId"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Unblock",
+        "tags": ["graph"],
+        "x-suiem-auth": "user",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "default": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "VALIDATION_FAILED",
+                            "UNAUTHENTICATED",
+                            "FORBIDDEN",
+                            "MFA_REQUIRED",
+                            "REASON_REQUIRED",
+                            "NOT_FOUND",
+                            "CONFLICT",
+                            "RATE_LIMITED",
+                            "CSRF_FAILED",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "IDEMPOTENCY_KEY_REUSED",
+                            "PASSKEY_FAILED",
+                            "SIWE_INVALID",
+                            "WALLET_ALREADY_LINKED",
+                            "CONSENT_REQUIRED",
+                            "CONSENT_INVALID_TRANSITION",
+                            "POLICY_DENIED",
+                            "FLAG_LOCKED",
+                            "PAIRING_INVALID",
+                            "DEVICE_SCOPE",
+                            "RESEARCH_LIMIT",
+                            "RESEARCH_FAILED",
+                            "PROVIDER_UNAVAILABLE",
+                            "INTERNAL"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "path": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["path", "message"]
+                          }
+                        }
+                      },
+                      "required": ["code", "message", "requestId"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/posts": {
+      "post": {
+        "summary": "Publish to the feed (visibility is required; labels Sourced / AI-assisted / Simulated are set by the server)",
+        "tags": ["posts"],
+        "x-suiem-auth": "user",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "research_brief",
+                      "thesis",
+                      "discussion",
+                      "portfolio_snapshot",
+                      "learning_note",
+                      "question"
+                    ]
+                  },
+                  "body": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 10000
+                  },
+                  "visibility": {
+                    "type": "string",
+                    "enum": ["private", "followers", "public"]
+                  },
+                  "entityId": {
+                    "type": "string",
+                    "pattern": "^ent:[a-z0-9-]+$"
+                  },
+                  "thesisId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "briefId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "community": {
+                    "type": "string",
+                    "pattern": "^[a-z0-9-]{3,40}$"
+                  }
+                },
+                "required": ["kind", "body", "visibility"],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "kind": {
+                      "type": "string",
+                      "enum": [
+                        "research_brief",
+                        "thesis",
+                        "discussion",
+                        "portfolio_snapshot",
+                        "learning_note",
+                        "question"
+                      ]
+                    },
+                    "body": {
+                      "type": "string"
+                    },
+                    "author": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "handle": {
+                          "type": "string"
+                        },
+                        "displayName": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "isDemo": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": ["id", "handle", "displayName", "isDemo"]
+                    },
+                    "visibility": {
+                      "type": "string",
+                      "enum": ["private", "followers", "public"]
+                    },
+                    "entity": {
+                      "nullable": true,
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        }
+                      },
+                      "required": ["id", "name"]
+                    },
+                    "attachment": {
+                      "nullable": true,
+                      "type": "object",
+                      "additionalProperties": {}
+                    },
+                    "labels": {
+                      "type": "object",
+                      "properties": {
+                        "sourced": {
+                          "type": "boolean"
+                        },
+                        "aiAssisted": {
+                          "type": "boolean"
+                        },
+                        "sponsored": {
+                          "type": "boolean"
+                        },
+                        "simulatedTestnet": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": ["sourced", "aiAssisted", "sponsored", "simulatedTestnet"]
+                    },
+                    "counts": {
+                      "type": "object",
+                      "properties": {
+                        "helpful": {
+                          "type": "number"
+                        },
+                        "notHelpful": {
+                          "type": "number"
+                        },
+                        "comments": {
+                          "type": "number"
+                        }
+                      },
+                      "required": ["helpful", "notHelpful", "comments"]
+                    },
+                    "viewer": {
+                      "type": "object",
+                      "properties": {
+                        "reaction": {
+                          "nullable": true,
+                          "type": "string",
+                          "enum": ["helpful", "not_helpful"]
+                        },
+                        "bookmarked": {
+                          "type": "boolean"
+                        },
+                        "isAuthor": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": ["reaction", "bookmarked", "isAuthor"]
+                    },
+                    "createdAt": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "kind",
+                    "body",
+                    "author",
+                    "visibility",
+                    "entity",
+                    "attachment",
+                    "labels",
+                    "counts",
+                    "viewer",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "VALIDATION_FAILED",
+                            "UNAUTHENTICATED",
+                            "FORBIDDEN",
+                            "MFA_REQUIRED",
+                            "REASON_REQUIRED",
+                            "NOT_FOUND",
+                            "CONFLICT",
+                            "RATE_LIMITED",
+                            "CSRF_FAILED",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "IDEMPOTENCY_KEY_REUSED",
+                            "PASSKEY_FAILED",
+                            "SIWE_INVALID",
+                            "WALLET_ALREADY_LINKED",
+                            "CONSENT_REQUIRED",
+                            "CONSENT_INVALID_TRANSITION",
+                            "POLICY_DENIED",
+                            "FLAG_LOCKED",
+                            "PAIRING_INVALID",
+                            "DEVICE_SCOPE",
+                            "RESEARCH_LIMIT",
+                            "RESEARCH_FAILED",
+                            "PROVIDER_UNAVAILABLE",
+                            "INTERNAL"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "path": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["path", "message"]
+                          }
+                        }
+                      },
+                      "required": ["code", "message", "requestId"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/posts/{id}": {
+      "get": {
+        "summary": "A post with its comments",
+        "tags": ["posts"],
+        "x-suiem-auth": "optional",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "default": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "VALIDATION_FAILED",
+                            "UNAUTHENTICATED",
+                            "FORBIDDEN",
+                            "MFA_REQUIRED",
+                            "REASON_REQUIRED",
+                            "NOT_FOUND",
+                            "CONFLICT",
+                            "RATE_LIMITED",
+                            "CSRF_FAILED",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "IDEMPOTENCY_KEY_REUSED",
+                            "PASSKEY_FAILED",
+                            "SIWE_INVALID",
+                            "WALLET_ALREADY_LINKED",
+                            "CONSENT_REQUIRED",
+                            "CONSENT_INVALID_TRANSITION",
+                            "POLICY_DENIED",
+                            "FLAG_LOCKED",
+                            "PAIRING_INVALID",
+                            "DEVICE_SCOPE",
+                            "RESEARCH_LIMIT",
+                            "RESEARCH_FAILED",
+                            "PROVIDER_UNAVAILABLE",
+                            "INTERNAL"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "path": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["path", "message"]
+                          }
+                        }
+                      },
+                      "required": ["code", "message", "requestId"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete your post (soft delete: hidden everywhere)",
+        "tags": ["posts"],
+        "x-suiem-auth": "user",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "default": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "VALIDATION_FAILED",
+                            "UNAUTHENTICATED",
+                            "FORBIDDEN",
+                            "MFA_REQUIRED",
+                            "REASON_REQUIRED",
+                            "NOT_FOUND",
+                            "CONFLICT",
+                            "RATE_LIMITED",
+                            "CSRF_FAILED",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "IDEMPOTENCY_KEY_REUSED",
+                            "PASSKEY_FAILED",
+                            "SIWE_INVALID",
+                            "WALLET_ALREADY_LINKED",
+                            "CONSENT_REQUIRED",
+                            "CONSENT_INVALID_TRANSITION",
+                            "POLICY_DENIED",
+                            "FLAG_LOCKED",
+                            "PAIRING_INVALID",
+                            "DEVICE_SCOPE",
+                            "RESEARCH_LIMIT",
+                            "RESEARCH_FAILED",
+                            "PROVIDER_UNAVAILABLE",
+                            "INTERNAL"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "path": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["path", "message"]
+                          }
+                        }
+                      },
+                      "required": ["code", "message", "requestId"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/posts/{id}/comments": {
+      "post": {
+        "summary": "Comment or reply (one level of nesting)",
+        "tags": ["posts"],
+        "x-suiem-auth": "user",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "body": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 4000
+                  },
+                  "parentId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  }
+                },
+                "required": ["body"],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "OK"
+          },
+          "default": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "VALIDATION_FAILED",
+                            "UNAUTHENTICATED",
+                            "FORBIDDEN",
+                            "MFA_REQUIRED",
+                            "REASON_REQUIRED",
+                            "NOT_FOUND",
+                            "CONFLICT",
+                            "RATE_LIMITED",
+                            "CSRF_FAILED",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "IDEMPOTENCY_KEY_REUSED",
+                            "PASSKEY_FAILED",
+                            "SIWE_INVALID",
+                            "WALLET_ALREADY_LINKED",
+                            "CONSENT_REQUIRED",
+                            "CONSENT_INVALID_TRANSITION",
+                            "POLICY_DENIED",
+                            "FLAG_LOCKED",
+                            "PAIRING_INVALID",
+                            "DEVICE_SCOPE",
+                            "RESEARCH_LIMIT",
+                            "RESEARCH_FAILED",
+                            "PROVIDER_UNAVAILABLE",
+                            "INTERNAL"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "path": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["path", "message"]
+                          }
+                        }
+                      },
+                      "required": ["code", "message", "requestId"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/comments/{id}": {
+      "delete": {
+        "summary": "Delete your comment (soft)",
+        "tags": ["posts"],
+        "x-suiem-auth": "user",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "default": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "VALIDATION_FAILED",
+                            "UNAUTHENTICATED",
+                            "FORBIDDEN",
+                            "MFA_REQUIRED",
+                            "REASON_REQUIRED",
+                            "NOT_FOUND",
+                            "CONFLICT",
+                            "RATE_LIMITED",
+                            "CSRF_FAILED",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "IDEMPOTENCY_KEY_REUSED",
+                            "PASSKEY_FAILED",
+                            "SIWE_INVALID",
+                            "WALLET_ALREADY_LINKED",
+                            "CONSENT_REQUIRED",
+                            "CONSENT_INVALID_TRANSITION",
+                            "POLICY_DENIED",
+                            "FLAG_LOCKED",
+                            "PAIRING_INVALID",
+                            "DEVICE_SCOPE",
+                            "RESEARCH_LIMIT",
+                            "RESEARCH_FAILED",
+                            "PROVIDER_UNAVAILABLE",
+                            "INTERNAL"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "path": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["path", "message"]
+                          }
+                        }
+                      },
+                      "required": ["code", "message", "requestId"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/posts/{id}/reactions": {
+      "post": {
+        "summary": "Mark helpful / not helpful (mutually exclusive; never on your own post)",
+        "tags": ["posts"],
+        "x-suiem-auth": "user",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "enum": ["helpful", "not_helpful"]
+                  }
+                },
+                "required": ["kind"],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "default": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "VALIDATION_FAILED",
+                            "UNAUTHENTICATED",
+                            "FORBIDDEN",
+                            "MFA_REQUIRED",
+                            "REASON_REQUIRED",
+                            "NOT_FOUND",
+                            "CONFLICT",
+                            "RATE_LIMITED",
+                            "CSRF_FAILED",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "IDEMPOTENCY_KEY_REUSED",
+                            "PASSKEY_FAILED",
+                            "SIWE_INVALID",
+                            "WALLET_ALREADY_LINKED",
+                            "CONSENT_REQUIRED",
+                            "CONSENT_INVALID_TRANSITION",
+                            "POLICY_DENIED",
+                            "FLAG_LOCKED",
+                            "PAIRING_INVALID",
+                            "DEVICE_SCOPE",
+                            "RESEARCH_LIMIT",
+                            "RESEARCH_FAILED",
+                            "PROVIDER_UNAVAILABLE",
+                            "INTERNAL"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "path": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["path", "message"]
+                          }
+                        }
+                      },
+                      "required": ["code", "message", "requestId"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/posts/{id}/reactions/{kind}": {
+      "delete": {
+        "summary": "Remove your reaction",
+        "tags": ["posts"],
+        "x-suiem-auth": "user",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "kind",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "default": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "VALIDATION_FAILED",
+                            "UNAUTHENTICATED",
+                            "FORBIDDEN",
+                            "MFA_REQUIRED",
+                            "REASON_REQUIRED",
+                            "NOT_FOUND",
+                            "CONFLICT",
+                            "RATE_LIMITED",
+                            "CSRF_FAILED",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "IDEMPOTENCY_KEY_REUSED",
+                            "PASSKEY_FAILED",
+                            "SIWE_INVALID",
+                            "WALLET_ALREADY_LINKED",
+                            "CONSENT_REQUIRED",
+                            "CONSENT_INVALID_TRANSITION",
+                            "POLICY_DENIED",
+                            "FLAG_LOCKED",
+                            "PAIRING_INVALID",
+                            "DEVICE_SCOPE",
+                            "RESEARCH_LIMIT",
+                            "RESEARCH_FAILED",
+                            "PROVIDER_UNAVAILABLE",
+                            "INTERNAL"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "path": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["path", "message"]
+                          }
+                        }
+                      },
+                      "required": ["code", "message", "requestId"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/comments/{id}/reactions": {
+      "post": {
+        "summary": "Mark a comment or answer helpful / not helpful",
+        "tags": ["posts"],
+        "x-suiem-auth": "user",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "enum": ["helpful", "not_helpful"]
+                  }
+                },
+                "required": ["kind"],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "default": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "VALIDATION_FAILED",
+                            "UNAUTHENTICATED",
+                            "FORBIDDEN",
+                            "MFA_REQUIRED",
+                            "REASON_REQUIRED",
+                            "NOT_FOUND",
+                            "CONFLICT",
+                            "RATE_LIMITED",
+                            "CSRF_FAILED",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "IDEMPOTENCY_KEY_REUSED",
+                            "PASSKEY_FAILED",
+                            "SIWE_INVALID",
+                            "WALLET_ALREADY_LINKED",
+                            "CONSENT_REQUIRED",
+                            "CONSENT_INVALID_TRANSITION",
+                            "POLICY_DENIED",
+                            "FLAG_LOCKED",
+                            "PAIRING_INVALID",
+                            "DEVICE_SCOPE",
+                            "RESEARCH_LIMIT",
+                            "RESEARCH_FAILED",
+                            "PROVIDER_UNAVAILABLE",
+                            "INTERNAL"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "path": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["path", "message"]
+                          }
+                        }
+                      },
+                      "required": ["code", "message", "requestId"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/posts/{id}/bookmark": {
+      "post": {
+        "summary": "Bookmark",
+        "tags": ["posts"],
+        "x-suiem-auth": "user",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "default": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "VALIDATION_FAILED",
+                            "UNAUTHENTICATED",
+                            "FORBIDDEN",
+                            "MFA_REQUIRED",
+                            "REASON_REQUIRED",
+                            "NOT_FOUND",
+                            "CONFLICT",
+                            "RATE_LIMITED",
+                            "CSRF_FAILED",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "IDEMPOTENCY_KEY_REUSED",
+                            "PASSKEY_FAILED",
+                            "SIWE_INVALID",
+                            "WALLET_ALREADY_LINKED",
+                            "CONSENT_REQUIRED",
+                            "CONSENT_INVALID_TRANSITION",
+                            "POLICY_DENIED",
+                            "FLAG_LOCKED",
+                            "PAIRING_INVALID",
+                            "DEVICE_SCOPE",
+                            "RESEARCH_LIMIT",
+                            "RESEARCH_FAILED",
+                            "PROVIDER_UNAVAILABLE",
+                            "INTERNAL"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "path": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["path", "message"]
+                          }
+                        }
+                      },
+                      "required": ["code", "message", "requestId"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Remove bookmark",
+        "tags": ["posts"],
+        "x-suiem-auth": "user",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "default": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "VALIDATION_FAILED",
+                            "UNAUTHENTICATED",
+                            "FORBIDDEN",
+                            "MFA_REQUIRED",
+                            "REASON_REQUIRED",
+                            "NOT_FOUND",
+                            "CONFLICT",
+                            "RATE_LIMITED",
+                            "CSRF_FAILED",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "IDEMPOTENCY_KEY_REUSED",
+                            "PASSKEY_FAILED",
+                            "SIWE_INVALID",
+                            "WALLET_ALREADY_LINKED",
+                            "CONSENT_REQUIRED",
+                            "CONSENT_INVALID_TRANSITION",
+                            "POLICY_DENIED",
+                            "FLAG_LOCKED",
+                            "PAIRING_INVALID",
+                            "DEVICE_SCOPE",
+                            "RESEARCH_LIMIT",
+                            "RESEARCH_FAILED",
+                            "PROVIDER_UNAVAILABLE",
+                            "INTERNAL"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "path": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["path", "message"]
+                          }
+                        }
+                      },
+                      "required": ["code", "message", "requestId"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/bookmarks": {
+      "get": {
+        "summary": "Your bookmarked posts (still visible to you)",
+        "tags": ["posts"],
+        "x-suiem-auth": "user",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "default": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "VALIDATION_FAILED",
+                            "UNAUTHENTICATED",
+                            "FORBIDDEN",
+                            "MFA_REQUIRED",
+                            "REASON_REQUIRED",
+                            "NOT_FOUND",
+                            "CONFLICT",
+                            "RATE_LIMITED",
+                            "CSRF_FAILED",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "IDEMPOTENCY_KEY_REUSED",
+                            "PASSKEY_FAILED",
+                            "SIWE_INVALID",
+                            "WALLET_ALREADY_LINKED",
+                            "CONSENT_REQUIRED",
+                            "CONSENT_INVALID_TRANSITION",
+                            "POLICY_DENIED",
+                            "FLAG_LOCKED",
+                            "PAIRING_INVALID",
+                            "DEVICE_SCOPE",
+                            "RESEARCH_LIMIT",
+                            "RESEARCH_FAILED",
+                            "PROVIDER_UNAVAILABLE",
+                            "INTERNAL"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "path": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["path", "message"]
+                          }
+                        }
+                      },
+                      "required": ["code", "message", "requestId"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/posts/{id}/report": {
+      "post": {
+        "summary": "Report a post to moderators",
+        "tags": ["posts"],
+        "x-suiem-auth": "user",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reason": {
+                    "type": "string",
+                    "enum": [
+                      "spam",
+                      "scam",
+                      "harassment",
+                      "impersonation",
+                      "manipulation",
+                      "undisclosed_sponsorship",
+                      "fraudulent_performance",
+                      "other"
+                    ]
+                  },
+                  "note": {
+                    "type": "string",
+                    "maxLength": 1000
+                  }
+                },
+                "required": ["reason"],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "OK"
+          },
+          "default": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "VALIDATION_FAILED",
+                            "UNAUTHENTICATED",
+                            "FORBIDDEN",
+                            "MFA_REQUIRED",
+                            "REASON_REQUIRED",
+                            "NOT_FOUND",
+                            "CONFLICT",
+                            "RATE_LIMITED",
+                            "CSRF_FAILED",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "IDEMPOTENCY_KEY_REUSED",
+                            "PASSKEY_FAILED",
+                            "SIWE_INVALID",
+                            "WALLET_ALREADY_LINKED",
+                            "CONSENT_REQUIRED",
+                            "CONSENT_INVALID_TRANSITION",
+                            "POLICY_DENIED",
+                            "FLAG_LOCKED",
+                            "PAIRING_INVALID",
+                            "DEVICE_SCOPE",
+                            "RESEARCH_LIMIT",
+                            "RESEARCH_FAILED",
+                            "PROVIDER_UNAVAILABLE",
+                            "INTERNAL"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "path": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["path", "message"]
+                          }
+                        }
+                      },
+                      "required": ["code", "message", "requestId"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/feed": {
+      "get": {
+        "summary": "Following or Discover feed (cursor pagination; muted, blocked, deleted and non-visible posts excluded)",
+        "tags": ["feed"],
+        "x-suiem-auth": "user",
+        "parameters": [
+          {
+            "name": "tab",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": "following",
+              "type": "string",
+              "enum": ["following", "discover"]
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 200
+            }
+          },
+          {
+            "name": "entityId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^ent:[a-z0-9-]+$"
+            }
+          },
+          {
+            "name": "community",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9-]{3,40}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "kind": {
+                            "type": "string",
+                            "enum": [
+                              "research_brief",
+                              "thesis",
+                              "discussion",
+                              "portfolio_snapshot",
+                              "learning_note",
+                              "question"
+                            ]
+                          },
+                          "body": {
+                            "type": "string"
+                          },
+                          "author": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              "handle": {
+                                "type": "string"
+                              },
+                              "displayName": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "isDemo": {
+                                "type": "boolean"
+                              }
+                            },
+                            "required": ["id", "handle", "displayName", "isDemo"]
+                          },
+                          "visibility": {
+                            "type": "string",
+                            "enum": ["private", "followers", "public"]
+                          },
+                          "entity": {
+                            "nullable": true,
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["id", "name"]
+                          },
+                          "attachment": {
+                            "nullable": true,
+                            "type": "object",
+                            "additionalProperties": {}
+                          },
+                          "labels": {
+                            "type": "object",
+                            "properties": {
+                              "sourced": {
+                                "type": "boolean"
+                              },
+                              "aiAssisted": {
+                                "type": "boolean"
+                              },
+                              "sponsored": {
+                                "type": "boolean"
+                              },
+                              "simulatedTestnet": {
+                                "type": "boolean"
+                              }
+                            },
+                            "required": ["sourced", "aiAssisted", "sponsored", "simulatedTestnet"]
+                          },
+                          "counts": {
+                            "type": "object",
+                            "properties": {
+                              "helpful": {
+                                "type": "number"
+                              },
+                              "notHelpful": {
+                                "type": "number"
+                              },
+                              "comments": {
+                                "type": "number"
+                              }
+                            },
+                            "required": ["helpful", "notHelpful", "comments"]
+                          },
+                          "viewer": {
+                            "type": "object",
+                            "properties": {
+                              "reaction": {
+                                "nullable": true,
+                                "type": "string",
+                                "enum": ["helpful", "not_helpful"]
+                              },
+                              "bookmarked": {
+                                "type": "boolean"
+                              },
+                              "isAuthor": {
+                                "type": "boolean"
+                              }
+                            },
+                            "required": ["reaction", "bookmarked", "isAuthor"]
+                          },
+                          "createdAt": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "kind",
+                          "body",
+                          "author",
+                          "visibility",
+                          "entity",
+                          "attachment",
+                          "labels",
+                          "counts",
+                          "viewer",
+                          "createdAt"
+                        ]
+                      }
+                    },
+                    "nextCursor": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "trending": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "activity": {
+                            "type": "number"
+                          }
+                        },
+                        "required": ["id", "name", "activity"]
+                      }
+                    }
+                  },
+                  "required": ["items", "nextCursor", "trending"]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "VALIDATION_FAILED",
+                            "UNAUTHENTICATED",
+                            "FORBIDDEN",
+                            "MFA_REQUIRED",
+                            "REASON_REQUIRED",
+                            "NOT_FOUND",
+                            "CONFLICT",
+                            "RATE_LIMITED",
+                            "CSRF_FAILED",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "IDEMPOTENCY_KEY_REUSED",
+                            "PASSKEY_FAILED",
+                            "SIWE_INVALID",
+                            "WALLET_ALREADY_LINKED",
+                            "CONSENT_REQUIRED",
+                            "CONSENT_INVALID_TRANSITION",
+                            "POLICY_DENIED",
+                            "FLAG_LOCKED",
+                            "PAIRING_INVALID",
+                            "DEVICE_SCOPE",
+                            "RESEARCH_LIMIT",
+                            "RESEARCH_FAILED",
+                            "PROVIDER_UNAVAILABLE",
+                            "INTERNAL"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "path": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["path", "message"]
+                          }
+                        }
+                      },
+                      "required": ["code", "message", "requestId"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/notifications": {
+      "get": {
+        "summary": "In-app notifications with the unread count",
+        "tags": ["notifications"],
+        "x-suiem-auth": "user",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "default": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "VALIDATION_FAILED",
+                            "UNAUTHENTICATED",
+                            "FORBIDDEN",
+                            "MFA_REQUIRED",
+                            "REASON_REQUIRED",
+                            "NOT_FOUND",
+                            "CONFLICT",
+                            "RATE_LIMITED",
+                            "CSRF_FAILED",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "IDEMPOTENCY_KEY_REUSED",
+                            "PASSKEY_FAILED",
+                            "SIWE_INVALID",
+                            "WALLET_ALREADY_LINKED",
+                            "CONSENT_REQUIRED",
+                            "CONSENT_INVALID_TRANSITION",
+                            "POLICY_DENIED",
+                            "FLAG_LOCKED",
+                            "PAIRING_INVALID",
+                            "DEVICE_SCOPE",
+                            "RESEARCH_LIMIT",
+                            "RESEARCH_FAILED",
+                            "PROVIDER_UNAVAILABLE",
+                            "INTERNAL"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "path": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["path", "message"]
+                          }
+                        }
+                      },
+                      "required": ["code", "message", "requestId"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/notifications/read": {
+      "post": {
+        "summary": "Mark all notifications read",
+        "tags": ["notifications"],
+        "x-suiem-auth": "user",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "default": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "VALIDATION_FAILED",
+                            "UNAUTHENTICATED",
+                            "FORBIDDEN",
+                            "MFA_REQUIRED",
+                            "REASON_REQUIRED",
+                            "NOT_FOUND",
+                            "CONFLICT",
+                            "RATE_LIMITED",
+                            "CSRF_FAILED",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "IDEMPOTENCY_KEY_REUSED",
+                            "PASSKEY_FAILED",
+                            "SIWE_INVALID",
+                            "WALLET_ALREADY_LINKED",
+                            "CONSENT_REQUIRED",
+                            "CONSENT_INVALID_TRANSITION",
+                            "POLICY_DENIED",
+                            "FLAG_LOCKED",
+                            "PAIRING_INVALID",
+                            "DEVICE_SCOPE",
+                            "RESEARCH_LIMIT",
+                            "RESEARCH_FAILED",
+                            "PROVIDER_UNAVAILABLE",
+                            "INTERNAL"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "path": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["path", "message"]
+                          }
+                        }
+                      },
+                      "required": ["code", "message", "requestId"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/profiles/{handle}/reputation": {
+      "get": {
+        "summary": "Score card (you, or users who opted in to leaderboards)",
+        "tags": ["reputation"],
+        "x-suiem-auth": "optional",
+        "parameters": [
+          {
+            "name": "handle",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "default": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "VALIDATION_FAILED",
+                            "UNAUTHENTICATED",
+                            "FORBIDDEN",
+                            "MFA_REQUIRED",
+                            "REASON_REQUIRED",
+                            "NOT_FOUND",
+                            "CONFLICT",
+                            "RATE_LIMITED",
+                            "CSRF_FAILED",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "IDEMPOTENCY_KEY_REUSED",
+                            "PASSKEY_FAILED",
+                            "SIWE_INVALID",
+                            "WALLET_ALREADY_LINKED",
+                            "CONSENT_REQUIRED",
+                            "CONSENT_INVALID_TRANSITION",
+                            "POLICY_DENIED",
+                            "FLAG_LOCKED",
+                            "PAIRING_INVALID",
+                            "DEVICE_SCOPE",
+                            "RESEARCH_LIMIT",
+                            "RESEARCH_FAILED",
+                            "PROVIDER_UNAVAILABLE",
+                            "INTERNAL"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "path": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["path", "message"]
+                          }
+                        }
+                      },
+                      "required": ["code", "message", "requestId"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/reputation/methodology": {
+      "get": {
+        "summary": "Formulas, weights, thresholds (v1-hackathon and v1), benchmark and integrity rules",
+        "tags": ["reputation"],
+        "x-suiem-auth": "public",
+        "security": [],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "default": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "VALIDATION_FAILED",
+                            "UNAUTHENTICATED",
+                            "FORBIDDEN",
+                            "MFA_REQUIRED",
+                            "REASON_REQUIRED",
+                            "NOT_FOUND",
+                            "CONFLICT",
+                            "RATE_LIMITED",
+                            "CSRF_FAILED",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "IDEMPOTENCY_KEY_REUSED",
+                            "PASSKEY_FAILED",
+                            "SIWE_INVALID",
+                            "WALLET_ALREADY_LINKED",
+                            "CONSENT_REQUIRED",
+                            "CONSENT_INVALID_TRANSITION",
+                            "POLICY_DENIED",
+                            "FLAG_LOCKED",
+                            "PAIRING_INVALID",
+                            "DEVICE_SCOPE",
+                            "RESEARCH_LIMIT",
+                            "RESEARCH_FAILED",
+                            "PROVIDER_UNAVAILABLE",
+                            "INTERNAL"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "path": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["path", "message"]
+                          }
+                        }
+                      },
+                      "required": ["code", "message", "requestId"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/reputation/appeals": {
+      "post": {
+        "summary": "Appeal your score (a moderator reviews it or re-runs the deterministic engine)",
+        "tags": ["reputation"],
+        "x-suiem-auth": "user",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reason": {
+                    "type": "string",
+                    "minLength": 10,
+                    "maxLength": 2000
+                  },
+                  "snapshotId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  }
+                },
+                "required": ["reason"],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "OK"
+          },
+          "default": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "VALIDATION_FAILED",
+                            "UNAUTHENTICATED",
+                            "FORBIDDEN",
+                            "MFA_REQUIRED",
+                            "REASON_REQUIRED",
+                            "NOT_FOUND",
+                            "CONFLICT",
+                            "RATE_LIMITED",
+                            "CSRF_FAILED",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "IDEMPOTENCY_KEY_REUSED",
+                            "PASSKEY_FAILED",
+                            "SIWE_INVALID",
+                            "WALLET_ALREADY_LINKED",
+                            "CONSENT_REQUIRED",
+                            "CONSENT_INVALID_TRANSITION",
+                            "POLICY_DENIED",
+                            "FLAG_LOCKED",
+                            "PAIRING_INVALID",
+                            "DEVICE_SCOPE",
+                            "RESEARCH_LIMIT",
+                            "RESEARCH_FAILED",
+                            "PROVIDER_UNAVAILABLE",
+                            "INTERNAL"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "path": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["path", "message"]
+                          }
+                        }
+                      },
+                      "required": ["code", "message", "requestId"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/leaderboards/{board}": {
+      "get": {
+        "summary": "Opt-in leaderboard of ranked profiles (suiem | research | investors). Candidate pools for weekly elections",
+        "tags": ["reputation"],
+        "x-suiem-auth": "optional",
+        "parameters": [
+          {
+            "name": "board",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "period",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": "week",
+              "type": "string",
+              "enum": ["week", "all"]
+            }
+          },
+          {
+            "name": "showDemo",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": "false",
+              "type": "string",
+              "enum": ["true", "false"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "default": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "VALIDATION_FAILED",
+                            "UNAUTHENTICATED",
+                            "FORBIDDEN",
+                            "MFA_REQUIRED",
+                            "REASON_REQUIRED",
+                            "NOT_FOUND",
+                            "CONFLICT",
+                            "RATE_LIMITED",
+                            "CSRF_FAILED",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "IDEMPOTENCY_KEY_REUSED",
+                            "PASSKEY_FAILED",
+                            "SIWE_INVALID",
+                            "WALLET_ALREADY_LINKED",
+                            "CONSENT_REQUIRED",
+                            "CONSENT_INVALID_TRANSITION",
+                            "POLICY_DENIED",
+                            "FLAG_LOCKED",
+                            "PAIRING_INVALID",
+                            "DEVICE_SCOPE",
+                            "RESEARCH_LIMIT",
+                            "RESEARCH_FAILED",
+                            "PROVIDER_UNAVAILABLE",
+                            "INTERNAL"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "path": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["path", "message"]
+                          }
+                        }
+                      },
+                      "required": ["code", "message", "requestId"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/comments/{id}/report": {
+      "post": {
+        "summary": "Report a comment to moderators",
+        "tags": ["posts"],
+        "x-suiem-auth": "user",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reason": {
+                    "type": "string",
+                    "enum": [
+                      "spam",
+                      "scam",
+                      "harassment",
+                      "impersonation",
+                      "manipulation",
+                      "undisclosed_sponsorship",
+                      "fraudulent_performance",
+                      "other"
+                    ]
+                  },
+                  "note": {
+                    "type": "string",
+                    "maxLength": 1000
+                  }
+                },
+                "required": ["reason"],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "OK"
+          },
+          "default": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "VALIDATION_FAILED",
+                            "UNAUTHENTICATED",
+                            "FORBIDDEN",
+                            "MFA_REQUIRED",
+                            "REASON_REQUIRED",
+                            "NOT_FOUND",
+                            "CONFLICT",
+                            "RATE_LIMITED",
+                            "CSRF_FAILED",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "IDEMPOTENCY_KEY_REUSED",
+                            "PASSKEY_FAILED",
+                            "SIWE_INVALID",
+                            "WALLET_ALREADY_LINKED",
+                            "CONSENT_REQUIRED",
+                            "CONSENT_INVALID_TRANSITION",
+                            "POLICY_DENIED",
+                            "FLAG_LOCKED",
+                            "PAIRING_INVALID",
+                            "DEVICE_SCOPE",
+                            "RESEARCH_LIMIT",
+                            "RESEARCH_FAILED",
+                            "PROVIDER_UNAVAILABLE",
+                            "INTERNAL"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "path": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["path", "message"]
+                          }
+                        }
+                      },
+                      "required": ["code", "message", "requestId"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/moderation/reports": {
+      "get": {
+        "summary": "Moderation queue (moderators only)",
+        "tags": ["moderation"],
+        "x-suiem-auth": "user",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": "open",
+              "type": "string",
+              "enum": ["open", "all"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "default": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "VALIDATION_FAILED",
+                            "UNAUTHENTICATED",
+                            "FORBIDDEN",
+                            "MFA_REQUIRED",
+                            "REASON_REQUIRED",
+                            "NOT_FOUND",
+                            "CONFLICT",
+                            "RATE_LIMITED",
+                            "CSRF_FAILED",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "IDEMPOTENCY_KEY_REUSED",
+                            "PASSKEY_FAILED",
+                            "SIWE_INVALID",
+                            "WALLET_ALREADY_LINKED",
+                            "CONSENT_REQUIRED",
+                            "CONSENT_INVALID_TRANSITION",
+                            "POLICY_DENIED",
+                            "FLAG_LOCKED",
+                            "PAIRING_INVALID",
+                            "DEVICE_SCOPE",
+                            "RESEARCH_LIMIT",
+                            "RESEARCH_FAILED",
+                            "PROVIDER_UNAVAILABLE",
+                            "INTERNAL"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "path": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["path", "message"]
+                          }
+                        }
+                      },
+                      "required": ["code", "message", "requestId"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/moderation/reports/{id}/resolve": {
+      "post": {
+        "summary": "Hide the reported post/comment with a reason code, or dismiss; resolves every open report on it and notifies reporters",
+        "tags": ["moderation"],
+        "x-suiem-auth": "user",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "action": {
+                    "type": "string",
+                    "enum": ["hide", "dismiss"]
+                  },
+                  "reason": {
+                    "type": "string",
+                    "enum": [
+                      "spam",
+                      "scam",
+                      "harassment",
+                      "impersonation",
+                      "manipulation",
+                      "undisclosed_sponsorship",
+                      "fraudulent_performance",
+                      "other"
+                    ]
+                  },
+                  "note": {
+                    "type": "string",
+                    "maxLength": 1000
+                  }
+                },
+                "required": ["action", "reason"],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "default": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "VALIDATION_FAILED",
+                            "UNAUTHENTICATED",
+                            "FORBIDDEN",
+                            "MFA_REQUIRED",
+                            "REASON_REQUIRED",
+                            "NOT_FOUND",
+                            "CONFLICT",
+                            "RATE_LIMITED",
+                            "CSRF_FAILED",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "IDEMPOTENCY_KEY_REUSED",
+                            "PASSKEY_FAILED",
+                            "SIWE_INVALID",
+                            "WALLET_ALREADY_LINKED",
+                            "CONSENT_REQUIRED",
+                            "CONSENT_INVALID_TRANSITION",
+                            "POLICY_DENIED",
+                            "FLAG_LOCKED",
+                            "PAIRING_INVALID",
+                            "DEVICE_SCOPE",
+                            "RESEARCH_LIMIT",
+                            "RESEARCH_FAILED",
+                            "PROVIDER_UNAVAILABLE",
+                            "INTERNAL"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "path": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["path", "message"]
+                          }
+                        }
+                      },
+                      "required": ["code", "message", "requestId"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/moderation/appeals": {
+      "get": {
+        "summary": "Score appeals (moderators only)",
+        "tags": ["moderation"],
+        "x-suiem-auth": "user",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": "open",
+              "type": "string",
+              "enum": ["open", "all"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "default": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "VALIDATION_FAILED",
+                            "UNAUTHENTICATED",
+                            "FORBIDDEN",
+                            "MFA_REQUIRED",
+                            "REASON_REQUIRED",
+                            "NOT_FOUND",
+                            "CONFLICT",
+                            "RATE_LIMITED",
+                            "CSRF_FAILED",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "IDEMPOTENCY_KEY_REUSED",
+                            "PASSKEY_FAILED",
+                            "SIWE_INVALID",
+                            "WALLET_ALREADY_LINKED",
+                            "CONSENT_REQUIRED",
+                            "CONSENT_INVALID_TRANSITION",
+                            "POLICY_DENIED",
+                            "FLAG_LOCKED",
+                            "PAIRING_INVALID",
+                            "DEVICE_SCOPE",
+                            "RESEARCH_LIMIT",
+                            "RESEARCH_FAILED",
+                            "PROVIDER_UNAVAILABLE",
+                            "INTERNAL"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "path": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["path", "message"]
+                          }
+                        }
+                      },
+                      "required": ["code", "message", "requestId"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/moderation/appeals/{id}/resolve": {
+      "post": {
+        "summary": "Mark an appeal reviewed, or recalculate (re-runs the deterministic engine; audited). Not your own",
+        "tags": ["moderation"],
+        "x-suiem-auth": "user",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "action": {
+                    "type": "string",
+                    "enum": ["reviewed", "recalculate"]
+                  },
+                  "note": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 2000
+                  }
+                },
+                "required": ["action", "note"],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "default": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "VALIDATION_FAILED",
+                            "UNAUTHENTICATED",
+                            "FORBIDDEN",
+                            "MFA_REQUIRED",
+                            "REASON_REQUIRED",
+                            "NOT_FOUND",
+                            "CONFLICT",
+                            "RATE_LIMITED",
+                            "CSRF_FAILED",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "IDEMPOTENCY_KEY_REUSED",
+                            "PASSKEY_FAILED",
+                            "SIWE_INVALID",
+                            "WALLET_ALREADY_LINKED",
+                            "CONSENT_REQUIRED",
+                            "CONSENT_INVALID_TRANSITION",
+                            "POLICY_DENIED",
+                            "FLAG_LOCKED",
+                            "PAIRING_INVALID",
+                            "DEVICE_SCOPE",
+                            "RESEARCH_LIMIT",
+                            "RESEARCH_FAILED",
+                            "PROVIDER_UNAVAILABLE",
+                            "INTERNAL"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "path": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["path", "message"]
+                          }
+                        }
+                      },
+                      "required": ["code", "message", "requestId"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/communities": {
+      "get": {
+        "summary": "Sector communities with member counts (membership is a feed filter only)",
+        "tags": ["communities"],
+        "x-suiem-auth": "optional",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "default": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "VALIDATION_FAILED",
+                            "UNAUTHENTICATED",
+                            "FORBIDDEN",
+                            "MFA_REQUIRED",
+                            "REASON_REQUIRED",
+                            "NOT_FOUND",
+                            "CONFLICT",
+                            "RATE_LIMITED",
+                            "CSRF_FAILED",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "IDEMPOTENCY_KEY_REUSED",
+                            "PASSKEY_FAILED",
+                            "SIWE_INVALID",
+                            "WALLET_ALREADY_LINKED",
+                            "CONSENT_REQUIRED",
+                            "CONSENT_INVALID_TRANSITION",
+                            "POLICY_DENIED",
+                            "FLAG_LOCKED",
+                            "PAIRING_INVALID",
+                            "DEVICE_SCOPE",
+                            "RESEARCH_LIMIT",
+                            "RESEARCH_FAILED",
+                            "PROVIDER_UNAVAILABLE",
+                            "INTERNAL"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "path": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["path", "message"]
+                          }
+                        }
+                      },
+                      "required": ["code", "message", "requestId"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/communities/{slug}/membership": {
+      "post": {
+        "summary": "Join a community",
+        "tags": ["communities"],
+        "x-suiem-auth": "user",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "default": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "VALIDATION_FAILED",
+                            "UNAUTHENTICATED",
+                            "FORBIDDEN",
+                            "MFA_REQUIRED",
+                            "REASON_REQUIRED",
+                            "NOT_FOUND",
+                            "CONFLICT",
+                            "RATE_LIMITED",
+                            "CSRF_FAILED",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "IDEMPOTENCY_KEY_REUSED",
+                            "PASSKEY_FAILED",
+                            "SIWE_INVALID",
+                            "WALLET_ALREADY_LINKED",
+                            "CONSENT_REQUIRED",
+                            "CONSENT_INVALID_TRANSITION",
+                            "POLICY_DENIED",
+                            "FLAG_LOCKED",
+                            "PAIRING_INVALID",
+                            "DEVICE_SCOPE",
+                            "RESEARCH_LIMIT",
+                            "RESEARCH_FAILED",
+                            "PROVIDER_UNAVAILABLE",
+                            "INTERNAL"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "path": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["path", "message"]
+                          }
+                        }
+                      },
+                      "required": ["code", "message", "requestId"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Leave a community",
+        "tags": ["communities"],
+        "x-suiem-auth": "user",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "default": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "VALIDATION_FAILED",
+                            "UNAUTHENTICATED",
+                            "FORBIDDEN",
+                            "MFA_REQUIRED",
+                            "REASON_REQUIRED",
+                            "NOT_FOUND",
+                            "CONFLICT",
+                            "RATE_LIMITED",
+                            "CSRF_FAILED",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "IDEMPOTENCY_KEY_REUSED",
+                            "PASSKEY_FAILED",
+                            "SIWE_INVALID",
+                            "WALLET_ALREADY_LINKED",
+                            "CONSENT_REQUIRED",
+                            "CONSENT_INVALID_TRANSITION",
+                            "POLICY_DENIED",
+                            "FLAG_LOCKED",
+                            "PAIRING_INVALID",
+                            "DEVICE_SCOPE",
+                            "RESEARCH_LIMIT",
+                            "RESEARCH_FAILED",
+                            "PROVIDER_UNAVAILABLE",
+                            "INTERNAL"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "path": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["path", "message"]
+                          }
+                        }
+                      },
+                      "required": ["code", "message", "requestId"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/elections": {
+      "get": {
+        "summary": "Elections (mainnet · real $WIF) with candidates, indexed tallies and finality",
+        "tags": ["elections"],
+        "x-suiem-auth": "optional",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["scheduled", "open", "closed", "finalized", "cancelled"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "default": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "VALIDATION_FAILED",
+                            "UNAUTHENTICATED",
+                            "FORBIDDEN",
+                            "MFA_REQUIRED",
+                            "REASON_REQUIRED",
+                            "NOT_FOUND",
+                            "CONFLICT",
+                            "RATE_LIMITED",
+                            "CSRF_FAILED",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "IDEMPOTENCY_KEY_REUSED",
+                            "PASSKEY_FAILED",
+                            "SIWE_INVALID",
+                            "WALLET_ALREADY_LINKED",
+                            "CONSENT_REQUIRED",
+                            "CONSENT_INVALID_TRANSITION",
+                            "POLICY_DENIED",
+                            "FLAG_LOCKED",
+                            "PAIRING_INVALID",
+                            "DEVICE_SCOPE",
+                            "RESEARCH_LIMIT",
+                            "RESEARCH_FAILED",
+                            "PROVIDER_UNAVAILABLE",
+                            "INTERNAL"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "path": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["path", "message"]
+                          }
+                        }
+                      },
+                      "required": ["code", "message", "requestId"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/elections/{slug}": {
+      "get": {
+        "summary": "Election detail: rules, times, contract, candidates, tallies (finality, as-of block), cap, notice",
+        "tags": ["elections"],
+        "x-suiem-auth": "optional",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "default": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "VALIDATION_FAILED",
+                            "UNAUTHENTICATED",
+                            "FORBIDDEN",
+                            "MFA_REQUIRED",
+                            "REASON_REQUIRED",
+                            "NOT_FOUND",
+                            "CONFLICT",
+                            "RATE_LIMITED",
+                            "CSRF_FAILED",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "IDEMPOTENCY_KEY_REUSED",
+                            "PASSKEY_FAILED",
+                            "SIWE_INVALID",
+                            "WALLET_ALREADY_LINKED",
+                            "CONSENT_REQUIRED",
+                            "CONSENT_INVALID_TRANSITION",
+                            "POLICY_DENIED",
+                            "FLAG_LOCKED",
+                            "PAIRING_INVALID",
+                            "DEVICE_SCOPE",
+                            "RESEARCH_LIMIT",
+                            "RESEARCH_FAILED",
+                            "PROVIDER_UNAVAILABLE",
+                            "INTERNAL"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "path": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["path", "message"]
+                          }
+                        }
+                      },
+                      "required": ["code", "message", "requestId"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/elections/{slug}/votes": {
+      "get": {
+        "summary": "Indexed votes (short voter address; 'Suiem member' only per wallet_visibility)",
+        "tags": ["elections"],
+        "x-suiem-auth": "optional",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d+:\\d+$"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "default": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "VALIDATION_FAILED",
+                            "UNAUTHENTICATED",
+                            "FORBIDDEN",
+                            "MFA_REQUIRED",
+                            "REASON_REQUIRED",
+                            "NOT_FOUND",
+                            "CONFLICT",
+                            "RATE_LIMITED",
+                            "CSRF_FAILED",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "IDEMPOTENCY_KEY_REUSED",
+                            "PASSKEY_FAILED",
+                            "SIWE_INVALID",
+                            "WALLET_ALREADY_LINKED",
+                            "CONSENT_REQUIRED",
+                            "CONSENT_INVALID_TRANSITION",
+                            "POLICY_DENIED",
+                            "FLAG_LOCKED",
+                            "PAIRING_INVALID",
+                            "DEVICE_SCOPE",
+                            "RESEARCH_LIMIT",
+                            "RESEARCH_FAILED",
+                            "PROVIDER_UNAVAILABLE",
+                            "INTERNAL"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "path": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["path", "message"]
+                          }
+                        }
+                      },
+                      "required": ["code", "message", "requestId"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Bind a vote tx to your account after the receipt is verified (Idempotency-Key). Tallies come only from the indexer",
+        "tags": ["elections"],
+        "x-suiem-auth": "user",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "txHash": {
+                    "type": "string",
+                    "pattern": "^0x[0-9a-fA-F]{64}$"
+                  },
+                  "previewHash": {
+                    "type": "string",
+                    "pattern": "^0x[0-9a-fA-F]{64}$"
+                  }
+                },
+                "required": ["txHash", "previewHash"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "OK"
+          },
+          "default": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "VALIDATION_FAILED",
+                            "UNAUTHENTICATED",
+                            "FORBIDDEN",
+                            "MFA_REQUIRED",
+                            "REASON_REQUIRED",
+                            "NOT_FOUND",
+                            "CONFLICT",
+                            "RATE_LIMITED",
+                            "CSRF_FAILED",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "IDEMPOTENCY_KEY_REUSED",
+                            "PASSKEY_FAILED",
+                            "SIWE_INVALID",
+                            "WALLET_ALREADY_LINKED",
+                            "CONSENT_REQUIRED",
+                            "CONSENT_INVALID_TRANSITION",
+                            "POLICY_DENIED",
+                            "FLAG_LOCKED",
+                            "PAIRING_INVALID",
+                            "DEVICE_SCOPE",
+                            "RESEARCH_LIMIT",
+                            "RESEARCH_FAILED",
+                            "PROVIDER_UNAVAILABLE",
+                            "INTERNAL"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "path": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["path", "message"]
+                          }
+                        }
+                      },
+                      "required": ["code", "message", "requestId"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/elections/{slug}/vote/preview": {
+      "post": {
+        "summary": "Vote preview: balance, allowance, remaining cap, exact approve + vote calldata (decoded), simulation, burn notice, previewHash",
+        "tags": ["elections"],
+        "x-suiem-auth": "user",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "candidateId": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 8
+                  },
+                  "votes": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 1000000
+                  }
+                },
+                "required": ["candidateId", "votes"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "default": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "VALIDATION_FAILED",
+                            "UNAUTHENTICATED",
+                            "FORBIDDEN",
+                            "MFA_REQUIRED",
+                            "REASON_REQUIRED",
+                            "NOT_FOUND",
+                            "CONFLICT",
+                            "RATE_LIMITED",
+                            "CSRF_FAILED",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "IDEMPOTENCY_KEY_REUSED",
+                            "PASSKEY_FAILED",
+                            "SIWE_INVALID",
+                            "WALLET_ALREADY_LINKED",
+                            "CONSENT_REQUIRED",
+                            "CONSENT_INVALID_TRANSITION",
+                            "POLICY_DENIED",
+                            "FLAG_LOCKED",
+                            "PAIRING_INVALID",
+                            "DEVICE_SCOPE",
+                            "RESEARCH_LIMIT",
+                            "RESEARCH_FAILED",
+                            "PROVIDER_UNAVAILABLE",
+                            "INTERNAL"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "path": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["path", "message"]
+                          }
+                        }
+                      },
+                      "required": ["code", "message", "requestId"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/votes": {
+      "get": {
+        "summary": "My bound votes with tx links and indexing finality",
+        "tags": ["elections"],
+        "x-suiem-auth": "user",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "default": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "VALIDATION_FAILED",
+                            "UNAUTHENTICATED",
+                            "FORBIDDEN",
+                            "MFA_REQUIRED",
+                            "REASON_REQUIRED",
+                            "NOT_FOUND",
+                            "CONFLICT",
+                            "RATE_LIMITED",
+                            "CSRF_FAILED",
+                            "IDEMPOTENCY_KEY_REQUIRED",
+                            "IDEMPOTENCY_KEY_REUSED",
+                            "PASSKEY_FAILED",
+                            "SIWE_INVALID",
+                            "WALLET_ALREADY_LINKED",
+                            "CONSENT_REQUIRED",
+                            "CONSENT_INVALID_TRANSITION",
+                            "POLICY_DENIED",
+                            "FLAG_LOCKED",
+                            "PAIRING_INVALID",
+                            "DEVICE_SCOPE",
+                            "RESEARCH_LIMIT",
+                            "RESEARCH_FAILED",
+                            "PROVIDER_UNAVAILABLE",
+                            "INTERNAL"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "path": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["path", "message"]
+                          }
+                        }
+                      },
+                      "required": ["code", "message", "requestId"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }

@@ -81,7 +81,7 @@ export async function snapshotCandidates(
       ? `(SELECT count(*) FROM theses t WHERE t.user_id = u.id AND t.visibility = 'public'
             AND t.status = 'published' AND t.published_at > now() - interval '7 days')`
       : `(SELECT count(*) FROM fills f JOIN orders o ON o.id = f.order_id
-           WHERE o.user_id = u.id AND o.book IN ('testnet', 'simulated'))`;
+           WHERE o.user_id = u.id AND o.book::text IN ('testnet', 'simulated'))`;
   const fallback = (
     await pool.query<{ id: string; handle: string; display_name: string | null }>(
       `SELECT u.id, u.handle, u.display_name, ${activity} AS n

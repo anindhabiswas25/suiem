@@ -11,6 +11,8 @@ import { createLogger } from "../src/observability/logger";
 import type { InvestRuntime } from "../src/orders/runtime";
 import type { ResearchRuntime } from "../src/research/runtime";
 import type { ReputationRuntime } from "../src/social/reputation.runtime";
+import type { ElectionsRuntime } from "../src/elections/runtime";
+import { createSuiemPublicClient } from "@suiem/chain";
 import { systemClock, type Clock } from "../src/tokens";
 
 export const WEB_ORIGIN = "http://localhost:3000";
@@ -34,6 +36,8 @@ export async function startHarness(
     invest?: InvestRuntime;
     /** Reputation runtime (fixture quotes). Default: no market data. */
     reputation?: (db: DbHandle) => ReputationRuntime;
+    /** Elections runtime (anvil chain-4663 client + local SuiemElections deployment). */
+    elections?: ElectionsRuntime;
   } = {},
 ): Promise<Harness> {
   const env = loadApiEnv({
@@ -68,6 +72,11 @@ export async function startHarness(
     research: options.research?.(db),
     invest: options.invest,
     reputation: options.reputation?.(db),
+    // Without an explicit runtime, tests never touch mainnet: no deployment, public RPC unused.
+    elections: options.elections ?? {
+      client: createSuiemPublicClient({ chainId: 4663, rpcUrl: "http://127.0.0.1:9" }),
+      deployment: null,
+    },
   });
   return {
     app,

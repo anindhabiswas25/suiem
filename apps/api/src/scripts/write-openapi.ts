@@ -9,6 +9,11 @@ import "../research/research.controller";
 import "../research/watchlists.controller";
 import "../research/theses.controller";
 import "../orders/orders.controller";
+import "../social/profiles.controller";
+import "../social/posts.controller";
+import "../social/reputation.controller";
+import "../social/moderation.controller";
+import "../elections/elections.controller";
 import { buildOpenApiDocument } from "../http/openapi";
 
 const out = join(import.meta.dirname, "..", "..", "openapi.json");
