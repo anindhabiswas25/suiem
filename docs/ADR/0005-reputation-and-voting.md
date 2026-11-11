@@ -51,3 +51,18 @@ The testnet experience shows real burn semantics without touching the real token
 ## Open items
 
 OQ-P-01, OQ-P-02, OQ-P-04, OQ-P-07, OQ-L-05, OQ-L-06, OQ-S-03.
+
+## Addendum 2026-11-11: hackathon voting rules (Sprint 7, PO decisions; resolves OQ-P-04 for the hackathon)
+
+This addendum supersedes §2's `TestWIF`/`WIFVoting` plan and §3's proposed defaults **for the hackathon only** (ADR-0010 §2 mainnet exception).
+
+- **Asset and mechanic:** the real $WIF on mainnet 4663 (W-12, W-16). `SuiemElections.vote` calls `WIF.burnFrom(voter, votes × 1e18)` and checks that `totalSupply` fell by exactly that amount, or reverts (`BurnNotEffective`). Only then does it emit `VoteAssetBurned`, so "burned" always means supply dropped (PRD §12.3). There is no SINK mode. The organiser's own contract uses a `0x…dEaD` sink (W-15); Suiem does not.
+- **Weight:** 1 $WIF = 1 vote, whole tokens only (the function takes a vote count), linear.
+- **Cap:** set per election at creation; 25 votes per wallet per election for the hackathon, enforced onchain across all candidates.
+- **Eligibility:** anyone may vote onchain. Results show every valid onchain vote. The voter appears as a short address, plus a "Suiem member" marker only when a SIWE-linked wallet's owner allows it via `wallet_visibility`. No account-age rule.
+- **Finality of votes:** votes can't be changed, refunded or reversed. A cancelled election keeps its burned tokens burned. Cancel is possible only before the start, so no votes can exist then.
+- **Administration:** the owner is a fresh deployer EOA (`Ownable2Step`; multisig deferred, ADR-0011). It can create elections and, before the start, add candidates or cancel. Nothing else: no withdraw, no upgrade, no pause and no change to a running election. Anyone may `finalize` after the end.
+- **Candidates:** up to 8, frozen at creation from `research?period=week` / `investors?period=week`. If fewer than 2 rows are ranked, the "Building track record" fallback applies (public published thesis in the last 7 days, or a reconciled testnet/simulated trade). Every candidate must have opted in, be active, have no open moderation report against them or their content, and not be a demo account. The exception is a "Demo election". Onchain they are ids 1..n only.
+- **Results:** tallies come only from indexed `VoteCast` events. They are "provisional" until `ElectionFinalized` itself reaches the `finalized` block tag, then "final". The winner gets a profile achievement, never score evidence.
+- **Separation:** election code may read leaderboards. Reputation code never reads elections, $WIF or chain code (`reputation-no-economy`). Election code never imports reputation writers (`elections-no-reputation-writes`). An integration test proves voting leaves every `reputation_*` row byte-identical.
+- **Deferred:** dispute window (P1), weekly draft scheduler (P1), USDG prize escrow (P1, not verified on 4663).
