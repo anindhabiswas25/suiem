@@ -12,3 +12,4 @@ test-results
 .wxt
 .output
 .output-e2e
+packages/contracts/deployments/*.standard-input.json
