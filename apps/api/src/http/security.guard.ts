@@ -51,11 +51,16 @@ export class SecurityGuard implements CanActivate {
       if (bearer !== undefined && !deviceRoute) {
         throw new ApiError("DEVICE_SCOPE", "Extension tokens can only call extension endpoints");
       }
-      if (
-        this.env.EXTENSION_ID &&
-        req.headers.origin !== `chrome-extension://${this.env.EXTENSION_ID}`
-      ) {
-        throw new ApiError("FORBIDDEN", "Unknown extension origin");
+      // Writes (incl. pairing) must come from the configured extension. Chrome omits Origin on GETs
+      // from extension pages, so a GET may lack it, but any Origin that IS present must match.
+      if (this.env.EXTENSION_ID) {
+        const expected = `chrome-extension://${this.env.EXTENSION_ID}`;
+        const origin = req.headers.origin;
+        if (
+          SAFE.has(req.method) ? origin !== undefined && origin !== expected : origin !== expected
+        ) {
+          throw new ApiError("FORBIDDEN", "Unknown extension origin");
+        }
       }
       if (bearer !== undefined) {
         const device = await this.devices.resolve(bearer);

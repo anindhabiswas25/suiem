@@ -52,6 +52,19 @@ jobs:
       - if: failure()
         uses: actions/upload-artifact@v4
         with: { name: playwright-report, path: apps/web/playwright-report }
+  extension-e2e:
+    runs-on: ubuntu-24.04
+    needs: static
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with: { node-version-file: .nvmrc, cache: pnpm }
+      - uses: foundry-rs/foundry-toolchain@v1
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @suiem/extension exec playwright install --with-deps chromium
+      # Builds the E2E variant, starts Postgres/Redis containers, local anvils, the API and a counting proxy.
+      - run: pnpm test:e2e:extension
   contracts:
     runs-on: ubuntu-24.04
     steps:

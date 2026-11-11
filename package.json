@@ -27,7 +27,10 @@
     "check:vulns": "pnpm audit --audit-level high && docker run --rm -v \"$PWD:/src\" -w /src ghcr.io/google/osv-scanner:v2.3.2 scan source --lockfile=/src/pnpm-lock.yaml",
     "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm depcruise && pnpm test && pnpm test:integration && pnpm contracts:build",
     "env:example": "tsx scripts/gen-env-example.ts",
-    "env:init": "node scripts/ensure-env.mjs"
+    "env:init": "node scripts/ensure-env.mjs",
+    "test:e2e:extension": "pnpm --filter @suiem/extension test:e2e",
+    "extension:build": "pnpm --filter @suiem/extension build",
+    "extension:zip": "pnpm --filter @suiem/extension zip"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

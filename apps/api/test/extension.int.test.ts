@@ -67,6 +67,62 @@ async function pairNew() {
   };
 }
 
+describe("extension origin check (EXTENSION_ID set)", () => {
+  test("writes need the extension origin; GETs may omit Origin but a wrong one is rejected", async () => {
+    const strict = await startHarness({
+      envOverrides: { EXTENSION_ID: "abcdefghijklmnopabcdefghijklmnop" },
+    });
+    try {
+      const c = await new Client(strict).init();
+      const n = await c.request("POST", "/auth/siwe/nonce", { chainId: 46630 });
+      await c.request("POST", "/auth/siwe/verify", await signSiwe(newWallet(), n.json as never));
+      const code = (await c.request("POST", "/extension/pairing-codes", {})).json.code as string;
+      const call = async (
+        method: string,
+        path: string,
+        headers: Record<string, string>,
+        body?: unknown,
+      ) => {
+        const r = await strict.app.inject({
+          method: method as "GET",
+          url: `/api/v1${path}`,
+          headers: { ...headers, ...(body ? { "content-type": "application/json" } : {}) },
+          payload: body ? JSON.stringify(body) : undefined,
+        });
+        return { status: r.statusCode, json: r.json() as Record<string, unknown> };
+      };
+      expect(
+        (
+          await call(
+            "POST",
+            "/extension/installations",
+            { origin: "https://evil.example" },
+            { pairingCode: code },
+          )
+        ).status,
+      ).toBe(403);
+      expect(
+        (await call("POST", "/extension/installations", {}, { pairingCode: code })).status,
+      ).toBe(403);
+      const ok = await call(
+        "POST",
+        "/extension/installations",
+        { origin: "chrome-extension://abcdefghijklmnopabcdefghijklmnop" },
+        { pairingCode: code },
+      );
+      expect(ok.status).toBe(201);
+      const auth = { authorization: `Bearer ${ok.json.token as string}` };
+      expect((await call("GET", "/extension/config", auth)).status).toBe(200);
+      expect(
+        (await call("GET", "/extension/config", { ...auth, origin: "https://evil.example" }))
+          .status,
+      ).toBe(403);
+    } finally {
+      await strict.close();
+    }
+  });
+});
+
 describe("pairing", () => {
   test("a pairing code works once, and only for 5 minutes", async () => {
     const { c, code, token } = await pairNew();

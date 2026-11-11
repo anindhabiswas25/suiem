@@ -6,7 +6,7 @@ module.exports = {
       name: "extension-no-chain",
       comment: "The extension never touches chain code (ADR-0001, PRD §6.7).",
       severity: "error",
-      from: { path: "^apps/extension" },
+      from: { path: "^apps/extension", pathNot: "^apps/extension/e2e" },
       to: { path: "(^packages/chain|node_modules/viem|node_modules/wagmi|@suiem/chain)" },
     },
     {

@@ -28,7 +28,16 @@ export default defineConfig({
       "Notices companies on pages you choose and offers research when you ask. Never buys anything. Not affiliated with Robinhood Markets, Inc.",
     version: "0.3.0",
     key: key.publicKey,
-    permissions: ["storage", "activeTab", "contextMenus", "sidePanel", "scripting", "alarms"],
+    // E2E builds hold `notifications` up front so the digest can be enabled without a prompt.
+    permissions: [
+      "storage",
+      "activeTab",
+      "contextMenus",
+      "sidePanel",
+      "scripting",
+      "alarms",
+      ...(E2E ? ["notifications"] : []),
+    ],
     optional_permissions: ["notifications"],
     // Only the Suiem API is reachable. Detection sites are optional and granted one by one.
     host_permissions: [originPattern(apiOrigin), ...(E2E ? E2E_HOSTS : [])],
