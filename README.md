@@ -80,6 +80,11 @@
 | Vote 2: exact approve of 1 $WIF | [`0x5cc0a04f…a7a3`](https://robinhoodchain.blockscout.com/tx/0x5cc0a04fc4ae76ed861581d098a865c25aab03ed0d2002d024c3616aa8faa7a3) |
 | Vote 2: `vote(1, 2, 1)`, **1 $WIF burned** | [`0x890e3dac…510c`](https://robinhoodchain.blockscout.com/tx/0x890e3dac00eb7a0dd974d2cebd7874f992c456096348ede305f1c9d5af8c510c) |
 | `finalize(1)`: final tallies 3 / 1 / 0 | [`0x414f4ecc…9ac5`](https://robinhoodchain.blockscout.com/tx/0x414f4ecc2d660af04c3fe2b4e0659ef1ae0671154bd6d2573c69d7c188489ac5) |
+| Create election #2, **Week 1 · Research Contributor** (4 candidates, cap 25, open until 16 Nov 17:30 UTC) | [`0xac978dcf…0c4a`](https://robinhoodchain.blockscout.com/tx/0xac978dcf813eb646127f7381481bd178435b696cfcc78a67c68017cbd66c0c4a) |
+| Week 1 vote (shown in the demo video): exact approve of 2 $WIF | [`0x845bdabf…ba3c`](https://robinhoodchain.blockscout.com/tx/0x845bdabfc11b5d2985a0c13663f44c56ad09af3d39b8d8c0283a1e1a57b3ba3c) |
+| Week 1 vote: 2 votes for @kofi_quant, **2 $WIF burned** | [`0x4287dc4d…cb36`](https://robinhoodchain.blockscout.com/tx/0x4287dc4d785a7953e45ccbaaacfeb21db292de1c269993fc0f82bebcb5c0cb36) |
+
+Election #2 is live in the app at [suiem.vercel.app/elections/week-1-research](https://suiem.vercel.app/elections/week-1-research).
 
 Checked after each vote:
 - `totalSupply` fell by exactly the burned amount.
