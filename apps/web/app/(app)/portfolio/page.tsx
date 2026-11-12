@@ -24,7 +24,7 @@ const EMPTY: Record<Book["book"], string> = {
   simulated:
     "No paper trades yet. Open a company's research page and choose Paper trade (simulated).",
   testnet:
-    "No demo tokens yet. Get demo dUSD and buy a demo token on a TSLA, AMZN, PLTR, NFLX or AMD research page.",
+    "No test tokens yet. Get test dUSD and buy a test token on a TSLA, AMZN, PLTR, NFLX or AMD research page.",
   faucet: "No faucet test tokens found in your linked wallet.",
 };
 const money = (m: { value: string; currency: string } | null) =>

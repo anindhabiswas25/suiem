@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-/** Social, profile, feed, notification and reputation DTOs (Sprint 6, PRD §9–§10). */
+/** Social, profile, feed, notification and reputation DTOs. */
 
 export const VISIBILITIES = ["private", "followers", "public"] as const;
 export const visibility = z.enum(VISIBILITIES);
@@ -15,7 +15,7 @@ export const PRIVACY_FIELDS = [
   {
     key: "portfolioVisibility",
     label: "Portfolio allocation",
-    help: "Allocation percentages per book (simulated, testnet demo) with a timestamp. Never quantities, amounts or addresses.",
+    help: "Allocation percentages per book (simulated, testnet) with a timestamp. Never quantities, amounts or addresses.",
   },
   {
     key: "positionsVisibility",

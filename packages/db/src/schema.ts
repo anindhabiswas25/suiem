@@ -502,7 +502,7 @@ export const elections = pgTable("elections", {
   createdBy: uuid("created_by"),
   createdAt: ts("created_at").notNull().defaultNow(),
   finalizedAt: ts("finalized_at"),
-  // 0008 (Sprint 7)
+  // 0008
   capPerWallet: integer("cap_per_wallet"),
   resultStatus: text("result_status")
     .$type<"none" | "provisional" | "final">()
@@ -519,14 +519,14 @@ export const electionCandidates = pgTable("election_candidates", {
   onchainCandidateId: units("onchain_candidate_id"),
   nominationPostId: uuid("nomination_post_id"),
   createdAt: ts("created_at").notNull().defaultNow(),
-  // 0008 (Sprint 7): frozen snapshot details
+  // 0008: frozen snapshot details
   board: text("board").$type<"research" | "investors">(),
   rank: integer("rank"),
   score: numeric("score", { precision: 12, scale: 4 }),
   label: text("label").$type<"ranked" | "building_track_record">().notNull().default("ranked"),
 });
 
-// 0008 (Sprint 7): indexer cursor per (chain, contract).
+// 0008: indexer cursor per (chain, contract).
 export const indexerCursors = pgTable(
   "indexer_cursors",
   {
@@ -709,7 +709,7 @@ export const thesisReviews = pgTable("thesis_reviews", {
   createdAt: ts("created_at").notNull().defaultNow(),
 });
 
-// ---- Sprint 6: social graph, moderation, thesis evaluation, appeals, notifications ---------
+// ---- social graph, moderation, thesis evaluation, appeals, notifications ---------
 export const mutes = pgTable(
   "mutes",
   {

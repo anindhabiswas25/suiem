@@ -160,7 +160,7 @@ describe("weights: the 50/50 and sub-weights are exact on the worked example", (
     expect(s.suiemScore).toBe("67.58");
     expect(s.investor.map((c) => c.weight)).toEqual([40, 30, 20, 10]);
     expect(s.contribution.map((c) => c.weight)).toEqual([40, 30, 20, 10]);
-    expect(s.badge).toBe("Hackathon season · limited history · preview");
+    expect(s.badge).toBe("Season 1 · limited history · preview");
     expect(s.performanceLabel).toBe("Simulated / testnet performance, not live verified");
   });
   test("rounding is half-even on the decimal library", () => {

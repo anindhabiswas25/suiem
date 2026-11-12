@@ -391,7 +391,7 @@ describe("flags and jurisdiction", () => {
     const ok = await c.request("GET", "/invest/stock-tokens");
     expect(ok.status).toBe(200);
     expect(ok.json.items).toHaveLength(5);
-    // Sprint 5: the faucet tokens were verified by tracing faucet mints (VERIFIED_FACTS T-05).
+    // the faucet tokens were verified by tracing faucet mints (VERIFIED_FACTS T-05).
     expect(
       ok.json.items.every(
         (i: { status: string; network: string }) =>
@@ -423,7 +423,7 @@ describe("API contract", () => {
     ]) {
       expect(paths).toContain(p);
     }
-    // Sprint 5: orders exist only as preview → confirm → user-signed tx → server reconcile. No
+    // orders exist only as preview → confirm → user-signed tx → server reconcile. No
     // transfer, vote or swap endpoint exists, and no route places an order by itself.
     expect(paths.filter((p) => /order/.test(p)).sort()).toEqual([
       "/api/v1/orders",
@@ -433,7 +433,7 @@ describe("API contract", () => {
       "/api/v1/orders/{id}/transactions",
     ]);
     expect(paths.some((p) => /transfer|swap|withdraw/.test(p))).toBe(false);
-    // Sprint 7: the only vote routes are the reviewed $WIF election ones. None sends anything: the
+    // the only vote routes are the reviewed $WIF election ones. None sends anything: the
     // preview builds calldata for the user's own wallet and the bind route verifies a receipt.
     expect(paths.filter((p) => /vote/.test(p)).sort()).toEqual([
       "/api/v1/elections/{slug}/vote/preview",

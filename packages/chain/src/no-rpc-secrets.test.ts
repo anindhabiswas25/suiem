@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { describe, expect, test } from "vitest";
 
 /**
- * The PO's QuickNode URL carries its auth token, so it must never be committed (Sprint 7).
+ * The PO's QuickNode URL carries its auth token, so it must never be committed.
  * Fails if any tracked file contains `quiknode.pro`, except the redaction code and its tests,
  * which only ever hold the pattern (never a real endpoint).
  */

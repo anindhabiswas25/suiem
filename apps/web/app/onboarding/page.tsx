@@ -150,7 +150,7 @@ export default function Onboarding() {
             <ul style={{ margin: 0, paddingLeft: 20 }}>
               <li>Research, watchlists, theses and the social feed work without a wallet.</li>
               <li>
-                The Stock Token demo runs on <NetworkBadge network="testnet" />. Test tokens have no
+                Stock Token trading runs on <NetworkBadge network="testnet" />. Test tokens have no
                 value, are not securities, and the feature is unavailable in restricted
                 jurisdictions (including the US, UK, Canada and Switzerland).
               </li>
@@ -261,8 +261,8 @@ export default function Onboarding() {
               </Status>
             ) : null}
             <p className="s-muted" style={{ margin: 0 }}>
-              You only need a wallet to vote in $WIF elections or try the testnet Stock Token demo.
-              You can skip this and do it later in Settings.
+              You only need a wallet to vote in $WIF elections or trade Stock Tokens on testnet. You
+              can skip this and do it later in Settings.
             </p>
             <WalletLink />
             <div className="s-row">

@@ -82,7 +82,7 @@ function ChainChoice({
         {
           id: robinhoodTestnet.id as 46630,
           network: "testnet" as const,
-          label: "Robinhood Chain testnet (46630), for the Stock Token demo",
+          label: "Robinhood Chain testnet (46630), for Stock Token trading",
         },
       ].map((c) => (
         <label key={c.id} className="s-check">

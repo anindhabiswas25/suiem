@@ -4,7 +4,7 @@ import tseslint from "typescript-eslint";
 import prettier from "eslint-config-prettier";
 import globals from "globals";
 
-/** Viem/ethers APIs that sign, send or encode state-changing calls. Phase 2 has no write path. */
+/** Viem/ethers APIs that sign, send or encode state-changing calls. Only reviewed builders in packages/chain may use them. */
 const CHAIN_WRITE_APIS = [
   "createWalletClient",
   "writeContract",
@@ -20,7 +20,6 @@ const CHAIN_WRITE_APIS = [
 export default tseslint.config(
   {
     ignores: [
-      "reference-banchor/**",
       "**/node_modules/**",
       "**/.next/**",
       "**/dist/**",
@@ -50,7 +49,7 @@ export default tseslint.config(
       eqeqeq: ["error", "always"],
     },
   },
-  // Phase 2 rule (ADR-0001, PHASE_2 acceptance): no chain write builders anywhere in app code.
+  // ADR-0001: no ad-hoc chain write builders in app code; writes go through reviewed builders only.
   {
     files: ["apps/**/*.{ts,tsx}", "packages/**/*.{ts,tsx}", "workers/**/*.{ts,tsx}"],
     // Sprint 5: the reviewed testnet write modules (see packages/chain/src/no-write-builders.test.ts).
@@ -69,25 +68,19 @@ export default tseslint.config(
             {
               name: "viem",
               importNames: CHAIN_WRITE_APIS,
-              message: "Chain write builders are not allowed in Phase 2.",
+              message: "Use the reviewed chain write builders in packages/chain.",
             },
             {
               name: "wagmi",
               importNames: ["useWriteContract", "useSendTransaction", "useDeployContract"],
-              message: "Chain writes are not allowed in Phase 2.",
+              message: "Use the reviewed chain write builders in packages/chain.",
             },
             {
               name: "wagmi/actions",
               importNames: ["writeContract", "sendTransaction", "deployContract"],
-              message: "Chain writes are not allowed in Phase 2.",
+              message: "Use the reviewed chain write builders in packages/chain.",
             },
             { name: "ethers", message: "Suiem uses viem exclusively (ADR-0009)." },
-          ],
-          patterns: [
-            {
-              group: ["reference-banchor/*", "**/reference-banchor/**"],
-              message: "Never import reference-banchor.",
-            },
           ],
         },
       ],

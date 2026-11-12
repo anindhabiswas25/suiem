@@ -66,7 +66,7 @@ Abbreviations for sources:
 
 ## 6b. $WIF: organiser source (supersedes W-01…W-10 where they overlap)
 
-Source: organiser API `GET https://worldisflat.fun/build/api/vote-window`, read by the product owner on 2026-11-10 (values supplied in `prompts/PHASE_2_PROMPT.md`). Hackathon rules: https://worldisflat.fun/build/rules.
+Source: organiser API `GET https://worldisflat.fun/build/api/vote-window`, read by the product owner on 2026-11-10. Hackathon rules: https://worldisflat.fun/build/rules.
 
 | # | Fact | Value | Status |
 | --- | --- | --- | --- |
@@ -177,12 +177,6 @@ Method: read-only JSON-RPC against `https://rpc.testnet.chain.robinhood.com` (no
 | W-08 | Voting mechanic | Conflicting: (a) brief: send WIF to a candidate deposit address, collected tokens destroyed after the event; (b) Flat-ballot: "Voters send $WIF to the option they back. Every vote is burned." (per-option deposit address); (c) Equalship: `vote` burns directly, 1 WIF per vote, farmed-vote check offchain after close | brief + 3rd party | **UNVERIFIED and conflicting → OQ-P-02** |
 | W-09 | Testnet deployment of $WIF | None found | — | UNVERIFIED (assume none). Suiem uses `TestWIF` (ADR-0005) |
 | W-10 | Official World is Fair site/docs | Not found | — | UNVERIFIED → OQ-P-01 |
-
-## 7. Banchor reference chain (for contrast)
-
-| # | Fact | Value | Source | Status |
-| --- | --- | --- | --- | --- |
-| B-01 | Banchor chain | Monad Testnet, chain 10143 | `reference-banchor/web/lib/config.ts`, `extension/background.js:9` | VERIFIED from code. **Irrelevant to Suiem. No Banchor address is reusable** |
 
 ## 8. AI research providers and data (Sprint 4, checked 2026-11-11)
 

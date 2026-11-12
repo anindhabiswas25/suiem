@@ -24,7 +24,7 @@ const id404 = (id: string, what: string) => {
 };
 
 /**
- * Moderation queue and appeals (Sprint 6 P1). Moderator role only; the role is set by the
+ * Moderation queue and appeals. Moderator role only; the role is set by the
  * `pnpm user:role` CLI and is never writable through the API. Every action is audited.
  */
 @Controller()

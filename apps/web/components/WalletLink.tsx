@@ -91,7 +91,7 @@ export function WalletLink({ onLinked }: { onLinked?: () => void }) {
           onChange={(e) => setChainId(Number(e.target.value) as 4663 | 46630)}
         >
           <option value={4663}>Mainnet (4663), used for $WIF votes</option>
-          <option value={46630}>Testnet (46630), used for the Stock Token demo</option>
+          <option value={46630}>Testnet (46630), used for Stock Token trading</option>
         </select>
       </label>
       <div>

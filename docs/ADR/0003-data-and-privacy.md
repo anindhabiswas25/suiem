@@ -4,7 +4,7 @@
 
 ## Context
 
-Banchor runs a content script on `<all_urls>`, tracks minutes per social site, uploads minute totals through an unauthenticated API, sends up to 12k characters of page text on Analyze, and loads remote fonts. Its prices come from an unlicensed Yahoo endpoint. The PRD requires local-first, consent-gated collection, a data inventory, retention, export/delete, and licensed data.
+An earlier prototype ran a content script on `<all_urls>`, tracks minutes per social site, uploads minute totals through an unauthenticated API, sends up to 12k characters of page text on Analyze, and loads remote fonts. Its prices come from an unlicensed Yahoo endpoint. The PRD requires local-first, consent-gated collection, a data inventory, retention, export/delete, and licensed data.
 
 ## Decision
 

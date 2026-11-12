@@ -1,10 +1,10 @@
 # Decision 0001: PO decisions for Sprint 2 (hackathon)
 
-Date: 2026-11-10 · Source: `prompts/PHASE_2_PROMPT.md` (hackathon version). The earlier long-term Phase 2 brief is archived at `prompts/PHASE_2_PROMPT_LONGTERM_ARCHIVED.md`, and its decisions are superseded where they conflict.
+Date: 2026-11-10
 
 | Topic | Decision | Consequence |
 | --- | --- | --- |
-| Direction | World is Flat hackathon. Whole product flow as a working demo | `docs/HACKATHON_PLAN.md`, ADR-0010 |
+| Direction | World is Flat hackathon. Whole product flow as a working demo | ADR-0010 |
 | Networks | $WIF on mainnet 4663. Stock Tokens on testnet 46630. Everything else off-chain | `packages/config/chains/networks.ts` |
 | Auth (OQ-P-05) | Passkey + SIWE (4663 or 46630). **No email** | No OTP, no mail provider |
 | Growth loops (OQ-P-13) | Never integrated. No auto-buy | ADR-0001 unchanged |

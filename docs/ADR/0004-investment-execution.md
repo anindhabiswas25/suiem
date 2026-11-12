@@ -4,11 +4,11 @@
 
 ## Context
 
-Banchor's `ScrollBasket → MockVenue → MockRouter` mints mock stocks at owner-set prices with `minOut = 0`. Its claim that "on mainnet the same contracts buy the real ones" is false (TECHNICAL_GAP_ANALYSIS §4). On Robinhood Chain mainnet, Stock Tokens are RHJ tokenised debt securities traded on Uniswap, Rialto, Lighter and RFQ venues, with jurisdiction restrictions. No testnet venue and no testnet Stock Token addresses are verified (S-06, T-05). The faucet does hand out test Stock Tokens (T-02).
+An earlier prototype's `ScrollBasket → MockVenue → MockRouter` minted mock stocks at owner-set prices with `minOut = 0`. Its claim that "on mainnet the same contracts buy the real ones" is false. On Robinhood Chain mainnet, Stock Tokens are RHJ tokenised debt securities traded on Uniswap, Rialto, Lighter and RFQ venues, with jurisdiction restrictions. No testnet venue and no testnet Stock Token addresses are verified (S-06, T-05). The faucet does hand out test Stock Tokens (T-02).
 
 ## Decision
 
-1. **No Suiem trading contract.** Execution is orchestrated off-chain by the Order module through a `VenueAdapter` interface (`quote`, `preview`, `buildCalldata`, `reconcile`). This is Banchor's `IStockVenue` idea moved off-chain, where policy checks can run before signing.
+1. **No Suiem trading contract.** Execution is orchestrated off-chain by the Order module through a `VenueAdapter` interface (`quote`, `preview`, `buildCalldata`, `reconcile`). 
 2. **Adapters per phase**
    - `SimulatedVenue`: always on. Ledger fills at a licensed, timestamped quote with a disclosed fee/slippage model. Separate `simulated` book.
    - `TestnetVenue`: built only if a testnet venue for faucet test Stock Tokens is verified. Until then testnet tokens are **holdings-only** (read balances, link to the official faucet).

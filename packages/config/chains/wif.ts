@@ -3,7 +3,7 @@ import { robinhoodMainnet } from "./robinhood-mainnet";
 /**
  * $WIF exists only on mainnet 4663. Source: organiser API (VERIFIED_FACTS W-11…W-14).
  * There is deliberately no testnet $WIF constant: any $WIF lookup on another chain is a bug.
- * Burn semantics verified onchain in Sprint 7 (W-16): `burn` and `burnFrom` exist and lower
+ * Burn semantics verified onchain (W-16): `burn` and `burnFrom` exist and lower
  * `totalSupply`; no fee on transfer, no pause, no blocklist, not a proxy.
  * Lookalike defence: this constant is the ONLY $WIF address; nothing accepts one from user input.
  */

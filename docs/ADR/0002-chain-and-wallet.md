@@ -4,7 +4,7 @@
 
 ## Context
 
-Banchor targets Monad testnet with a Mera passkey-derived EOA. Its claimed session-key spending cap does not exist (REPO_AUDIT §3.3). Robinhood Chain docs state ERC-4337 support with EntryPoint v0.7/v0.8 and providers Alchemy, ZeroDev, Privy and Dynamic, but list addresses only under mainnet 4663 (VERIFIED_FACTS A-01…A-05).
+An earlier prototype targeted Monad testnet with a passkey-derived EOA and claimed a session-key spending cap that its code did not implement. Robinhood Chain docs state ERC-4337 support with EntryPoint v0.7/v0.8 and providers Alchemy, ZeroDev, Privy and Dynamic, but list addresses only under mainnet 4663 (VERIFIED_FACTS A-01…A-05).
 
 ## Decision
 
@@ -41,7 +41,7 @@ On 46630, using read-only calls and no funds: `eth_getCode` for EntryPoint v0.7/
 
 ## Consequences
 
-- Banchor's Mera and `withSigner` code is not reused. Its per-action key-wipe discipline carries over as a requirement.
+- No prototype wallet code is reused. Per-action key-wipe discipline is kept as a requirement.
 - The extension has no wallet. Uninstalling it affects no account or wallet access (§6.7).
 - Recovery UX and custody disclosure are Phase 2 deliverables with tests.
 

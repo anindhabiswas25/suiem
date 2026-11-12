@@ -2,7 +2,7 @@
 
 Status: **Proposed. Awaiting product-owner approval.** Date: 2026-11-10.
 Scope: Robinhood Chain **testnet (46630) only**, with no real funds and no real securities in any phase.
-Related: `ADR/0001`–`0009`, `VERIFIED_FACTS.md`, `decisions/OPEN_QUESTIONS.md`.
+Related: `ADR/0001`–`0009`, `VERIFIED_FACTS.md`.
 
 ## 1. Architectural principles
 
@@ -226,7 +226,7 @@ Follows PRD §14. Conventions:
 | --- | --- | --- |
 | Monorepo | pnpm workspaces + Turborepo | Strict dependency isolation, cached CI |
 | Language | TypeScript (strict) everywhere except Solidity | Shared schemas across extension, web and API |
-| Web | Next.js (App Router) + React | PRD default. Pin exact versions (Banchor's caret ranges were non-reproducible) |
+| Web | Next.js (App Router) + React | PRD default. Pin exact versions |
 | Extension | MV3 + React + Vite via **WXT** | Typed manifest generation, side-panel support, HMR, and a Playwright-friendly build |
 | API | **NestJS** (Fastify adapter) | Explicit modules match §13.1 domains. Guards and interceptors suit auth, idempotency and audit. OpenAPI generation |
 | Validation | **Zod** schemas in `packages/shared`, shared by all apps. OpenAPI via `zod-openapi` | One source for brief schema, events, API DTOs |
@@ -234,7 +234,7 @@ Follows PRD §14. Conventions:
 | Queue/cache | Redis + BullMQ | PRD default. Fine at this scale |
 | AI workflow | Deterministic step pipeline (BullMQ flow). LangGraph JS only where branching justifies it | §7.5 "do not introduce agentic autonomy" |
 | Contracts | Solidity 0.8.x + Foundry + OpenZeppelin 5 (pinned via `forge install` git submodule or soldeer, not npm) | PRD default. Fuzz/invariant built in |
-| Chain client | **viem** (not ethers) | Already used successfully by Banchor. Typed ABIs via abitype/wagmi-cli from Foundry artifacts. First-class ERC-4337 (`viem/account-abstraction`). Tree-shakeable for extension and web. Using one library avoids two BigInt/ABI encoding paths |
+| Chain client | **viem** (not ethers) | Typed ABIs via abitype/wagmi-cli from Foundry artifacts. First-class ERC-4337 (`viem/account-abstraction`). Tree-shakeable for extension and web. Using one library avoids two BigInt/ABI encoding paths |
 | Wallet UI | wagmi + viem. Smart-account SDK per ADR-0002 (Alchemy Account Kit or ZeroDev, to be decided after testnet support is verified) | — |
 | Observability | OpenTelemetry SDK → OTLP collector. Pino logs with redaction | PRD default |
 | Testing | Vitest (unit), Testcontainers (Postgres/Redis integration), Playwright (web plus extension E2E), Foundry (contracts), anvil fork of 46630 | — |
@@ -250,10 +250,10 @@ STRIDE-tagged (S spoofing, T tampering, R repudiation, I info disclosure, D DoS,
 | TM-02 | Wallet compromise | S, E | Keys never server-side. Smart-account guardian/recovery (ADR-0002). No standing session keys. Exact approvals only | P2, P4, P7 |
 | TM-03 | Malicious extension update | T, E | Signed releases. Web Store publishing restricted to two maintainers with 2FA. Reproducible build hash published. Minimal permissions limit blast radius | P3, P8 |
 | TM-04 | Content-script injection / page-hostile DOM | T, I | Isolated world. No `innerHTML` from page data. Closed Shadow DOM. Strict extension CSP. No remote code or fonts | P3 |
-| TM-05 | Prompt injection via web content | T, E | Page text delimited as data. Structured output with Zod. Claim→source validation. No tools that act. Research worker has no execution credentials. Per-user cache keys (fixes Banchor R-4) | P3, P4 |
+| TM-05 | Prompt injection via web content | T, E | Page text delimited as data. Structured output with Zod. Claim→source validation. No tools that act. Research worker has no execution credentials. Per-user cache keys | P3, P4 |
 | TM-06 | Malicious or stale financial data | T | Licensed providers. Freshness SLAs per figure. Cross-provider sanity checks. `dataFreshness` surfaced. Market-hours guard | P4 |
 | TM-07 | Fake stock/token instruments | S | Registry-only addresses. Dual-control registry admin. Onchain `name/symbol/decimals` check. UI `TEST:`/`SIM:` badges | P4 |
-| TM-08 | Transaction substitution | T | Server-built calldata from registry. Preview hash bound to calldata. Wallet shows decoded call. Client re-derives and compares before sign (fixes Banchor R-1). No intents in URLs | P4, P7 |
+| TM-08 | Transaction substitution | T | Server-built calldata from registry. Preview hash bound to calldata. Wallet shows decoded call. Client re-derives and compares before sign. No intents in URLs | P4, P7 |
 | TM-09 | Phishing / fake token contracts ($WIF lookalikes) | S | Address allowlist from `VERIFIED_FACTS`. Domain allowlist. Never resolve a token by symbol. Warning UI for unknown tokens | P2, P7 |
 | TM-10 | Replay / double submission | T, R | Idempotency keys (DB unique). Onchain per-voter nonces/vote IDs. Chain ID in every signature domain (EIP-712) | P2, P7 |
 | TM-11 | Indexer reorg / event duplication | T | Unique `(chain_id, tx_hash, log_index)`. Parent-hash continuity check with rollback. `safe`/`finalized` tags. Backfill and full rescan | P7 |
@@ -275,7 +275,6 @@ Assumptions: the user's OS and browser are not compromised. Robinhood Chain sequ
 
 ```
 suiem/
-├── PRD.md, Suiem_PRD.md
 ├── apps/
 │   ├── web/                 Next.js app (user + admin routes behind RBAC)
 │   ├── extension/           WXT MV3: background, content, popup, sidepanel, options
@@ -294,8 +293,7 @@ suiem/
 │   ├── ui/                  design system (tokens, components, a11y primitives) for web + extension
 │   └── config/              eslint, tsconfig, prettier, chain config sourced from VERIFIED_FACTS
 ├── infra/                   IaC (later), docker-compose for local Postgres/Redis/anvil
-├── docs/                    audits, ADRs, plans, runbooks, decisions
-└── reference-banchor/       git-ignored, read-only
+└── docs/                    architecture, ADRs, decisions, policies
 ```
 
 Dependency rules (CI-enforced): `workers/research` must not depend on `packages/chain` write builders or `apps/api` order modules. `apps/extension` must not depend on `packages/chain`. `packages/shared` has no runtime I/O.

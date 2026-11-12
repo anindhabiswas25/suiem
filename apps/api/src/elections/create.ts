@@ -25,7 +25,7 @@ export function buildRules(plan: ElectionPlan, candidates: CandidateSnapshot[]) 
   const fallback = candidates.some((c) => c.label === "building_track_record");
   return {
     season: "hackathon",
-    labels: ["Hackathon season", ...(plan.demo ? ["Demo election"] : [])],
+    labels: ["Season 1"],
     demo: plan.demo,
     board: BOARD_FOR[plan.category],
     period: "week",

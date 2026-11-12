@@ -65,7 +65,7 @@ describe("log redaction (allowlist)", () => {
   });
 });
 
-describe("RPC secrets in logs (Sprint 7)", () => {
+describe("RPC secrets in logs", () => {
   test("a QuickNode URL never reaches a log line or error fields", () => {
     const token = "abcdef0123456789abcdef0123456789abcdef01";
     const msg = `HTTP request failed. URL: https://name.robinhood-mainnet.quiknode.pro/${token}/`;

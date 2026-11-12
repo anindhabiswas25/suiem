@@ -40,7 +40,7 @@ export class FlagsService {
     return (await this.all())[key];
   }
 
-  /** Used by ops scripts/tests only; there is no HTTP route for it in Sprint 2. */
+  /** Used by ops scripts/tests only; there is no HTTP route for it. */
   async set(key: FeatureFlag, enabled: boolean): Promise<void> {
     if (HARD_OFF_FLAGS.includes(key) && enabled)
       throw new ApiError("FLAG_LOCKED", `${key} is hard-off and cannot be enabled`);

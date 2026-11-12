@@ -38,7 +38,6 @@ export function AuthorLine({
           <span className="s-small s-faint">
             @{author.handle} · {timeAgo(createdAt)}
           </span>
-          {author.isDemo ? <span className="s-badge">Demo</span> : null}
         </div>
       </div>
       {extra}
@@ -118,7 +117,6 @@ export function PostCard({
           <Link className="post-author" href={`/u/${a.handle}`}>
             {name}
           </Link>
-          {a.isDemo ? <span className="s-badge">Demo</span> : null}
           <span className="post-sub">
             @{a.handle} ·{" "}
             {linkToThread ? (

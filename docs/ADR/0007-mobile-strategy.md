@@ -4,7 +4,7 @@
 
 ## Context
 
-The PRD's current direction is responsive web first. The extension is desktop-Chromium only. Banchor notes that phone screen-time access is restricted, which is not relevant to Suiem since it does not track time.
+The PRD's current direction is responsive web first. The extension is desktop-Chromium only. Prior work noted that phone screen-time access is restricted, which is not relevant to Suiem since it does not track time.
 
 ## Decision
 

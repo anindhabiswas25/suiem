@@ -3,7 +3,7 @@
   "info": {
     "title": "Suiem API",
     "version": "v1",
-    "description": "Suiem hackathon API. Not affiliated with Robinhood Markets, Inc. No order endpoints exist in Sprint 2."
+    "description": "Suiem API. Not affiliated with Robinhood Markets, Inc."
   },
   "servers": [
     {
@@ -2719,7 +2719,7 @@
     },
     "/api/v1/invest/stock-tokens": {
       "get": {
-        "summary": "Testnet Stock Token instruments (gated by jurisdiction; addresses unverified until Sprint 5)",
+        "summary": "Testnet Stock Token instruments (gated by jurisdiction)",
         "tags": ["invest"],
         "x-suiem-auth": "user",
         "parameters": [],

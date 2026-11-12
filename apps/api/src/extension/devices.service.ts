@@ -14,7 +14,7 @@ const ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const TOKEN_PREFIX = "sxt_";
 
 /**
- * Extension pairing (Sprint 3 §4). A signed-in user gets a one-time code (5-minute TTL, single
+ * Extension pairing. A signed-in user gets a one-time code (5-minute TTL, single
  * use, stored hashed). The extension exchanges it for a device token (random, stored as HMAC,
  * revocable). Device tokens only work on extension-scoped routes (SecurityGuard).
  */

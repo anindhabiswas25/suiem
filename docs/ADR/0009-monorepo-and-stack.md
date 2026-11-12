@@ -15,7 +15,7 @@ Confirm PRD §13.2 with these specifics (full table in ARCHITECTURE §7, layout 
 | Redis + BullMQ | Confirmed | Research, digest, notifications, reputation jobs |
 | LangGraph or deterministic | Deterministic BullMQ flows. LangGraph optional | ADR-0006 |
 | Solidity + Foundry | Confirmed. OZ 5 via forge libs (not npm) | Slither + Aderyn in CI |
-| viem **or** ethers | **viem**, everywhere | Typed ABIs, native ERC-4337 helpers, small bundle for extension. Banchor experience. One encoding path |
+| viem **or** ethers | **viem**, everywhere | Typed ABIs, native ERC-4337 helpers, small bundle for extension. One encoding path |
 | Event indexer | Custom worker on viem (ADR-0002/0005) | Small contract set. Avoids an external indexer as a correctness dependency (§2.2). Ponder can be reconsidered if scale demands |
 | OpenTelemetry | Confirmed | Collector-agnostic |
 | Encrypted object storage | S3-compatible with SSE + per-object keys | User-approved uploads only |
@@ -23,7 +23,7 @@ Confirm PRD §13.2 with these specifics (full table in ARCHITECTURE §7, layout 
 
 Tooling: pnpm workspaces, Turborepo, Vitest, Playwright, Testcontainers, anvil, Biome or ESLint + Prettier (ESLint chosen for dependency-boundary plugins), dependency-cruiser, Renovate, Gitleaks, osv-scanner, CodeQL.
 
-Migration plan: none in place. Banchor stays as a git-ignored reference (TECHNICAL_GAP_ANALYSIS §5).
+Migration plan: none needed; Suiem is a fresh codebase.
 
 ## Consequences
 

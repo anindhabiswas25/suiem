@@ -6,9 +6,12 @@ useDefault = true
 [allowlist]
 description = "Non-secret test fixtures and docs"
 paths = [
-  '''reference-banchor/''',
   '''pnpm-lock\.yaml''',
   '''docs/.*\.md''',
+  # Test fixtures only: fake RPC tokens in redaction tests, local test session secrets, anvil dev key #0.
+  '''\.test\.tsx?$''',
+  '''apps/api/test/''',
+  '''apps/extension/e2e/''',
 ]
 # Public, well-known constants that look like keys (contract addresses, genesis hash, anvil chain data).
 regexes = [

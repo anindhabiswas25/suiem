@@ -1,7 +1,7 @@
 import { Fragment, type ReactNode } from "react";
 
 /**
- * User content is rendered as plain text (PRD §9, Sprint 6 hard rule: no HTML rendering).
+ * User content is rendered as plain text (PRD §9: no HTML rendering).
  * React escapes every string. The only markup we create is <a> for http(s) URLs, with
  * rel="nofollow noopener noreferrer ugc" and target="_blank". Any other scheme (javascript:,
  * data:, vbscript:) stays text. Line breaks are preserved with CSS (white-space: pre-wrap).

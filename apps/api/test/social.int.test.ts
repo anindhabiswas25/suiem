@@ -1,5 +1,5 @@
 /**
- * Sprint 6: profiles and privacy, social graph, posts, feed, notifications, reputation,
+ * profiles and privacy, social graph, posts, feed, notifications, reputation,
  * leaderboards and thesis evaluation, against real Postgres + Redis.
  */
 import { readdirSync, readFileSync } from "node:fs";
@@ -561,7 +561,7 @@ describe("no copy trading", () => {
 });
 
 // ---------------------------------------------------------------------------------------------
-describe("device tokens get 403 on every Sprint 6 route", () => {
+describe("device tokens get 403 on every social route", () => {
   test("all social, feed, notification, reputation and leaderboard routes", async () => {
     const u = await user();
     const code = (await u.c.request("POST", "/extension/pairing-codes", {})).json as Json;
@@ -670,7 +670,7 @@ describe("reputation and leaderboards", () => {
     expect(s.maturity).toBe("building");
     expect(s.suiemScore).toBeNull();
     expect(s.progress.decisions).toEqual({ have: 0, need: 5 });
-    expect(s.badge).toBe("Hackathon season · limited history · preview");
+    expect(s.badge).toBe("Season 1 · limited history · preview");
     expect(s.methodologyVersion).toBe("v1-hackathon");
     // Others can't see a score unless the user opted in.
     expect((await anon().request("GET", `/profiles/${a.handle}/reputation`)).status).toBe(403);

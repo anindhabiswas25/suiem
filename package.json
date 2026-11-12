@@ -18,7 +18,6 @@
     "depcruise": "depcruise apps packages workers --config .dependency-cruiser.cjs",
     "test": "vitest run --project unit",
     "test:integration": "vitest run --project integration",
-    "test:e2e": "pnpm --filter @suiem/web test:e2e",
     "db:migrate": "node scripts/ensure-env.mjs && pnpm --filter @suiem/db migrate",
     "db:seed": "node scripts/ensure-env.mjs && pnpm --filter @suiem/db seed",
     "contracts:build": "pnpm contracts:deps && cd packages/contracts && forge build",

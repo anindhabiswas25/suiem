@@ -39,7 +39,7 @@ const addr = (b: Buffer) => getAddress(`0x${b.toString("hex")}`);
 
 const RISKS: Record<Book, string[]> = {
   testnet: [
-    "This is a Suiem demo token on Robinhood Chain TESTNET. It has no value and is not a share, a security or a Stock Token.",
+    "This is a Suiem test token on Robinhood Chain TESTNET. It has no value and is not a share, a security or a Stock Token.",
     "The price comes from a third-party quote and is valid for 60 seconds. You sign the transaction in your own wallet; Suiem never trades for you.",
     "Testnet transactions are public on the explorer and cannot be reversed.",
   ],
@@ -204,7 +204,7 @@ export class OrdersService {
       fail(
         "NOT_FOUND",
         input.book === "testnet"
-          ? "There is no testnet demo token for this company."
+          ? "There is no testnet token for this company."
           : "This company has no simulated instrument.",
       );
     const { inst } = found!;
@@ -212,7 +212,7 @@ export class OrdersService {
       fail(
         "POLICY_DENIED",
         input.book === "testnet"
-          ? "The demo token for this company is not deployed or not verified yet, so it can't be traded."
+          ? "The test token for this company is not deployed or not verified yet, so it can't be traded."
           : "This instrument is not active.",
       );
     checks.push({
@@ -275,9 +275,9 @@ export class OrdersService {
         fail("PROVIDER_UNAVAILABLE", "The testnet venue is not available right now.");
       const wallets = await this.wallets(userId);
       if (wallets.length === 0)
-        fail("POLICY_DENIED", "Link a wallet in Settings to trade demo tokens on testnet.");
+        fail("POLICY_DENIED", "Link a wallet in Settings to trade test tokens on testnet.");
       trader = wallets[0]!;
-      if (await this.testnet.paused()) fail("POLICY_DENIED", "The demo venue is paused.");
+      if (await this.testnet.paused()) fail("POLICY_DENIED", "The testnet venue is paused.");
       checks.push({ name: "Venue", ok: true, detail: "SuiemDemoVenue is not paused" });
       const balance =
         side === "buy"
@@ -287,7 +287,7 @@ export class OrdersService {
         fail(
           "VALIDATION_FAILED",
           side === "buy"
-            ? `Not enough dUSD in ${trader} (have ${fromUnits(balance, 6)}). Use "Get demo dUSD".`
+            ? `Not enough dUSD in ${trader} (have ${fromUnits(balance, 6)}). Use "Get test dUSD".`
             : `Not enough d${ticker} in ${trader} (have ${fromUnits(balance, 18)}).`,
         );
       checks.push({
@@ -402,7 +402,7 @@ export class OrdersService {
         displayName: inst.displayName,
         legalTypeLabel:
           input.book === "testnet"
-            ? "Suiem demo token · testnet · no value · not a security"
+            ? "Suiem test token · testnet · no value · not a security"
             : "Simulated · paper trade · nothing is bought",
         network: input.book === "testnet" ? "testnet" : "offchain",
         chainId: input.book === "testnet" ? 46630 : null,
@@ -904,7 +904,7 @@ export class OrdersService {
       : !flag
         ? "Testnet trading is switched off right now."
         : !d || !this.rt.testnet || !this.rt.quoteSignerKey
-          ? "The testnet demo venue is not deployed yet."
+          ? "The testnet venue is not deployed yet."
           : null;
     return {
       eligibility: {

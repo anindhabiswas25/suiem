@@ -13,8 +13,8 @@ export default function Help() {
 
         <Card title="Who we are">
           <p style={{ margin: 0 }}>
-            <strong>{DISCLAIMER}</strong> Suiem is an independent project built for the World is
-            Flat hackathon on Robinhood Chain. We do not use Robinhood's name or logo for our brand.
+            <strong>{DISCLAIMER}</strong> Suiem is an independent research and investing community
+            built on Robinhood Chain. We do not use Robinhood's name or logo for our brand.
           </p>
         </Card>
 
@@ -65,7 +65,7 @@ export default function Help() {
         <Card title="Networks and what's real">
           <ul style={{ margin: 0, paddingLeft: 20 }}>
             <li>
-              <NetworkBadge network="testnet" />: the Stock Token demo runs on Robinhood Chain
+              <NetworkBadge network="testnet" />: Stock Token trading runs on Robinhood Chain
               testnet (46630). Testnet tokens have <strong>no value</strong>, are{" "}
               <strong>not securities</strong> and are <strong>not shares</strong>. They are for
               practice only.
@@ -96,8 +96,8 @@ export default function Help() {
               slippage against you.
             </li>
             <li>
-              <strong>Testnet demo · no value:</strong> Suiem demo tokens (for example dTSLA) on
-              Robinhood Chain testnet, bought and sold for demo dollars (dUSD) through the
+              <strong>Testnet · no value:</strong> Suiem test tokens (for example dTSLA) on
+              Robinhood Chain testnet, bought and sold for test dollars (dUSD) through the
               SuiemDemoVenue contract. These are real testnet transactions you sign in your own
               wallet. Quotes are valid for about a minute; approvals are always for the exact
               amount, never unlimited.
@@ -108,8 +108,8 @@ export default function Help() {
               balances and never trades them.
             </li>
             <li>
-              <strong>Demo and testnet tokens have no value and are not securities</strong>, not
-              shares and not Robinhood Stock Tokens.
+              <strong>Testnet tokens have no value and are not securities</strong>, not shares and
+              not Robinhood Stock Tokens.
             </li>
             <li>
               <strong>P&amp;L method (average cost):</strong> each buy adds its quantity and full
@@ -134,7 +134,7 @@ export default function Help() {
 
         <Card title="Terms of Service (draft 2026-11-10.1)">
           <div id="terms" className="s-muted">
-            Draft for the hackathon demo, pending legal review. Suiem runs research and demo
+            Draft, pending legal review. Suiem provides research, community and testnet trading
             features; testnet assets have no value; you keep custody of your wallet; you may close
             your account and request deletion of your data at any time.
           </div>

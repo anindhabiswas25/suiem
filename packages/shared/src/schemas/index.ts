@@ -131,7 +131,7 @@ export const stockTokenEligibilityResponse = z.object({
   chainId: z.literal(46630),
 });
 
-// ---- Extension (Sprint 3) ---------------------------------------------------------------
+// ---- Extension ---------------------------------------------------------------
 export const entityIdParam = z.string().regex(/^ent:[a-z0-9-]+$/);
 export const pairingCodeResponse = z.object({
   code: z.string(),
@@ -220,7 +220,7 @@ export const watchlistResponse = z.object({
   items: z.array(watchlistItemResponse),
 });
 
-// ---- Sprint 4: research, compare, watchlists, theses -------------------------------------
+// ---- research, compare, watchlists, theses -------------------------------------
 export const uuidParam = z.uuid();
 export const createBriefRequest = z.object({ entityId: entityIdParam }).strict();
 export const createBriefResponse = researchRequestItem;
@@ -377,7 +377,7 @@ export const priceContextSchema = z
     retrievedAt: z.string(),
     source: z.string(),
     sourceUrl: z.string(),
-    /** SPY at the same moment (Sprint 6): the start of the benchmark-relative evaluation. */
+    /** SPY at the same moment: the start of the benchmark-relative evaluation. */
     benchmark: z
       .object({ symbol: z.string(), price: z.string(), asOf: z.string() })
       .nullable()
@@ -456,7 +456,7 @@ export const watchlistItemMutationResponse = z.object({
   created: z.boolean(),
 });
 
-// ---- Sprint 5: orders and portfolio ----------------------------------------------------
+// ---- orders and portfolio ----------------------------------------------------
 const decimalString = z
   .string()
   .regex(/^(0|[1-9][0-9]{0,15})(\.[0-9]{1,18})?$/, "a plain decimal amount");

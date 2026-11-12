@@ -76,12 +76,11 @@ export class ConfigController {
     return { ...e, network: "testnet" as const, chainId: 46630 as const };
   }
 
-  /** Sprint 2 stub of a Stock Token route: enforces the jurisdiction gate and lists registry entries. */
+  /** Stock Token route: enforces the jurisdiction gate and lists registry entries. */
   @Route({
     method: "GET",
     path: "/invest/stock-tokens",
-    summary:
-      "Testnet Stock Token instruments (gated by jurisdiction; addresses unverified until Sprint 5)",
+    summary: "Testnet Stock Token instruments (gated by jurisdiction)",
     tags: ["invest"],
     auth: "user",
     response: z.object({

@@ -1,4 +1,4 @@
-/** Sprint 6 rate limits with limits ENABLED: posts 10/h, comments 30/h, helpful votes 50/day. */
+/** Social rate limits with limits ENABLED: posts 10/h, comments 30/h, helpful votes 50/day. */
 import { newId } from "@suiem/shared/ids";
 import pg from "pg";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";

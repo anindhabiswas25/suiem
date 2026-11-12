@@ -24,7 +24,7 @@ const DEFAULT_WATCHLIST = "Default";
 
 const LABEL: Record<string, string> = {
   testnet_test_token: "Testnet · no value",
-  demo_token: "Testnet demo · no value",
+  demo_token: "Testnet · no value",
   simulated: "Simulated",
   unsupported: "Unsupported",
 };

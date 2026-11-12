@@ -24,7 +24,7 @@ import {
   VISIBLE_POST_SQL,
 } from "./social.service";
 
-const BOOK_LABEL = { simulated: "Simulated", testnet: "Testnet demo · no value" } as const;
+const BOOK_LABEL = { simulated: "Simulated", testnet: "Testnet · no value" } as const;
 export const PORTFOLIO_LABEL = "Simulated / testnet performance, not live verified";
 
 const viewer = (req: FastifyRequest) => req.suiem.session?.userId ?? null;
@@ -253,7 +253,7 @@ export class ProfilesController {
   async profile(@Req() req: FastifyRequest, @Param("handle") handle: string) {
     const v = viewer(req);
     const { u, rel, p } = await this.owner(handle, v);
-    const badges = [...(u.is_demo ? ["Demo account"] : []), "Hackathon season"];
+    const badges = ["Season 1"];
     const base = {
       id: u.id,
       handle: u.handle,

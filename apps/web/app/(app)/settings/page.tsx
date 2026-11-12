@@ -1,12 +1,13 @@
 "use client";
 import { startRegistration } from "@simplewebauthn/browser";
 import { INTERESTS, type consentsResponse } from "@suiem/shared/schemas";
-import { Alert, Button, Card, ErrorState, LoadingState, NetworkBadge, Status } from "@suiem/ui";
+import { Button, Card, ErrorState, LoadingState, NetworkBadge, Status } from "@suiem/ui";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import type { z } from "zod";
 import { PageHeader } from "../../../components/AppShell";
 import { ExtensionSettings } from "../../../components/ExtensionSettings";
+import { ProfilePrivacy } from "../../../components/social/ProfilePrivacy";
 import { WalletLink } from "../../../components/WalletLink";
 import { api, ApiRequestError } from "../../../lib/api";
 import { COUNTRIES } from "../../../lib/countries";
@@ -101,7 +102,7 @@ export default function Settings() {
           <span className="s-small s-muted">
             Why we ask: Robinhood's Stock Tokens may not be offered in some countries (the RHJ
             restricted jurisdictions list). Suiem checks your declared country on the server before
-            showing any Stock Token feature, including the testnet demo. Paper trading and research
+            showing any Stock Token feature, including testnet trading. Paper trading and research
             work everywhere. We don't use your IP address to guess your location.
           </span>
         </label>
@@ -149,8 +150,8 @@ export default function Settings() {
           </Button>
           <Status tone={user.stockTokenEligible ? "positive" : "neutral"}>
             {user.stockTokenEligible
-              ? "Stock Token demo available"
-              : "Stock Token demo unavailable for your country"}
+              ? "Stock Token trading available"
+              : "Stock Token trading unavailable in your country"}
           </Status>
         </div>
         {profile.msg ? <Status tone={profile.msg.tone}>{profile.msg.text}</Status> : null}
@@ -272,29 +273,7 @@ export default function Settings() {
         {consentAct.msg ? <Status tone={consentAct.msg.tone}>{consentAct.msg.text}</Status> : null}
       </Card>
 
-      <Card title="Privacy and your data">
-        <div id="privacy" className="s-stack">
-          <span>
-            Portfolio, positions, transactions, research activity and linked wallets are private by
-            default. Per-field visibility controls arrive with Social (Sprint 6).
-          </span>
-          <Alert>
-            Data export and account deletion are being built. They will be available before the
-            public demo (Sprint 8).
-          </Alert>
-          <div className="s-row">
-            <Button disabled aria-describedby="data-stub">
-              Export my data
-            </Button>
-            <Button variant="danger" disabled aria-describedby="data-stub">
-              Delete my account
-            </Button>
-          </div>
-          <span id="data-stub" className="s-small s-muted">
-            Not yet available in this build.
-          </span>
-        </div>
-      </Card>
+      <ProfilePrivacy />
     </>
   );
 }

@@ -65,8 +65,7 @@ export function buildOpenApiDocument(): Record<string, unknown> {
     info: {
       title: "Suiem API",
       version: "v1",
-      description:
-        "Suiem hackathon API. Not affiliated with Robinhood Markets, Inc. No order endpoints exist in Sprint 2.",
+      description: "Suiem API. Not affiliated with Robinhood Markets, Inc.",
     },
     servers: [{ url: "/" }],
     components: {

@@ -15,7 +15,7 @@ import {
  */
 export const FIAT_DECIMALS = 6 as const;
 
-/** Currencies accepted in Phase 2. Add more only with display/rounding rules. */
+/** Currencies accepted today. Add more only with display/rounding rules. */
 export type Currency = "USD" | "INR" | "EUR" | "GBP";
 export const CURRENCIES: readonly Currency[] = ["USD", "INR", "EUR", "GBP"];
 

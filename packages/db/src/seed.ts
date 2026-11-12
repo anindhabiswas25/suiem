@@ -27,10 +27,10 @@ export const POLICY_DEFINITIONS = [
   { purpose: "marketing_email", title: "Product news (optional)", summaryUrl: "/help#consents" },
   {
     purpose: "extension_detection",
-    title: "Browser extension detection (Sprint 3)",
+    title: "Browser extension detection",
     summaryUrl: "/help#consents",
   },
-  { purpose: "digest_sync", title: "Daily digest sync (Sprint 3)", summaryUrl: "/help#consents" },
+  { purpose: "digest_sync", title: "Daily digest sync", summaryUrl: "/help#consents" },
 ] as const;
 
 /** Idempotent: safe to run repeatedly. Demo users are flagged is_demo and have no login methods. */
@@ -101,7 +101,7 @@ export async function seed(url: string): Promise<{ entities: number; instruments
         ],
       );
     }
-    // Suiem demo tokens (dTSLA…): active only once the venue is deployed (deployments/46630.json).
+    // Suiem test tokens (dTSLA…): active only once the venue is deployed (deployments/46630.json).
     const deployment = loadDemoDeployment(process.env.DEMO_DEPLOYMENT_FILE);
     for (const t of TESTNET_STOCK_TOKENS) {
       const address = deployment?.tokens[t.ticker];
@@ -114,12 +114,12 @@ export async function seed(url: string): Promise<{ entities: number; instruments
           newId(),
           entityIds.get(t.entity),
           `DEMO:${t.ticker}`,
-          `Suiem Demo ${t.ticker} (testnet, no value)`,
+          `Suiem Test ${t.ticker} (testnet, no value)`,
           address ? Buffer.from(address.slice(2), "hex") : null,
           address ? "active" : "unverified",
           address ? `${deployment!.explorer}/address/${address}` : null,
           address ? deployment!.deployedAt : null,
-          "Suiem demo token d" +
+          "Suiem test token d" +
             t.ticker +
             " traded for dUSD on SuiemDemoVenue (testnet 46630). No value, not a share, not a security.",
         ],
@@ -141,8 +141,10 @@ export async function seed(url: string): Promise<{ entities: number; instruments
         ],
       );
     }
+    // Sample community accounts (is_demo, no login methods). Production sets SEED_DEMO=false.
     const demoIds = new Map<string, string>();
-    for (const u of DEMO_USERS) {
+    const seedDemo = process.env.SEED_DEMO !== "false";
+    for (const u of seedDemo ? DEMO_USERS : []) {
       const r = await client.query<{ id: string }>(
         `INSERT INTO users (id, handle, display_name, is_demo) VALUES ($1, $2, $3, true)
          ON CONFLICT (handle) DO UPDATE SET display_name = EXCLUDED.display_name RETURNING id`,
@@ -160,7 +162,7 @@ export async function seed(url: string): Promise<{ entities: number; instruments
         [id],
       );
     }
-    await seedDemoPosts(client, demoIds, entityIds);
+    if (seedDemo) await seedDemoPosts(client, demoIds, entityIds);
     await client.query("COMMIT");
     const n = await client.query<{ n: number }>("SELECT count(*)::int AS n FROM instruments");
     return { entities: SEED_ENTITIES.length, instruments: n.rows[0]!.n };

@@ -34,9 +34,9 @@ export function TradingSection({ entityId }: { entityId: string }) {
   const sim = items.find((i) => i.legalType === "simulated");
   const s = status.data;
   const demoReason = !demo
-    ? "There is no testnet demo token for this company (demo tokens exist for TSLA, AMZN, PLTR, NFLX and AMD)."
+    ? "There is no testnet token for this company (test tokens exist for TSLA, AMZN, PLTR, NFLX and AMD)."
     : demo.status !== "active"
-      ? "The demo token for this company is not deployed or not verified yet."
+      ? "The test token for this company is not deployed or not verified yet."
       : (s?.testnet.reason ?? null);
   return (
     <Card title="Trading">
@@ -52,7 +52,7 @@ export function TradingSection({ entityId }: { entityId: string }) {
       <div className="s-row">
         {demo && !demoReason ? (
           <Button variant="primary" onClick={() => setOpen("testnet")} data-testid="buy-demo">
-            Buy demo token (testnet)
+            Buy test token (testnet)
           </Button>
         ) : null}
         {sim ? (
@@ -61,7 +61,7 @@ export function TradingSection({ entityId }: { entityId: string }) {
           </Button>
         ) : null}
       </div>
-      {demoReason ? <Status tone="neutral">Testnet demo: {demoReason}</Status> : null}
+      {demoReason ? <Status tone="neutral">Testnet: {demoReason}</Status> : null}
       {s?.eligibility.message && demoReason !== s.eligibility.message ? (
         <Status tone="warning">{s.eligibility.message}</Status>
       ) : null}
@@ -79,8 +79,8 @@ export function TradingSection({ entityId }: { entityId: string }) {
       ) : null}
       {open ? <OrderTicket entityId={entityId} book={open} onClose={() => setOpen(null)} /> : null}
       <span className="s-small s-muted">
-        Demo and testnet tokens have no value and are not shares or securities. Paper trades buy
-        nothing. <Link href="/portfolio">Your portfolio</Link>
+        Testnet tokens have no value and are not shares or securities. Paper trades buy nothing.{" "}
+        <Link href="/portfolio">Your portfolio</Link>
       </span>
     </Card>
   );

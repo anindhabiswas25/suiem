@@ -118,7 +118,7 @@ describe("consent state machine", () => {
     ).toBe(false);
   });
 
-  test("later-phase purposes cannot be granted in Phase 2", () => {
+  test("later-phase purposes cannot be granted yet", () => {
     const s = deriveConsentState([], current);
     expect(
       checkTransition(s, {

@@ -6,7 +6,7 @@ export const SEED_ENTITIES = ENTITY_DICTIONARY;
 
 /**
  * The 5 test Stock Tokens the official faucet hands out (VERIFIED_FACTS T-02). Their contract
- * addresses are UNVERIFIED (T-05), so they stay `unverified` with no address until Sprint 5.
+ * addresses are UNVERIFIED (T-05), so they stay `unverified` with no address until verified.
  */
 export const TESTNET_STOCK_TOKENS = [
   { entity: "tesla", ticker: "TSLA", symbol: "TEST:TSLA", name: "Tesla test token" },

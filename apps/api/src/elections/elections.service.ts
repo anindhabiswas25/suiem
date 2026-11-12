@@ -130,10 +130,7 @@ export class ElectionsService {
       title: e.title,
       category: e.category,
       categoryTitle: ELECTION_CATEGORY_TITLE[e.category],
-      labels: [
-        ...(e.rules.season === "hackathon" ? ["Hackathon season"] : []),
-        ...(e.is_demo ? ["Demo election"] : []),
-      ],
+      labels: [...(e.rules.season === "hackathon" ? ["Season 1"] : [])],
       status: e.status,
       result:
         e.result_status === "final"

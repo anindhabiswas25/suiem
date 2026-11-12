@@ -217,7 +217,7 @@ describe("testnet demo venue: full flow against anvil (chain 46630)", () => {
     expect(p.status).toBe(200);
     expect(p.json).toMatchObject({
       book: "testnet",
-      bookLabel: "Testnet demo · no value",
+      bookLabel: "Testnet · no value",
       instrument: {
         symbol: "DEMO:TSLA",
         network: "testnet",
@@ -423,7 +423,7 @@ describe("testnet demo venue: full flow against anvil (chain 46630)", () => {
     ).toBe(409);
   });
 
-  test("tampered transactions are rejected (amount, target, sender: Banchor R-1 regression)", async () => {
+  test("tampered transactions are rejected (amount, target, sender)", async () => {
     // Two previews; the user tries to submit the tx of the OTHER (different amount) against order 1.
     const p1 = await api(a, "POST", "/orders/preview", {
       entityId: "ent:tesla",
@@ -582,7 +582,7 @@ describe("testnet demo venue: full flow against anvil (chain 46630)", () => {
     expect(csv.statusCode).toBe(200);
     expect(csv.headers["content-type"]).toMatch(/text\/csv/);
     expect(csv.body.split("\n")[0]).toMatch(/^created_at,book,side,status,symbol/);
-    expect(csv.body).toContain("Testnet demo · no value");
+    expect(csv.body).toContain("Testnet · no value");
   });
 
   test("history snapshots are per book", async () => {

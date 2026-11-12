@@ -37,7 +37,7 @@ module.exports = {
     {
       name: "elections-no-reputation-writes",
       comment:
-        "Election code may READ leaderboards (social/leaderboard.ts) but never imports the reputation engine, jobs or score writers: votes and winners never write reputation_* (ADR-0005, Sprint 7). SQL writes are also scanned by elections/separation.test.ts.",
+        "Election code may READ leaderboards (social/leaderboard.ts) but never imports the reputation engine, jobs or score writers: votes and winners never write reputation_* (ADR-0005). SQL writes are also scanned by elections/separation.test.ts.",
       severity: "error",
       from: { path: "^(apps/api/src/elections|workers/indexer)" },
       to: {
@@ -78,12 +78,6 @@ module.exports = {
           "^apps/api/src/(auth|admin|flags|infra|wallet|idempotency|audit|observability|main\\.ts|app\\.module\\.ts)|\\.test\\.ts$|^apps/api/test",
       },
       to: { path: "^apps/api/src/infra/system-db" },
-    },
-    {
-      name: "no-reference-banchor",
-      severity: "error",
-      from: {},
-      to: { path: "reference-banchor" },
     },
     {
       name: "no-circular",

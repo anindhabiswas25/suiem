@@ -2,7 +2,7 @@
 
 - Status: Accepted (PO, 2026-11-10)
 - Supersedes: the **testnet-only** parts of ADR-0001 §1, ADR-0002 §1–2 and ADR-0005 §2. Everything else in those ADRs stands.
-- Context source: `prompts/PHASE_2_PROMPT.md`, World is Flat hackathon rules (https://worldisflat.fun/build/rules)
+- Context source: World is Flat hackathon rules (https://worldisflat.fun/build/rules)
 
 ## Context
 
@@ -33,7 +33,7 @@ Before Sprint 7 builds on it, the token's `burn`/`burnFrom` and the organiser co
 
 ### 3. Unchanged boundaries
 
-- No automatic buying of any kind. Banchor growth loops are never integrated (OQ-P-13).
+- No automatic buying of any kind. Attention-to-purchase growth loops are never integrated (ADR-0001 §4).
 - $WIF votes and holdings never affect the Suiem Score.
 - Test and demo assets are never presented as securities.
 - No Robinhood name or logo in branding. The footer carries "Suiem is not affiliated with Robinhood Markets, Inc." (brand guidelines: https://docs.robinhood.com/chain/brand-guidelines).

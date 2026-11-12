@@ -106,7 +106,7 @@ pnpm contracts:abis                 # regenerate typed ABIs into packages/chain/
 - **Fuzz:** buy and sell rounding never favours the trader; a buy→sell round trip never profits.
 - **Invariant (128k calls):** dUSD in = fees kept + dUSD burned, and minted stock value at the signed price ≤ dUSD burned.
 
-Slither 0.11.3 (2026-11-11) reported 5 results. All are accepted; see `docs/sprints/SPRINT_5.md`.
+Slither 0.11.3 (2026-11-11) reported 5 results. All were reviewed and accepted.
 
 Mainnet (4663) is used **only** for `SuiemElections`, and every mainnet transaction (deploy, create, cancel, finalize by the owner) needs explicit PO approval in chat. `deploy-mainnet.ts` refuses unless:
 - the chain is 4663

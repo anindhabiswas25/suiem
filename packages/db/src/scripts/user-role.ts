@@ -1,4 +1,4 @@
-// Sets a user's role (Sprint 6). The ONLY way to make a moderator: the API role cannot update
+// Sets a user's role. The ONLY way to make a moderator: the API role cannot update
 // users.role (column privilege, migration 0006) and no endpoint exposes it.
 // Usage: pnpm user:role <handle> <user|moderator>
 import { newId } from "@suiem/shared/ids";

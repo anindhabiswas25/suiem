@@ -41,6 +41,8 @@ export const ENV_VARS = {
     "Testnet-only deployer for packages/contracts (chain 46630 only). Used by the deploy script, not the API.",
   DEMO_DEPLOYMENT_FILE:
     "Path to the SuiemDemoVenue deployment manifest (default packages/contracts/deployments/46630.json).",
+  SEED_DEMO:
+    "`pnpm db:seed` only: set to false to skip the sample community accounts and posts (production).",
   ORDER_MAX_USD_PER_ORDER: "Largest order in USD (default 1000).",
   ORDER_MAX_USD_PER_DAY: "Largest total order value per user per UTC day in USD (default 5000).",
   DEMO_FEE_BPS: "Fee in basis points signed into demo venue quotes (default 10).",
@@ -125,6 +127,7 @@ export const apiEnvSchema = z
       .regex(/^0x[0-9a-fA-F]{64}$/)
       .optional(),
     DEMO_DEPLOYMENT_FILE: z.string().min(1).optional(),
+    SEED_DEMO: z.enum(["true", "false"]).optional(),
     ORDER_MAX_USD_PER_ORDER: z.coerce.number().int().min(1).max(1_000_000).default(1000),
     ORDER_MAX_USD_PER_DAY: z.coerce.number().int().min(1).max(10_000_000).default(5000),
     DEMO_FEE_BPS: z.coerce.number().int().min(0).max(100).default(10),

@@ -1,4 +1,4 @@
-# Local development stack (PO: hosted on Vercel + Railway from Sprint 8; nothing here is deployed).
+# Local development stack (production runs on Vercel + Railway).
 # Credentials are LOCAL-ONLY defaults and protect nothing of value.
 name: suiem
 services:
@@ -29,7 +29,7 @@ services:
       retries: 30
 
   # Forks for tests only (`docker compose --profile test up`). Nothing is ever broadcast to the
-  # real networks from these. Mainnet fork is used for Sprint 7 $WIF contract tests.
+  # real networks from these. Mainnet fork is used for $WIF contract tests.
   anvil-mainnet-fork:
     profiles: [test]
     image: ghcr.io/foundry-rs/foundry:v1.8.3

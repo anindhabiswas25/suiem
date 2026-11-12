@@ -123,8 +123,8 @@ const COMMON = {
 /** Hackathon season (PO decision OQ-P-07): relaxed thresholds, always badged as a preview. */
 export const V1_HACKATHON: Methodology = {
   version: "v1-hackathon",
-  name: "Suiem Score v1 (hackathon season)",
-  badge: "Hackathon season · limited history · preview",
+  name: "Suiem Score v1 (Season 1)",
+  badge: "Season 1 · limited history · preview",
   thresholds: {
     minDecisions: 5,
     minActiveDays: 3,
@@ -168,7 +168,7 @@ export const BENCHMARK = {
   symbol: "SPY",
   label: "SPDR S&P 500 ETF (SPY), Finnhub quote",
   reason:
-    "SPY is a broad, liquid proxy for the US large-cap market. Every Suiem demo instrument is a US large-cap company.",
+    "SPY is a broad, liquid proxy for the US large-cap market. Every Suiem instrument is a US large-cap company.",
 } as const;
 
 export const PERFORMANCE_LABEL = "Simulated / testnet performance, not live verified";

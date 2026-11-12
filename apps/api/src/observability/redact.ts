@@ -49,7 +49,7 @@ export const ALLOWED_LOG_KEYS = new Set([
   "jurisdiction",
   "pid",
   "hostname",
-  // Sprint 6 audit details (ids and codes only, never content).
+  // Social audit details (ids and codes only, never content).
   "fields",
   "reports",
   "snapshotBefore",
@@ -68,7 +68,7 @@ export function scrubString(value: string): string {
   const uuids: string[] = [];
   const masked = value.replace(UUID_RE, (m) => `\uE000${uuids.push(m) - 1}\uE000`);
   const scrubbed = masked
-    // Secret RPC endpoints carry their token in the path (Sprint 7: QuickNode).
+    // Secret RPC endpoints carry their token in the path.
     .replace(/https?:\/\/[^\s"'`<>]*quiknode\.pro[^\s"'`<>]*/gi, "https://<quicknode>/…")
     .replace(/(https?:\/\/[^\s?#"]+)\?[^\s#"]*/gi, "$1?[query]")
     .replace(EMAIL_RE, "[email]")

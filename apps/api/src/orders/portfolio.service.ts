@@ -120,7 +120,7 @@ export class PortfolioService {
         : null,
       note:
         book === "testnet"
-          ? "Demo tokens and dUSD on testnet have no value. Values use the real quote only to make the demo meaningful."
+          ? "Test tokens and dUSD on testnet have no value. Values use the real quote for reference only."
           : "Paper trades. Nothing was bought.",
     };
   }

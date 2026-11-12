@@ -1,6 +1,6 @@
 /* eslint-disable no-restricted-imports -- the test plays the voter's and owner's wallets: it signs and sends transactions on a LOCAL anvil (chain id 4663, no fork, nothing leaves this machine) */
 /**
- * Sprint 7: $WIF elections end to end against a local anvil reporting chain 4663, with a burnable
+ * $WIF elections end to end against a local anvil reporting chain 4663, with a burnable
  * mock installed at the real $WIF address. Covers the candidate snapshot (fallback, labels,
  * exclusions, freeze), the indexer (idempotency, finality, simulated reorg, chunk halving,
  * cross-check), the API (preview, binding, privacy, scoping, device 403) and the reputation
@@ -429,7 +429,7 @@ describe("burn-to-vote end to end on a local chain-4663 anvil", () => {
     expect(e.contract.address).toBe(contract);
     expect(e.capPerWallet).toBe(25);
     expect(e.irreversibilityNotice).toMatch(/cannot be refunded/);
-    expect(e.labels).toContain("Hackathon season");
+    expect(e.labels).toContain("Season 1");
     expect(e.candidates.map((x: Json) => x.label)).toEqual([
       "Building track record",
       "Building track record",

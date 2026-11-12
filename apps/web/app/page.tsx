@@ -26,7 +26,7 @@ export default function Landing() {
           </Card>
           <Card title="Practice safely">
             <span>
-              Stock Token demo on <NetworkBadge network="testnet" />. Test tokens are not
+              Stock Token trading on <NetworkBadge network="testnet" />. Test tokens are not
               securities. Not available in restricted jurisdictions.
             </span>
           </Card>

@@ -38,13 +38,12 @@ function Leaderboard() {
   const sp = useSearchParams();
   const board = BOARDS.find((b) => b.key === sp.get("board"))?.key ?? "suiem";
   const period = sp.get("period") === "all" ? "all" : "week";
-  const showDemo = sp.get("demo") !== "false";
   const q = useQuery<Board>({
-    queryKey: ["leaderboard", board, period, showDemo],
-    queryFn: () => api("GET", `/leaderboards/${board}?period=${period}&showDemo=${showDemo}`),
+    queryKey: ["leaderboard", board, period],
+    queryFn: () => api("GET", `/leaderboards/${board}?period=${period}&showDemo=false`),
   });
   const href = (p: Record<string, string>) =>
-    `/leaderboard?${new URLSearchParams({ board, period, demo: String(showDemo), ...p })}`;
+    `/leaderboard?${new URLSearchParams({ board, period, ...p })}`;
   return (
     <>
       <PageHeader title="Leaderboard" eyebrow="Community">
@@ -102,10 +101,7 @@ function Leaderboard() {
                     <Link href={`/u/${r.handle}`} className="post-author">
                       {r.displayName ?? r.handle}
                     </Link>
-                    <div className="s-small s-faint">
-                      @{r.handle}
-                      {r.isDemo ? " · demo" : ""}
-                    </div>
+                    <div className="s-small s-faint">@{r.handle}</div>
                   </div>
                   <span className="s-serif s-num" style={{ fontSize: 30 }}>
                     {Number(r.score).toFixed(1)}
@@ -114,9 +110,6 @@ function Leaderboard() {
               ))}
             </ol>
           ) : null}
-          <Link className="s-small" href={href({ demo: String(!showDemo) })}>
-            {showDemo ? "Hide demo accounts" : "Show demo accounts"}
-          </Link>
         </section>
         <aside className="rail">
           <Card eyebrow="How scores work">

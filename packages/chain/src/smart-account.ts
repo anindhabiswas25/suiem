@@ -1,7 +1,7 @@
 /**
- * Smart-account abstraction (ADR-0002 §2, Option A). STUB in Phase 2: the AA spike
+ * Smart-account abstraction (ADR-0002 §2, Option A). Stub: the AA spike
  * (VERIFIED_FACTS §4a) found EntryPoints and the P-256 precompile on 46630, but bundler and
- * paymaster availability is unverified, so Phase 2 ships external wallets via SIWE only
+ * paymaster availability is unverified, so Suiem ships external wallets via SIWE only
  * (PO decision OQ-PR-05). No session keys, no automation modules, ever (ADR-0001 §2).
  */
 export interface SmartAccountProvider {
@@ -14,7 +14,7 @@ export interface SmartAccountProvider {
 export class SmartAccountUnavailableError extends Error {
   override readonly name = "SmartAccountUnavailableError";
   constructor() {
-    super("Smart accounts are not available in Phase 2 (bundler/paymaster unverified on 46630).");
+    super("Smart accounts are not available yet (bundler/paymaster unverified on 46630).");
   }
 }
 

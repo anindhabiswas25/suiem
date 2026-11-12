@@ -22,7 +22,7 @@ const noProps = z.object({}).strict();
 const id = z.uuid();
 
 export const PRODUCT_EVENTS = {
-  // Activation (Phase 2)
+  // Activation
   account_created: {
     category: "activation",
     countsTowardWarc: false,
@@ -63,7 +63,7 @@ export const PRODUCT_EVENTS = {
     props: z.object({ type: z.enum(["export", "delete"]) }).strict(),
   },
 
-  // Meaningful research actions (PRD §2.3). Defined now so they stay stable; emitted from Phase 3+.
+  // Meaningful research actions (PRD §2.3). Defined now so they stay stable; emitted by research features.
   research_brief_saved: {
     category: "research",
     countsTowardWarc: true,

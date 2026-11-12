@@ -3,7 +3,7 @@ import { join, relative } from "node:path";
 import { describe, expect, test } from "vitest";
 
 /**
- * Phase 2 acceptance: "No order or token-transfer code path exists." Together with the ESLint
+ * "No order or token-transfer code path exists." Together with the ESLint
  * `no-restricted-imports` rule, this scans every source file for chain write builders.
  */
 const ROOT = join(import.meta.dirname, "..", "..", "..");
@@ -46,16 +46,16 @@ function* sourceFiles(dir: string): Generator<string> {
 }
 
 /**
- * Sprint 5: chain writes exist ONLY in these reviewed places (testnet 46630 demo venue). Anything
+ * chain writes exist ONLY in these reviewed places (testnet 46630 demo venue). Anything
  * else that references a write builder fails this test.
  */
 const ALLOWED = [
   /^packages\/chain\/src\/write\//,
   /^apps\/web\/components\/invest\//,
   /^scripts\/(deploy-testnet|invest-smoke)\.ts$/,
-  // Sprint 7 (mainnet 4663, real $WIF): deploy, owner CLI and the PO's own vote tool.
+  // Mainnet 4663 (real $WIF): deploy, owner CLI and the PO's own vote tool.
   /^scripts\/(deploy-mainnet|elections-create|wif-vote)\.ts$/,
-  // Sprint 8: the web burn-to-vote drawer (sends only API-previewed approve + vote calldata).
+  // the web burn-to-vote drawer (sends only API-previewed approve + vote calldata).
   /^apps\/web\/components\/elections\//,
 ];
 

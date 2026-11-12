@@ -1,6 +1,6 @@
 /**
- * Leaderboard query (Sprint 6), shared by `GET /leaderboards/:board` and the election candidate
- * snapshot (Sprint 7). Reads reputation snapshots only; it never reads elections or $WIF.
+ * Leaderboard query, shared by `GET /leaderboards/:board` and the election candidate
+ * snapshot. Reads reputation snapshots only; it never reads elections or $WIF.
  */
 import { ACTIVE_METHODOLOGY } from "@suiem/reputation";
 import type { Pool } from "pg";

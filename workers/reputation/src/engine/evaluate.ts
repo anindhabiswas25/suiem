@@ -1,5 +1,5 @@
 /**
- * Thesis evaluation (PO decision, Sprint 6): at the end of its horizon, the FROZEN version 1 of
+ * Thesis evaluation (PO decision): at the end of its horizon, the FROZEN version 1 of
  * a thesis is checked: was the direction right on return relative to the benchmark (SPY)?
  * Pure: prices in, verdict out. Prices are decimal strings; arithmetic is integer (ppm).
  */

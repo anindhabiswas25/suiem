@@ -6,12 +6,12 @@ const NOW = Date.parse("2026-11-11T10:00:00Z");
 const preview: Preview = {
   orderId: "01a1c95b-0000-7000-8000-000000000001",
   book: "testnet",
-  bookLabel: "Testnet demo · no value",
+  bookLabel: "Testnet · no value",
   side: "buy",
   instrument: {
     symbol: "DEMO:TSLA",
-    displayName: "Suiem Demo TSLA (testnet, no value)",
-    legalTypeLabel: "Suiem demo token · testnet · no value · not a security",
+    displayName: "Suiem Test TSLA (testnet, no value)",
+    legalTypeLabel: "Suiem test token · testnet · no value · not a security",
     network: "testnet",
     chainId: 46630,
     address: "0x0000000000000000000000000000000000000001",
@@ -87,9 +87,7 @@ describe("order ticket", () => {
   test("confirmation is required: the confirm button is disabled until acknowledged", () => {
     const off = render({ acknowledged: false });
     expect(off).toMatch(/<button[^>]*disabled=""[^>]*data-testid="confirm-order"/);
-    expect(off).toContain(
-      "I understand this is a testnet demo token with no value and not a security.",
-    );
+    expect(off).toContain("I understand this is a testnet token with no value and not a security.");
     const on = render({ acknowledged: true });
     expect(on).not.toMatch(/<button[^>]*disabled=""[^>]*data-testid="confirm-order"/);
   });

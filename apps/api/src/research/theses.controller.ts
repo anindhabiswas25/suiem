@@ -84,7 +84,7 @@ export class ThesesController {
   private async priceContext(ticker: string | null) {
     try {
       const q = await quoteFor(this.rt, ticker);
-      // SPY at the same moment: the start of the benchmark-relative evaluation (Sprint 6).
+      // SPY at the same moment: the start of the benchmark-relative evaluation.
       const spy = await quoteFor(this.rt, "SPY").catch(() => null);
       return {
         benchmark: spy ? { symbol: "SPY", price: spy.price, asOf: spy.asOf } : null,

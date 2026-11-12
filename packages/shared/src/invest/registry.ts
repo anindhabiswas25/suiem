@@ -52,7 +52,7 @@ export const TESTNET_FAUCET_TOKENS: Record<
 /** Labels shown on every row of the portfolio (never sum books together, PRD §8.4). */
 export const BOOK_LABELS = {
   simulated: "Simulated",
-  testnet: "Testnet demo · no value",
+  testnet: "Testnet · no value",
   faucet: "Testnet test token · no value",
 } as const;
 

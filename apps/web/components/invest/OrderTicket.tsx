@@ -31,7 +31,7 @@ const errText = (e: unknown) =>
 /**
  * The client re-encodes nothing it trusts blindly: it recomputes the preview hash from the exact
  * calldata, decodes the call and checks trader, token and amount against the preview before the
- * wallet is ever asked to sign (Banchor R-1 regression).
+ * wallet is ever asked to sign.
  */
 export function verifyPreview(
   p: Preview,
@@ -238,7 +238,7 @@ export function OrderTicket({
 
   return (
     <Card
-      title={book === "testnet" ? "Buy or sell a demo token (testnet)" : "Paper trade (simulated)"}
+      title={book === "testnet" ? "Buy or sell a test token (testnet)" : "Paper trade (simulated)"}
     >
       <div className="s-row">
         <select
@@ -265,7 +265,7 @@ export function OrderTicket({
               ? "dUSD to spend"
               : "USD to spend (paper)"
             : book === "testnet"
-              ? "demo tokens to sell"
+              ? "test tokens to sell"
               : "shares to sell (paper)"}
         </span>
         <Button onClick={() => void quote()} loading={busy && !preview} data-testid="get-quote">

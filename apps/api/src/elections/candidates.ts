@@ -1,5 +1,5 @@
 /**
- * Candidate snapshot for a new election (Sprint 7, PO decisions). Taken ONCE at creation and stored
+ * Candidate snapshot for a new election. Taken ONCE at creation and stored
  * frozen in election_candidates + elections.rules; never recomputed.
  *
  * - "Research Contributor" ← leaderboard `research?period=week`; "Investor" ← `investors?period=week`.

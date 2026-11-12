@@ -50,7 +50,7 @@ export function GetDemoDusd({ dusd, faucetUrl }: { dusd: string; faucetUrl: stri
     <div className="s-stack" style={{ gap: 6 }}>
       <div className="s-row">
         <Button onClick={() => void claim()} loading={state.busy} data-testid="get-dusd">
-          Get demo dUSD
+          Get test dUSD
         </Button>
         <a href={faucetUrl} target="_blank" rel="noreferrer noopener" className="s-small">
           Need testnet ETH for gas? Official testnet faucet

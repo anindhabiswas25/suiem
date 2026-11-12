@@ -46,7 +46,7 @@ export function TicketView({
   const expired = left === 0;
   const testnet = preview.book === "testnet";
   const ackText = testnet
-    ? "I understand this is a testnet demo token with no value and not a security."
+    ? "I understand this is a testnet token with no value and not a security."
     : "I understand this is a simulated paper trade: nothing is bought and no money moves.";
   return (
     <div className="s-stack" data-testid="order-preview">
