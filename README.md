@@ -6,8 +6,8 @@
 
 | | |
 | --- | --- |
-| **Live app** | _add Vercel URL_ |
-| **API** | _add Railway URL_ (`/api/v1/health`, OpenAPI at `/api/v1/openapi.json`) |
+| **Live app** | https://suiem.vercel.app |
+| **API** | https://suiem.vercel.app/api/v1/health (OpenAPI at `/api/v1/openapi.json`) |
 | **Elections contract (mainnet 4663)** | [`0xDB6CC943E480b4E003d458705B7B35e55F69009D`](https://robinhoodchain.blockscout.com/address/0xDB6CC943E480b4E003d458705B7B35e55F69009D) (verified) |
 | **$WIF** | [`0x5173b8eA6923c2d40267890D45C46a3480954773`](https://robinhoodchain.blockscout.com/address/0x5173b8eA6923c2d40267890D45C46a3480954773) |
 
@@ -186,7 +186,7 @@ CI (`.github/workflows/`) runs static checks, integration tests, the extension E
 
 | Piece | Host | Notes |
 | --- | --- | --- |
-| Web (`apps/web`) | Vercel | Root `apps/web`. Set `API_URL` to the Railway API; `/api/v1/*` is proxied, so cookies stay first-party |
+| Web (`apps/web`) | Vercel | Root `apps/web`. Set `API_URL` to the Railway API; `app/api/[...path]/route.ts` proxies `/api/*` server-side, so cookies stay first-party |
 | API (`apps/api`, with the research worker, reputation jobs and elections indexer in-process) | Railway | Needs Postgres and Redis plugins and the variables in `.env.example`. `MAINNET_RPC_URL` is set here only |
 | Postgres 16, Redis | Railway | Run `pnpm db:migrate && pnpm db:seed` once against the production database |
 | Extension | Chrome Web Store (unlisted), or a release `.zip` | `pnpm --filter @suiem/extension zip`. Build with the production API origin |
