@@ -1,4 +1,5 @@
 import "reflect-metadata";
+import { timingSafeEqual } from "node:crypto";
 import fastifyCookie from "@fastify/cookie";
 import { NestFactory } from "@nestjs/core";
 import { FastifyAdapter, type NestFastifyApplication } from "@nestjs/platform-fastify";
@@ -29,6 +30,18 @@ export async function createApp(deps: AppDeps): Promise<NestFastifyApplication> 
     void reply.header("x-request-id", req.suiem.requestId);
     void reply.header("cache-control", "no-store");
     void reply.header("x-content-type-options", "nosniff");
+    // Only the web proxy may call the API when a shared secret is configured (health stays open
+    // for the platform's health check).
+    const secret = deps.env.PROXY_SHARED_SECRET;
+    if (secret && !(req.method === "GET" && req.url === `/${API_PREFIX}/health`)) {
+      const got = Buffer.from(String(req.headers["x-suiem-proxy"] ?? ""));
+      const want = Buffer.from(secret);
+      if (got.length !== want.length || !timingSafeEqual(got, want)) {
+        return reply.code(403).send({
+          error: { code: "FORBIDDEN", message: "Forbidden", requestId: req.suiem.requestId },
+        });
+      }
+    }
   });
   fastify.addHook("onResponse", async (req, reply) => {
     const durationMs = Number(

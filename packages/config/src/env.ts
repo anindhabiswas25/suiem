@@ -65,6 +65,8 @@ export const ENV_VARS = {
     "Optional Chrome extension ID. If set, extension requests must come from chrome-extension://<id> and the web app offers one-click pairing.",
   NEXT_PUBLIC_EXTENSION_ID:
     "Web build: extension ID for one-click pairing (default extension key gives cpgeijpinjipcioicabhgfmcbacdkmcj).",
+  PROXY_SHARED_SECRET:
+    "Optional (≥32 chars). When set, the API rejects every request except GET /api/v1/health that lacks the matching x-suiem-proxy header, so only the web proxy can reach it and X-Forwarded-For can't be spoofed by calling the API directly. The web app sends it from API_PROXY_SECRET.",
   TRUST_PROXY_HOPS:
     "Number of trusted reverse-proxy hops in front of the API (0 = trust none). Set exactly; never trust all hops.",
   RATE_LIMIT_DISABLED:
@@ -103,6 +105,7 @@ export const apiEnvSchema = z
       .string()
       .regex(/^[a-p]{32}$/)
       .optional(),
+    PROXY_SHARED_SECRET: z.string().min(32).optional(),
     TRUST_PROXY_HOPS: z.coerce.number().int().min(0).max(5).default(0),
     GROQ_API_KEY: z.string().min(10).optional(),
     GROQ_MODEL: z.string().min(1).default("openai/gpt-oss-120b"),
