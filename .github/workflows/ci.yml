@@ -34,7 +34,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       # Testcontainers starts Postgres 16 and Redis; anvil is spawned by the chain boot tests and by
       # the orders test, which deploys the real contracts to a local anvil (chain 46630).
-      - run: pnpm contracts:deps
+      - run: pnpm contracts:build
       - run: pnpm test:integration
   extension-e2e:
     runs-on: ubuntu-24.04
@@ -47,6 +47,8 @@ jobs:
       - uses: foundry-rs/foundry-toolchain@v1
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @suiem/extension exec playwright install --with-deps chromium
+      # The E2E setup deploys the burnable $WIF mock (packages/contracts/out) to a local 4663 chain.
+      - run: pnpm contracts:build
       # Builds the E2E variant, starts Postgres/Redis containers, local anvils, the API and a counting proxy.
       - run: pnpm test:e2e:extension
   contracts:

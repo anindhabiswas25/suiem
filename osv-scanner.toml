@@ -1,0 +1,12 @@
+# Accepted advisories in development-only tooling. None of these packages is part of the deployed
+# web app or API. Each entry expires so it is re-reviewed.
+
+[[IgnoredVulns]]
+id = "GHSA-3g3m-2fjr-6pw4"
+ignoreUntil = 2027-01-31
+reason = "glob 10.5.0, pulled only by testcontainers → archiver (integration tests). The fix is glob 14, which archiver does not support. Not used at runtime."
+
+[[IgnoredVulns]]
+id = "GHSA-g3hv-75wg-m249"
+ignoreUntil = 2027-01-31
+reason = "minimatch 10.2.6 (ESLint) and 9.0.9 (testcontainers → archiver/glob), dev tooling only. The fix is minimatch 11, unsupported by both. Patterns come from repo config, not user input."
