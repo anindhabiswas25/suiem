@@ -8,6 +8,7 @@
 | --- | --- |
 | **Live app** | https://suiem.vercel.app |
 | **API** | https://suiem.vercel.app/api/v1/health (OpenAPI at `/api/v1/openapi.json`) |
+| **Extension** | [Suiem Intelligence v0.3.0](https://github.com/anindhabiswas25/suiem/releases/tag/v0.3.0): unzip, `chrome://extensions` → Developer mode → Load unpacked |
 | **Elections contract (mainnet 4663)** | [`0xDB6CC943E480b4E003d458705B7B35e55F69009D`](https://robinhoodchain.blockscout.com/address/0xDB6CC943E480b4E003d458705B7B35e55F69009D) (verified) |
 | **$WIF** | [`0x5173b8eA6923c2d40267890D45C46a3480954773`](https://robinhoodchain.blockscout.com/address/0x5173b8eA6923c2d40267890D45C46a3480954773) |
 
