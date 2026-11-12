@@ -458,16 +458,38 @@ describe("client IP for rate limiting", () => {
     try {
       await strict.redis.flushdb();
       const statuses: number[] = [];
+      // A credential endpoint (no CSRF token, so 403 until the limit, then 429).
       for (let i = 0; i < 61; i++) {
         const r = await strict.app.inject({
-          method: "GET",
-          url: "/api/v1/auth/csrf",
+          method: "POST",
+          url: "/api/v1/auth/siwe/nonce",
           headers: { "x-forwarded-for": `203.0.113.${i}` },
+          payload: { chainId: 46630 },
         });
         statuses.push(r.statusCode);
       }
-      expect(statuses.slice(0, 60).every((s) => s === 200)).toBe(true);
+      expect(statuses.slice(0, 60).every((s) => s !== 429)).toBe(true);
       expect(statuses[60]).toBe(429);
+    } finally {
+      await strict.redis.flushdb();
+      await strict.close();
+    }
+  });
+
+  test("CSRF tokens and signing out still work after the per-IP auth limit is used up", async () => {
+    const strict = await startHarness({ envOverrides: { RATE_LIMIT_DISABLED: "false" } });
+    try {
+      await strict.redis.flushdb();
+      const c = await new Client(strict).init();
+      expect((await siweLogin(c, 46630)).r.status).toBe(200);
+      let last = 200;
+      for (let i = 0; i < 70 && last !== 429; i++)
+        last = (await c.request("POST", "/auth/siwe/nonce", { chainId: 46630 })).status;
+      expect(last).toBe(429);
+      // A fresh page fetches a new CSRF token before its first write, then signs out.
+      await c.init();
+      expect((await c.request("POST", "/auth/logout", {})).status).toBe(200);
+      expect((await c.request("GET", "/me")).status).toBe(401);
     } finally {
       await strict.redis.flushdb();
       await strict.close();

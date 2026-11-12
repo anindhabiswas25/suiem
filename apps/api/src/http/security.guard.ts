@@ -24,6 +24,8 @@ function sameToken(a: string | undefined, b: string | undefined): boolean {
  * CSRF token (cookie + X-CSRF-Token header) must match; 3. resolve the session cookie;
  * 4. enforce the route's auth level. Routes without @Route metadata are denied.
  */
+const AUTH_BUCKET_EXEMPT = new Set(["/auth/csrf", "/auth/logout"]);
+
 @Injectable()
 export class SecurityGuard implements CanActivate {
   constructor(
@@ -40,7 +42,11 @@ export class SecurityGuard implements CanActivate {
     if (!route) throw new ApiError("NOT_FOUND", "Not found");
 
     await this.limiter.consume(LIMITS.globalPerIp, req.ip);
-    if (route.tags.includes("auth")) await this.limiter.consume(LIMITS.authPerIp, req.ip);
+    // The auth bucket slows credential attempts. Issuing a CSRF token and signing out are not
+    // credential attempts; counting them would block every write (and sign-out) for everyone behind
+    // one shared IP, e.g. a venue network, once enough people sign in. The global limit still applies.
+    if (route.tags.includes("auth") && !AUTH_BUCKET_EXEMPT.has(route.path))
+      await this.limiter.consume(LIMITS.authPerIp, req.ip);
 
     // Extension device tokens: Authorization: Bearer sxt_… (no cookies, so CSRF does not apply).
     const auth = req.headers.authorization;
