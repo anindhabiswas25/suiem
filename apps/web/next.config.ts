@@ -15,7 +15,13 @@ const config: NextConfig = {
   transpilePackages: ["@suiem/ui", "@suiem/shared", "@suiem/config"],
   // Same-origin API: the browser only talks to the web origin, so session cookies stay first-party.
   async rewrites() {
-    return [{ source: "/api/:path*", destination: `${apiUrl}/api/:path*` }];
+    return {
+      // The marketing landing page is a static port of the licensed Catalis template
+      // (public/landing); it runs Webflow's own interaction scripts, so it is served as-is.
+      beforeFiles: [{ source: "/", destination: "/landing/index.html" }],
+      afterFiles: [{ source: "/api/:path*", destination: `${apiUrl}/api/:path*` }],
+      fallback: [],
+    };
   },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];

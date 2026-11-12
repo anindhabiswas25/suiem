@@ -3,9 +3,12 @@ import type { quoteResponse, thesisListResponse, watchlistsResponse } from "@sui
 import { Alert, Button, Card, EmptyState, ErrorState, LoadingState } from "@suiem/ui";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
-import { useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
 import type { z } from "zod";
-import { PageHeader } from "../../../components/AppShell";
+import type { PostView } from "@suiem/shared/social";
+import { PageHeader, TabLinks } from "../../../components/AppShell";
+import { PostCard } from "../../../components/social/Post";
 import { EntitySearch } from "../../../components/research/ui";
 import { api, ApiRequestError } from "../../../lib/api";
 
@@ -13,7 +16,7 @@ type Lists = z.infer<typeof watchlistsResponse>;
 type Item = Lists["items"][number]["items"][number];
 type Theses = z.infer<typeof thesisListResponse>;
 
-export default function WatchlistPage() {
+function WatchlistsView() {
   const qc = useQueryClient();
   const lists = useQuery<Lists>({
     queryKey: ["watchlists"],
@@ -30,10 +33,6 @@ export default function WatchlistPage() {
   });
   return (
     <>
-      <PageHeader title="Watchlists">
-        Companies you're following, with your notes and theses. Adding a company never buys
-        anything.
-      </PageHeader>
       {lists.isPending ? <LoadingState /> : null}
       {lists.isError ? (
         <ErrorState message="Could not load your watchlists." retry={() => void lists.refetch()} />
@@ -204,5 +203,57 @@ function WatchItem({
         )}
       </div>
     </li>
+  );
+}
+
+function Saved() {
+  const q = useQuery<{ items: PostView[] }>({
+    queryKey: ["bookmarks"],
+    queryFn: () => api("GET", "/bookmarks"),
+  });
+  if (q.isPending) return <LoadingState />;
+  if (q.isError) return <ErrorState message={q.error.message} retry={() => void q.refetch()} />;
+  if (!q.data.items.length)
+    return (
+      <EmptyState title="Nothing saved yet">
+        Press Save on any post in Community to keep it here.
+      </EmptyState>
+    );
+  return (
+    <div className="s-stack" style={{ gap: 14, maxWidth: 760 }}>
+      {q.data.items.map((p) => (
+        <PostCard key={p.id} post={p} />
+      ))}
+    </div>
+  );
+}
+
+function Watchlist() {
+  const sp = useSearchParams();
+  const tab = sp.get("tab") === "saved" ? "saved" : "lists";
+  return (
+    <>
+      <PageHeader title="Watchlist" eyebrow="Companies you follow">
+        Companies you&apos;re following, with your notes and theses. Adding a company never buys
+        anything.
+      </PageHeader>
+      <TabLinks
+        label="Watchlist"
+        current={tab}
+        tabs={[
+          { key: "lists", label: "Watchlists", href: "/watchlist" },
+          { key: "saved", label: "Saved posts", href: "/watchlist?tab=saved" },
+        ]}
+      />
+      {tab === "saved" ? <Saved /> : <WatchlistsView />}
+    </>
+  );
+}
+
+export default function WatchlistPage() {
+  return (
+    <Suspense fallback={<LoadingState />}>
+      <Watchlist />
+    </Suspense>
   );
 }

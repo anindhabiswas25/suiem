@@ -45,7 +45,7 @@ export default function PortfolioPage() {
   });
   return (
     <>
-      <PageHeader title="Portfolio">
+      <PageHeader title="Practice" eyebrow="Portfolio" network="testnet">
         Three separate books. They are never added together, and none of them holds real shares or
         securities.
       </PageHeader>

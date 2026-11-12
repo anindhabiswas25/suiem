@@ -72,10 +72,11 @@ export default function Settings() {
 
   return (
     <>
-      <PageHeader title="Settings">
+      <PageHeader title="Settings" eyebrow="Account">
         Your profile, sign-in methods, wallets, consents and data.
       </PageHeader>
 
+      <div id="profile" />
       <Card title="Profile">
         <label className="s-field">
           <span>Display name</span>
@@ -183,6 +184,7 @@ export default function Settings() {
         {security.msg ? <Status tone={security.msg.tone}>{security.msg.text}</Status> : null}
       </Card>
 
+      <div id="wallet" />
       <Card title="Wallets">
         {user.wallets.length === 0 ? <span className="s-muted">No wallets linked.</span> : null}
         <ul className="s-stack" style={{ listStyle: "none", padding: 0, margin: 0 }}>
@@ -218,6 +220,7 @@ export default function Settings() {
         </details>
       </Card>
 
+      <div id="extension" />
       <ExtensionSettings />
 
       <Card title="Consents">

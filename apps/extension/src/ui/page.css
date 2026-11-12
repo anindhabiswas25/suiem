@@ -1,3 +1,4 @@
+/* Extension pages (popup, side panel, options) on top of @suiem/ui: the landing page's look. */
 body {
   margin: 0;
 }
@@ -8,19 +9,74 @@ body {
   gap: 14px;
 }
 .ext h1 {
-  font-size: 20px;
+  font-size: 36px;
   margin: 0;
 }
+.ext h2 {
+  font-size: 24px;
+}
+.popup {
+  padding: 0;
+  gap: 0;
+}
+.pop-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: var(--surface);
+}
+.pop-head .s-wordmark {
+  font-size: 22px;
+}
+.pop-head .s-logo {
+  width: 30px;
+  height: 30px;
+}
+.ext-body {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ext-card {
+  background: var(--surface);
+  border-radius: 18px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ext-card .s-chip {
+  min-height: 34px;
+  padding: 0 12px;
+  font-size: 13px;
+}
+.pop-foot {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px 16px 16px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.linkish {
+  font: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
 .big-toggle {
-  width: 100%;
-  min-height: 56px;
-  font-size: 18px;
-  font-weight: 700;
+  min-height: 52px;
+  font-size: 17px;
 }
 .toggle-on {
-  background: var(--positive) !important;
-  color: #0b1426 !important;
-  border-color: var(--positive) !important;
+  background: var(--ink) !important;
+  color: var(--ink-contrast) !important;
 }
 .muted-list {
   list-style: none;
@@ -28,19 +84,22 @@ body {
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 6px;
 }
 .muted-list li {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 8px;
+  padding: 10px 0;
+  border-top: 1px solid var(--border);
+}
+.muted-list li:first-child {
+  border-top: 0;
 }
 .preview {
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 10px;
+  background: var(--surface-2);
+  border-radius: 14px;
+  padding: 12px;
   font-family: var(--mono);
   font-size: 12px;
   white-space: pre-wrap;
@@ -50,4 +109,16 @@ body {
 .footer-note {
   font-size: 12px;
   color: var(--text-muted);
+}
+.ext .s-card {
+  padding: 18px;
+  border-radius: 20px;
+}
+.ext .s-card > h2 {
+  font-size: 22px;
+}
+.ext-options {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 32px 16px 64px;
 }

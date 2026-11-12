@@ -26,38 +26,55 @@ function Popup() {
   const tabPrivate = tab?.id !== undefined && state.privateTabs.includes(tab.id);
   const sitePrivate = !!tabHost && state.privateSites.includes(tabHost);
 
-  return (
-    <main className="ext" aria-label="Suiem controls">
-      <Wordmark href="#" />
-      <StatusPill tone={description.tone}>{description.label}</StatusPill>
-      <Button
-        variant="primary"
-        className="s-btn big-toggle"
-        aria-pressed={isOn}
-        data-testid="power"
-        onClick={() => void run(dispatch(isOn ? { type: "turnOff" } : { type: "turnOn" }))}
-      >
-        {isOn ? "● ON · turn off" : "○ OFF · turn on"}
-      </Button>
+  const tone =
+    description.tone === "positive" ? "real" : description.tone === "warning" ? "test" : undefined;
+  const short = state.privateSession
+    ? "Private"
+    : state.mode.kind === "on"
+      ? "On"
+      : state.mode.kind === "off"
+        ? "Off"
+        : "Paused";
 
-      <fieldset className="s-stack" style={{ border: 0, padding: 0, margin: 0, gap: 8 }}>
-        <legend style={{ fontWeight: 600, marginBottom: 6 }}>Pause detection</legend>
-        <div className="s-row">
-          {PAUSE_PRESETS.map((p) => (
-            <Button
-              key={p.label}
-              onClick={() => void run(dispatch({ type: "pause", choice: p.choice }))}
-            >
-              {p.label}
-            </Button>
-          ))}
-        </div>
-        <div className="s-row">
-          <label className="s-row" style={{ gap: 6 }}>
-            <span>Custom</span>
+  return (
+    <main className="ext popup" aria-label="Suiem controls">
+      <header className="pop-head">
+        <Wordmark href="#" />
+        <span className="s-badge" data-tone={tone}>
+          {short}
+        </span>
+      </header>
+      <div className="ext-body">
+        <StatusPill tone={description.tone}>{description.label}</StatusPill>
+        <Button
+          variant={isOn ? "secondary" : "primary"}
+          block
+          className="s-btn big-toggle"
+          aria-pressed={isOn}
+          data-testid="power"
+          onClick={() => void run(dispatch(isOn ? { type: "turnOff" } : { type: "turnOn" }))}
+        >
+          {isOn ? "Turn off" : "Turn on"}
+        </Button>
+
+        <section className="ext-card">
+          <span className="s-eyebrow">Pause detection</span>
+          <div className="s-row" style={{ gap: 6 }}>
+            {PAUSE_PRESETS.map((p) => (
+              <button
+                key={p.label}
+                type="button"
+                className="s-chip"
+                onClick={() => void run(dispatch({ type: "pause", choice: p.choice }))}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+          <div className="s-row" style={{ gap: 6 }}>
             <input
               className="s-input"
-              style={{ width: 80 }}
+              style={{ width: 80, minHeight: 38 }}
               type="number"
               min={1}
               max={10080}
@@ -65,76 +82,97 @@ function Popup() {
               onChange={(e) => setCustom(e.target.value)}
               aria-label="Pause minutes"
             />
-            <span>min</span>
-          </label>
-          <Button
-            onClick={() =>
-              void run(
-                dispatch({
-                  type: "pause",
-                  choice: { kind: "minutes", minutes: Number(custom) || 30 },
-                }),
-              )
-            }
-          >
-            Pause
-          </Button>
-        </div>
-      </fieldset>
-
-      <fieldset className="s-stack" style={{ border: 0, padding: 0, margin: 0, gap: 8 }}>
-        <legend style={{ fontWeight: 600, marginBottom: 6 }}>Private mode</legend>
-        <span className="s-small s-muted">
-          Nothing from a private tab, site or session is detected or added to your digest.
-        </span>
-        <div className="s-row">
-          {tab?.id !== undefined ? (
+            <span className="s-small s-muted">min</span>
             <Button
-              aria-pressed={tabPrivate}
+              size="sm"
               onClick={() =>
-                void run(dispatch({ type: "privateTab", tabId: tab.id!, on: !tabPrivate }))
+                void run(
+                  dispatch({
+                    type: "pause",
+                    choice: { kind: "minutes", minutes: Number(custom) || 30 },
+                  }),
+                )
               }
             >
-              {tabPrivate ? "✓ This tab is private" : "This tab"}
+              Pause
             </Button>
-          ) : null}
-          {tabHost ? (
-            <Button
-              aria-pressed={sitePrivate}
+          </div>
+        </section>
+
+        <section className="ext-card">
+          <span className="s-eyebrow">Private mode</span>
+          <span className="s-small s-muted">
+            Nothing from a private tab, site or session is detected or added to your digest.
+          </span>
+          <div className="s-row" style={{ gap: 6 }}>
+            {tab?.id !== undefined ? (
+              <button
+                type="button"
+                className="s-chip"
+                aria-pressed={tabPrivate}
+                onClick={() =>
+                  void run(dispatch({ type: "privateTab", tabId: tab.id!, on: !tabPrivate }))
+                }
+              >
+                {tabPrivate ? "✓ This tab is private" : "This tab"}
+              </button>
+            ) : null}
+            {tabHost ? (
+              <button
+                type="button"
+                className="s-chip"
+                aria-pressed={sitePrivate}
+                onClick={() =>
+                  void run(dispatch({ type: "privateSite", host: tabHost, on: !sitePrivate }))
+                }
+              >
+                {sitePrivate ? `✓ ${tabHost} is private` : `This site (${tabHost})`}
+              </button>
+            ) : null}
+            <button
+              type="button"
+              className="s-chip"
+              aria-pressed={state.privateSession}
               onClick={() =>
-                void run(dispatch({ type: "privateSite", host: tabHost, on: !sitePrivate }))
+                void run(dispatch({ type: "privateSession", on: !state.privateSession }))
               }
             >
-              {sitePrivate ? `✓ ${tabHost} is private` : `This site (${tabHost})`}
-            </Button>
-          ) : null}
-          <Button
-            aria-pressed={state.privateSession}
-            onClick={() =>
-              void run(dispatch({ type: "privateSession", on: !state.privateSession }))
-            }
-          >
-            {state.privateSession ? "✓ Private session (until restart)" : "Whole session"}
-          </Button>
-        </div>
-      </fieldset>
+              {state.privateSession ? "✓ Private session (until restart)" : "Whole session"}
+            </button>
+          </div>
+        </section>
 
-      <div className="s-row">
-        <Button onClick={() => void chrome.runtime.openOptionsPage()}>Options</Button>
         <Button
+          variant="primary"
+          block
           onClick={() =>
             tab?.windowId !== undefined && void chrome.sidePanel.open({ windowId: tab.windowId })
           }
         >
-          Research panel
+          Open research panel
         </Button>
       </div>
-      <span className="footer-note">
-        {status.connected
-          ? `Connected as @${status.connected.handle}`
-          : "Not connected to a Suiem account"}{" "}
-        · Sites: {status.grantedSites.join(", ") || "none granted"}
-      </span>
+      <footer className="pop-foot">
+        <span>
+          {status.connected
+            ? `Connected as @${status.connected.handle}`
+            : "Not connected to a Suiem account"}
+        </span>
+        <span>
+          <button
+            type="button"
+            className="linkish"
+            onClick={() => void chrome.runtime.openOptionsPage()}
+          >
+            Options
+          </button>
+          {" · "}
+          <a href={status.webOrigin} target="_blank" rel="noreferrer">
+            Open Suiem ↗
+          </a>
+        </span>
+        <span className="s-faint">Sites: {status.grantedSites.join(", ") || "none granted"}</span>
+      </footer>
     </main>
   );
 }

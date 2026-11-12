@@ -1,9 +1,9 @@
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 
-export function Wordmark({ href = "/" }: { href?: string }) {
+export function Mark() {
   return (
-    <a className="s-wordmark" href={href} aria-label="Suiem home">
-      <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
+    <span className="s-logo" aria-hidden="true">
+      <svg viewBox="0 0 24 24">
         <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeWidth="2.5" />
         <path
           d="M7 14c1.5 2 3 3 5 3s3.5-1 5-3"
@@ -13,31 +13,54 @@ export function Wordmark({ href = "/" }: { href?: string }) {
           strokeLinecap="round"
         />
       </svg>
-      SUIEM
+    </span>
+  );
+}
+
+export function Wordmark({ href = "/", compact = false }: { href?: string; compact?: boolean }) {
+  return (
+    <a className="s-wordmark" href={href} aria-label="Suiem home">
+      <Mark />
+      {compact ? null : <span>Suiem</span>}
     </a>
   );
 }
 
 export function Button({
   variant = "secondary",
+  size,
+  block,
   loading = false,
   children,
   disabled,
   ...rest
 }: ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: "primary" | "secondary" | "ghost" | "danger";
+  size?: "sm";
+  block?: boolean;
   loading?: boolean;
 }) {
+  // The landing's text roll, on primary buttons with plain-text labels only.
+  const roll = variant === "primary" && !loading && typeof children === "string";
   return (
     <button
       className="s-btn"
       data-variant={variant}
+      data-size={size}
+      data-block={block || undefined}
       disabled={disabled || loading}
       aria-busy={loading || undefined}
       {...rest}
     >
       {loading ? <span className="s-spinner" aria-hidden="true" /> : null}
-      {children}
+      {roll ? (
+        <span className="s-roll">
+          <span>{children}</span>
+          <span aria-hidden="true">{children}</span>
+        </span>
+      ) : (
+        children
+      )}
     </button>
   );
 }
@@ -45,17 +68,46 @@ export function Button({
 export function Card({
   children,
   title,
+  eyebrow,
+  tone,
   as: Tag = "section",
 }: {
   children: ReactNode;
   title?: string;
+  eyebrow?: string;
+  tone?: "subtle" | "dark";
   as?: "section" | "div" | "article";
 }) {
   return (
-    <Tag className="s-card s-stack">
-      {title ? <h2 style={{ margin: 0, fontSize: 18 }}>{title}</h2> : null}
+    <Tag className="s-card s-stack" data-tone={tone}>
+      {eyebrow ? <span className="s-eyebrow">{eyebrow}</span> : null}
+      {title ? <h2 style={{ margin: 0 }}>{title}</h2> : null}
       {children}
     </Tag>
+  );
+}
+
+/** Initial-letter avatar (no uploaded images yet). */
+/** Stable per-name hue so different people are easy to tell apart in a feed. */
+function avatarHue(name: string): number {
+  let h = 0;
+  for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  return h % 360;
+}
+
+export function Avatar({ name, size }: { name: string; size?: "lg" }) {
+  const hue = avatarHue(name.replace(/^@/, "").toLowerCase());
+  return (
+    <span
+      className="s-avatar"
+      data-size={size}
+      aria-hidden="true"
+      style={{
+        background: `linear-gradient(135deg, hsl(${hue} 70% 42%), hsl(${(hue + 40) % 360} 75% 64%))`,
+      }}
+    >
+      {(name.replace(/^@/, "")[0] ?? "?").toUpperCase()}
+    </span>
   );
 }
 
@@ -74,8 +126,8 @@ export function Status({ tone, children }: { tone: keyof typeof ICONS; children:
 /** Shown next to every onchain action (ADR-0010 §1). */
 export function NetworkBadge({ network }: { network: "mainnet" | "testnet" | "offchain" }) {
   const map = {
-    mainnet: { label: "Mainnet · real $WIF", tone: "real", icon: "◆" },
-    testnet: { label: "Testnet · no value", tone: "test", icon: "◇" },
+    mainnet: { label: "Mainnet · real $WIF", tone: "real", icon: "●" },
+    testnet: { label: "Testnet · no value", tone: "test", icon: "●" },
     offchain: { label: "Off-chain", tone: "neutral", icon: "○" },
   } as const;
   const m = map[network];
@@ -127,7 +179,11 @@ export function ErrorState({
     <div className="s-state" role="alert">
       <Status tone="negative">{title}</Status>
       {message ? <div className="s-muted">{message}</div> : null}
-      {retry ? <Button onClick={retry}>Try again</Button> : null}
+      {retry ? (
+        <Button size="sm" onClick={retry}>
+          Try again
+        </Button>
+      ) : null}
     </div>
   );
 }
@@ -137,7 +193,7 @@ export function Alert({
   tone = "warning",
 }: {
   children: ReactNode;
-  tone?: "warning" | "negative";
+  tone?: "warning" | "negative" | "info";
 }) {
   return (
     <div className="s-alert" data-tone={tone} role="note">

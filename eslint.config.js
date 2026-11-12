@@ -32,6 +32,8 @@ export default tseslint.config(
       "**/.wxt/**",
       "**/.output/**",
       "**/.output-e2e/**",
+      // vendored Webflow export (licensed Catalis template)
+      "apps/web/public/landing/**",
     ],
   },
   js.configs.recommended,
@@ -52,7 +54,13 @@ export default tseslint.config(
   {
     files: ["apps/**/*.{ts,tsx}", "packages/**/*.{ts,tsx}", "workers/**/*.{ts,tsx}"],
     // Sprint 5: the reviewed testnet write modules (see packages/chain/src/no-write-builders.test.ts).
-    ignores: ["packages/chain/src/write/**", "apps/web/components/invest/**"],
+    // Allowed write paths: testnet orders and mainnet burn-to-vote. Both send only calldata the
+    // API built and previewed, from the user's own wallet after explicit confirmation.
+    ignores: [
+      "packages/chain/src/write/**",
+      "apps/web/components/invest/**",
+      "apps/web/components/elections/**",
+    ],
     rules: {
       "no-restricted-imports": [
         "error",

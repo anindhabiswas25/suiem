@@ -82,7 +82,7 @@ export default function ResearchEntity() {
 
   return (
     <>
-      <PageHeader title={e.name}>
+      <PageHeader title={e.name} eyebrow="Research">
         {e.legalName} · {e.kind} · {e.sector} · {e.tickers.join(" · ")}
       </PageHeader>
 

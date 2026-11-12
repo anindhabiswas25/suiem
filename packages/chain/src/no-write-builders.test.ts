@@ -55,6 +55,8 @@ const ALLOWED = [
   /^scripts\/(deploy-testnet|invest-smoke)\.ts$/,
   // Sprint 7 (mainnet 4663, real $WIF): deploy, owner CLI and the PO's own vote tool.
   /^scripts\/(deploy-mainnet|elections-create|wif-vote)\.ts$/,
+  // Sprint 8: the web burn-to-vote drawer (sends only API-previewed approve + vote calldata).
+  /^apps\/web\/components\/elections\//,
 ];
 
 describe("chain writes exist only in the reviewed testnet modules", () => {

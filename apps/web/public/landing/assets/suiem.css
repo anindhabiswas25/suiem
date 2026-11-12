@@ -1,0 +1,71 @@
+/* Suiem overrides on top of the licensed Catalis (Temlis) Webflow template. */
+
+/* Webflow injects a "Made in Webflow" badge on webflow-hosted exports. */
+.w-webflow-badge {
+  display: none !important;
+}
+
+/* Nav logo: Suiem mark in the template's dark circle */
+.suiem-navlogo {
+  display: grid;
+  place-items: center;
+  width: 2.95rem;
+  height: 2.95rem;
+  border-radius: 50%;
+  background: #1d1d1d;
+  color: #fff;
+}
+.suiem-navlogo .suiem-mark {
+  width: 58%;
+  height: 58%;
+}
+
+/* Footer logo: mark + wordmark in the template's heading face */
+.suiem-footlogo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  width: auto;
+  height: 2rem;
+  font-family: Librecasloncondensed, Georgia, serif;
+  font-size: 1.85rem;
+  line-height: 1;
+  color: #1d1d1d;
+}
+.suiem-footlogo .suiem-mark {
+  width: 1.3rem;
+  height: 1.3rem;
+}
+
+/* Footer display wordmark (replaces the template's italic brand SVG) */
+.suiem-visual {
+  container-type: inline-size;
+  width: 100%;
+}
+.suiem-visual span {
+  display: block;
+  font-family: Librecasloncondensed, Georgia, serif;
+  font-style: italic;
+  font-size: 40cqw;
+  line-height: 0.8;
+  letter-spacing: -0.02em;
+  color: #1d1d1d;
+}
+
+/* Footer CTA in place of the Webflow-hosted email form */
+.suiem-form__text {
+  display: flex;
+  align-items: center;
+  color: #6b6b6b;
+}
+
+.suiem-legal {
+  margin: 2.5rem 0 0;
+  font-size: 0.8rem;
+  line-height: 1.55;
+  color: #6b6b6b;
+}
+.suiem-legal a {
+  color: inherit;
+  text-decoration: underline;
+}

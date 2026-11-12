@@ -1,60 +1,102 @@
+/* In-page toast, inside a closed shadow root. Same look as the Suiem landing page and app:
+   white card, ink pill buttons, serif company name. No remote fonts: falls back to Georgia. */
 .toast {
   font:
-    14px/1.4 ui-sans-serif,
+    14px/1.45 Roboto,
+    ui-sans-serif,
     system-ui,
     -apple-system,
     "Segoe UI",
     sans-serif;
-  background: #111d35;
-  color: #e8edf7;
-  border: 1px solid #2a3b63;
-  border-radius: 12px;
-  padding: 14px 16px;
+  background: #ffffff;
+  color: #1d1d1d;
+  border-radius: 22px;
+  padding: 16px 18px 14px;
   width: 340px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  box-shadow:
+    0 18px 40px -16px rgba(0, 0, 0, 0.35),
+    0 0 0 1px rgba(0, 0, 0, 0.06);
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
+.toast strong {
+  font-family: "Libre Caslon Condensed", "Libre Caslon Text", Georgia, serif;
+  font-weight: 400;
+  font-size: 24px;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+}
 .sub {
-  color: #a9b5cf;
+  color: #5c5c5c;
   font-size: 13px;
 }
 .row {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin-top: 4px;
+  margin-top: 6px;
 }
 button {
   font: inherit;
   font-size: 13px;
+  font-weight: 500;
   min-height: 32px;
-  padding: 0 10px;
-  border-radius: 8px;
-  border: 1px solid #2a3b63;
-  background: #17264a;
-  color: #e8edf7;
+  padding: 0 12px;
+  border-radius: 2rem;
+  border: 0;
+  box-shadow: inset 0 0 0 1px #e2e2e2;
+  background: #ffffff;
+  color: #1d1d1d;
   cursor: pointer;
+  transition: transform 0.2s ease;
+}
+button:hover {
+  background: #f3f3f3;
+  transform: scale(0.97);
 }
 button.primary {
-  background: #7aa7ff;
-  border-color: #7aa7ff;
-  color: #0b1426;
-  font-weight: 600;
+  background: #1d1d1d;
+  color: #ffffff;
+  box-shadow: none;
 }
 button:focus-visible {
-  outline: 3px solid #ffd166;
+  outline: 2px solid #0054f9;
   outline-offset: 2px;
 }
 .brand {
-  color: #a9b5cf;
+  color: #8a8a8a;
   font-size: 11px;
-  margin-top: 2px;
+  margin-top: 4px;
+  letter-spacing: 0.02em;
+}
+@media (prefers-color-scheme: dark) {
+  .toast {
+    background: #131318;
+    color: #ffffff;
+    box-shadow:
+      0 18px 40px -16px rgba(0, 0, 0, 0.7),
+      0 0 0 1px rgba(255, 255, 255, 0.1);
+  }
+  .sub {
+    color: rgba(255, 255, 255, 0.66);
+  }
+  button {
+    background: #131318;
+    color: #ffffff;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+  }
+  button:hover {
+    background: #1b1b21;
+  }
+  button.primary {
+    background: #ffffff;
+    color: #0a0a0f;
+  }
 }
 @media (prefers-reduced-motion: no-preference) {
   .toast {
-    animation: in 0.18s ease-out;
+    animation: in 0.2s ease-out;
   }
   @keyframes in {
     from {
