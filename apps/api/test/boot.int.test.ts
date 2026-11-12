@@ -1,5 +1,8 @@
 import { spawn, type ChildProcess } from "node:child_process";
+import { readFileSync } from "node:fs";
 import { createServer } from "node:net";
+import { join } from "node:path";
+import { WIF } from "@suiem/config/chains";
 import { afterAll, describe, expect, inject, test } from "vitest";
 import { bootstrap } from "../src/main";
 
@@ -27,6 +30,27 @@ async function anvil(chainId: number): Promise<{ url: string; proc: ChildProcess
     await new Promise((r) => setTimeout(r, 100));
   }
   throw new Error("anvil did not start");
+}
+
+/**
+ * Boot checks $WIF's identity on chain 4663 once SuiemElections is deployed, so the local mainnet
+ * stand-in needs the burnable mock at the real $WIF address (same setup as elections.int.test).
+ */
+async function installWifMock(url: string): Promise<void> {
+  const out = join(import.meta.dirname, "..", "..", "..", "packages", "contracts", "out");
+  const mock = JSON.parse(readFileSync(join(out, "LocalWIF.sol", "LocalWIF.json"), "utf8"));
+  const r = await fetch(url, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      jsonrpc: "2.0",
+      id: 1,
+      method: "anvil_setCode",
+      params: [WIF.address, mock.deployedBytecode.object],
+    }),
+  });
+  const j = (await r.json()) as { error?: unknown };
+  if (j.error) throw new Error(`anvil_setCode failed: ${JSON.stringify(j.error)}`);
 }
 
 const procs: ChildProcess[] = [];
@@ -60,6 +84,7 @@ describe("boot chain-ID check", () => {
     const mainnet = await anvil(4663);
     const testnet = await anvil(46630);
     procs.push(mainnet.proc, testnet.proc);
+    await installWifMock(mainnet.url);
     const app = await bootstrap({
       ...baseEnv(),
       MAINNET_RPC_URL: mainnet.url,

@@ -3,7 +3,9 @@ import { RedisContainer } from "@testcontainers/redis";
 import { execFileSync, spawn, type ChildProcess } from "node:child_process";
 import { createServer, request, type IncomingMessage, type Server } from "node:http";
 import { type AddressInfo, createServer as netServer } from "node:net";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { WIF } from "@suiem/config/chains";
 import pg from "pg";
 import { migrate } from "../../../packages/db/src/migrate";
 import { seed } from "../../../packages/db/src/seed";
@@ -92,6 +94,34 @@ export default async function globalSetup() {
     );
   }
 
+  // Boot checks $WIF's identity on 4663 once SuiemElections is deployed: install the burnable mock
+  // (pure name/symbol/decimals) at the real $WIF address on the local mainnet stand-in.
+  const mainnetUrl = `http://127.0.0.1:${mainnetPort}`;
+  const rpc = (method: string, params: unknown[] = []) =>
+    fetch(mainnetUrl, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
+    }).then((r) => r.json() as Promise<{ error?: unknown }>);
+  for (let i = 0; i < 50; i++) {
+    if (
+      await rpc("eth_chainId").then(
+        () => true,
+        () => false,
+      )
+    )
+      break;
+    await new Promise((r) => setTimeout(r, 100));
+  }
+  const mock = JSON.parse(
+    readFileSync(
+      join(ROOT, "packages", "contracts", "out", "LocalWIF.sol", "LocalWIF.json"),
+      "utf8",
+    ),
+  );
+  const set = await rpc("anvil_setCode", [WIF.address, mock.deployedBytecode.object]);
+  if (set.error) throw new Error(`anvil_setCode failed: ${JSON.stringify(set.error)}`);
+
   // 3. The real API
   // No live AI or data providers in E2E: strip keys and run no research worker. The spec simulates
   // a completed brief in the database to check the side panel.
@@ -113,7 +143,7 @@ export default async function globalSetup() {
       SESSION_SECRET: "e2e-session-secret-0123456789abcdef",
       COOKIE_SECURE: "false",
       WEBAUTHN_RP_ID: "localhost",
-      MAINNET_RPC_URL: `http://127.0.0.1:${mainnetPort}`,
+      MAINNET_RPC_URL: mainnetUrl,
       TESTNET_RPC_URL: `http://127.0.0.1:${testnetPort}`,
       RATE_LIMIT_DISABLED: "true",
       EXTENSION_ID: key.extensionId,
