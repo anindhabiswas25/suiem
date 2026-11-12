@@ -1,4 +1,8 @@
-# Suiem
+<p align="center">
+  <img src="docs/assets/logo.svg" alt="Suiem" width="96" height="96">
+</p>
+
+<h1 align="center">Suiem</h1>
 
 **Research first, invest second.** Suiem is a research and investing community on Robinhood Chain. A browser extension spots the companies you read about. An AI research engine turns them into cited briefs. You write theses, trade Stock Tokens on testnet, and build a transparent track record. Each week the community picks its best researchers and investors by **burning real $WIF** in onchain elections.
 
