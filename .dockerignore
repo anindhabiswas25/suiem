@@ -1,0 +1,15 @@
+**/node_modules
+**/.next
+**/.turbo
+**/.output
+**/.output-e2e
+**/test-results
+**/playwright-report
+.git
+.env
+.env.*
+!.env.example
+packages/contracts/out
+packages/contracts/cache
+packages/contracts/lib
+packages/contracts/broadcast
